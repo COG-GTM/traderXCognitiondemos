@@ -12,8 +12,8 @@ xdescribe('TradeTicketComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [TradeTicketComponent],
       imports: [
+        TradeTicketComponent,
         FormsModule,
         TypeaheadModule
       ]

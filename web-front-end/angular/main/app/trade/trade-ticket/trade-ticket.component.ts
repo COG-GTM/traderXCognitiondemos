@@ -7,7 +7,8 @@ import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
 @Component({
   selector: 'app-trade-ticket',
   templateUrl: './trade-ticket.component.html',
-  styleUrls: ['./trade-ticket.component.scss']
+  styleUrls: ['./trade-ticket.component.scss'],
+  standalone: true
 })
 export class TradeTicketComponent implements OnInit {
 

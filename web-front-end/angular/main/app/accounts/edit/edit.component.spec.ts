@@ -14,8 +14,8 @@ describe('Account add/update tests', () => {
   beforeEach(
     waitForAsync(() => {
       TestBed.configureTestingModule({
-        declarations: [EditAccountComponent],
         imports: [
+            EditAccountComponent,
             AlertModule.forRoot(),
             FormsModule
         ],

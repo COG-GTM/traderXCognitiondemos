@@ -5,10 +5,14 @@ import { PositionService } from 'main/app/service/position.service';
 import { Observable } from 'rxjs';
 import { Trade } from '../../model/trade.model';
 import { TradeFeedService } from 'main/app/service/trade-feed.service';
+import { AgGridModule } from 'ag-grid-angular';
+import { CommonModule } from '@angular/common';
 
 @Component({
     selector: 'app-trade-blotter',
-    templateUrl: 'trade-blotter.component.html'
+    templateUrl: 'trade-blotter.component.html',
+    imports: [AgGridModule, CommonModule],
+    standalone: true
 })
 export class TradeBlotterComponent implements OnChanges, OnDestroy {
     trades$: Observable<Trade[]>;

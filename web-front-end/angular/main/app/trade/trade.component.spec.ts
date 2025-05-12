@@ -10,21 +10,25 @@ import { SymbolService } from '../service/symbols.service';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { TradeTicket, Side } from '../model/trade.model';
 import { DropdownModule } from '../dropdown/dropdown.module';
+import { HttpClientModule } from '@angular/common/http';
+import { ModuleRegistry } from 'ag-grid-community';
+import { ClientSideRowModelModule } from 'ag-grid-community';
 
 describe('TradeComponent', () => {
     let component: TradeComponent;
     let fixture: ComponentFixture<TradeComponent>;
 
     beforeEach(async () => {
+        ModuleRegistry.registerModules([ClientSideRowModelModule]);
+        
         await TestBed.configureTestingModule({
-            declarations: [
-                TradeComponent
-            ],
             imports: [
+                TradeComponent,
                 FormsModule,
                 DropdownModule,
                 ModalModule.forRoot(),
-                AlertModule.forRoot()
+                AlertModule.forRoot(),
+                HttpClientModule
             ],
             providers: [
                 {

@@ -1,11 +1,16 @@
 import { Component, Output, EventEmitter, Input } from '@angular/core';
 import { Account } from 'main/app/model/account.model';
 import { AccountService } from 'main/app/service/account.service';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { AlertModule } from 'ngx-bootstrap/alert';
 
 @Component({
     selector: 'app-edit-account',
     templateUrl: 'edit.component.html',
-    styleUrls: ['edit.component.scss']
+    styleUrls: ['edit.component.scss'],
+    imports: [FormsModule, CommonModule, AlertModule],
+    standalone: true
 })
 export class EditAccountComponent {
     @Output() update = new EventEmitter<Account>();

@@ -6,10 +6,17 @@ import { AccountService } from 'main/app/service/account.service';
 import { UserService } from 'main/app/service/user.service';
 import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
 import { map, noop, Observable, Observer, of, switchMap, tap } from 'rxjs';
+import { FormsModule } from '@angular/forms';
+import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
+import { DropdownComponent } from 'main/app/dropdown/dropdown.component';
+import { CommonModule } from '@angular/common';
+import { AlertModule } from 'ngx-bootstrap/alert';
 
 @Component({
     selector: 'app-assign-user',
-    templateUrl: 'assign-user.component.html'
+    templateUrl: 'assign-user.component.html',
+    imports: [FormsModule, TypeaheadModule, DropdownComponent, CommonModule, AlertModule],
+    standalone: true
 })
 export class AssignUserToAccountComponent implements OnInit {
     @Input() accounts: any = [];
@@ -25,7 +32,7 @@ export class AssignUserToAccountComponent implements OnInit {
         this.users$ = new Observable((observer: Observer<string | undefined>) => {
             observer.next(this.search as string | undefined);
         }).pipe(
-            switchMap<string, Observable<User[]>>((query: string) => {
+            switchMap<string | undefined, Observable<User[]>>((query: string | undefined) => {
                 if (query && query.length > 2) {
                     return this.userService.getUsers(query).pipe(
                         map((data: User[]) => data || []),
