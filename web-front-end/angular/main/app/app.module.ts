@@ -11,14 +11,22 @@ import { RouterModule } from '@angular/router';
 import { routes } from './routing';
 import { PageNotFoundComponent } from './page-not-found.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { bootstrapApplication } from '@angular/platform-browser';
 
-@NgModule({ declarations: [AppComponent, PageNotFoundComponent],
-    bootstrap: [AppComponent], imports: [BrowserModule,
+@NgModule({ 
+    declarations: [],
+    imports: [
+        BrowserModule,
         BrowserAnimationsModule,
         CommonModule,
         TradeModule,
         AccountsModule,
         AgGridModule,
         HeaderComponent,
-        RouterModule.forRoot(routes)], providers: [provideHttpClient(withInterceptorsFromDi(), withJsonpSupport())] })
+        AppComponent,
+        PageNotFoundComponent,
+        RouterModule.forRoot(routes)
+    ], 
+    providers: [provideHttpClient(withInterceptorsFromDi(), withJsonpSupport())]
+})
 export class AppModule { }

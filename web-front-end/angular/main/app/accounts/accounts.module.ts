@@ -11,15 +11,16 @@ import { AlertModule } from 'ngx-bootstrap/alert';
 import { DropdownComponent } from '../dropdown/dropdown.component';
 
 @NgModule({
-  declarations: [ButtonCellRendererComponent],
+  declarations: [],
   imports: [
     CommonModule,
     FormsModule,
     TypeaheadModule.forRoot(),
     DropdownComponent,
+    ButtonCellRendererComponent,
     AlertModule.forRoot(),
     AgGridModule
   ],
-  exports: [ButtonCellRendererComponent]
+  exports: []
 })
 export class AccountsModule { }
