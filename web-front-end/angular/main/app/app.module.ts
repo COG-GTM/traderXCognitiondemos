@@ -10,12 +10,15 @@ import { AccountsModule } from './accounts/accounts.module';
 import { RouterModule } from '@angular/router';
 import { routes } from './routing';
 import { PageNotFoundComponent } from './page-not-found.component';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
-@NgModule({ declarations: [AppComponent, HeaderComponent, PageNotFoundComponent],
+@NgModule({ declarations: [AppComponent, PageNotFoundComponent],
     bootstrap: [AppComponent], imports: [BrowserModule,
+        BrowserAnimationsModule,
         CommonModule,
         TradeModule,
         AccountsModule,
         AgGridModule,
+        HeaderComponent,
         RouterModule.forRoot(routes)], providers: [provideHttpClient(withInterceptorsFromDi(), withJsonpSupport())] })
 export class AppModule { }

@@ -8,11 +8,17 @@ import { debounceTime, map, switchMap } from 'rxjs/operators';
 import { ButtonCellRendererComponent } from './button-renderer.component';
 import { AccountUser, User } from '../model/user.model';
 import { UserService } from '../service/user.service';
+import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
+import { EditAccountComponent } from './edit/edit.component';
+import { AssignUserToAccountComponent } from './user/assign-user.component';
 
 @Component({
     selector: 'app-account',
     templateUrl: 'account.component.html',
-    styleUrls: ['account.component.scss']
+    styleUrls: ['account.component.scss'],
+    standalone: true,
+    imports: [AgGridModule, CommonModule, HttpClientModule, EditAccountComponent, AssignUserToAccountComponent]
 })
 export class AccountComponent implements OnInit {
     private gridApi!: GridApi;

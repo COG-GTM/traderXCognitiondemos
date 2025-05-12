@@ -1,10 +1,14 @@
 import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 
 let id = 0;
 
 @Component({
     selector: 'app-ngx-dropdown',
-    templateUrl: './dropdown.component.html'
+    templateUrl: './dropdown.component.html',
+    standalone: true,
+    imports: [CommonModule, BsDropdownModule]
 })
 export class DropdownComponent implements OnInit {
     @Input() items: any[];

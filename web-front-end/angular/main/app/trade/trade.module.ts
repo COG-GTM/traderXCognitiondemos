@@ -8,13 +8,13 @@ import { ModalModule } from 'ngx-bootstrap/modal';
 import { FormsModule } from '@angular/forms';
 import { AlertModule } from 'ngx-bootstrap/alert';
 import { PositionBlotterComponent } from './position-blotter/position-blotter.component';
-import { DropdownModule } from '../dropdown/dropdown.module';
+import { DropdownComponent } from '../dropdown/dropdown.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
 
 @NgModule({
-  declarations: [TradeComponent, TradeTicketComponent, TradeBlotterComponent, PositionBlotterComponent],
+  declarations: [TradeTicketComponent],
   imports: [
     CommonModule,
     AgGridModule,
@@ -23,8 +23,8 @@ import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
     ModalModule.forRoot(),
     AlertModule.forRoot(),
     FormsModule,
-    DropdownModule
+    DropdownComponent
   ],
-  exports: [TradeComponent, TradeTicketComponent, TradeBlotterComponent]
+  exports: [TradeTicketComponent]
 })
 export class TradeModule { }

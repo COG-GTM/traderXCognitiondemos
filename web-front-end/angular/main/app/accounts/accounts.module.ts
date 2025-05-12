@@ -8,18 +8,18 @@ import { ButtonCellRendererComponent } from './button-renderer.component';
 import { AssignUserToAccountComponent } from './user/assign-user.component';
 import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
 import { AlertModule } from 'ngx-bootstrap/alert';
-import { DropdownModule } from '../dropdown/dropdown.module';
+import { DropdownComponent } from '../dropdown/dropdown.component';
 
 @NgModule({
-  declarations: [AccountComponent, EditAccountComponent, AssignUserToAccountComponent],
+  declarations: [ButtonCellRendererComponent],
   imports: [
     CommonModule,
     FormsModule,
     TypeaheadModule.forRoot(),
-    DropdownModule,
+    DropdownComponent,
     AlertModule.forRoot(),
     AgGridModule
   ],
-  exports: [AccountComponent, EditAccountComponent, AssignUserToAccountComponent]
+  exports: [ButtonCellRendererComponent]
 })
 export class AccountsModule { }

@@ -9,8 +9,10 @@ import { User } from 'main/app/model/user.model';
 import { MockAccountService, MockUserService } from 'main/app/test-utils/mocks.service';
 import { sleep } from 'main/app/test-utils/utils';
 import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
-import { DropdownModule } from 'main/app/dropdown/dropdown.module';
+import { DropdownComponent } from 'main/app/dropdown/dropdown.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { CommonModule } from '@angular/common';
 
 
 describe('Assign user to account tests', () => {
@@ -20,8 +22,16 @@ describe('Assign user to account tests', () => {
   beforeEach(
     waitForAsync(() => {
       TestBed.configureTestingModule({
-        declarations: [AssignUserToAccountComponent],
-        imports: [DropdownModule, TypeaheadModule.forRoot(), BrowserAnimationsModule, AlertModule.forRoot(), FormsModule],
+        imports: [
+            AssignUserToAccountComponent,
+            DropdownComponent, 
+            TypeaheadModule.forRoot(), 
+            BrowserAnimationsModule, 
+            AlertModule.forRoot(), 
+            FormsModule,
+            HttpClientTestingModule,
+            CommonModule
+        ],
         providers: [
           {
             provide: AccountService,

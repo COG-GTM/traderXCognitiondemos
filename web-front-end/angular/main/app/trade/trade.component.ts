@@ -6,11 +6,22 @@ import { AccountService } from '../service/account.service';
 import { Stock } from '../model/symbol.model';
 import { SymbolService } from '../service/symbols.service';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+import { FormsModule } from '@angular/forms';
+import { AlertModule } from 'ngx-bootstrap/alert';
+import { ModalModule } from 'ngx-bootstrap/modal';
+import { DropdownComponent } from '../dropdown/dropdown.component';
+import { TradeBlotterComponent } from './trade-blotter/trade-blotter.component';
+import { PositionBlotterComponent } from './position-blotter/position-blotter.component';
+import { TradeTicketComponent } from './trade-ticket/trade-ticket.component';
+import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
 
 @Component({
     selector: 'app-trade',
     templateUrl: './trade.component.html',
-    styleUrls: ['./trade.component.scss']
+    styleUrls: ['./trade.component.scss'],
+    standalone: true,
+    imports: [FormsModule, CommonModule, HttpClientModule, DropdownComponent, ModalModule, AlertModule, TradeBlotterComponent, PositionBlotterComponent, TradeTicketComponent]
 })
 export class TradeComponent implements OnInit {
     accounts: Account[] = [];

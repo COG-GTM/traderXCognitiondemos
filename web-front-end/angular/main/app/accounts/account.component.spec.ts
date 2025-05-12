@@ -6,6 +6,8 @@ import { createAccount, sleep } from 'main/app/test-utils/utils';
 import { AgGridModule } from 'ag-grid-angular';
 import { ButtonCellRendererComponent } from './button-renderer.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('Account tests', () => {
   let comp: AccountComponent;
@@ -14,8 +16,12 @@ describe('Account tests', () => {
   beforeEach(
     waitForAsync(() => {
       TestBed.configureTestingModule({
-        declarations: [AccountComponent],
-        imports: [AgGridModule],
+        imports: [
+          AccountComponent,
+          AgGridModule,
+          BrowserAnimationsModule,
+          HttpClientTestingModule
+        ],
         providers: [
           {
             provide: AccountService,

@@ -6,10 +6,11 @@ import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { DropdownComponent } from "./dropdown.component";
 
 @NgModule({
-    declarations: [DropdownComponent],
-    imports: [CommonModule,
+    imports: [
+        CommonModule,
         BrowserAnimationsModule,
-        BsDropdownModule.forRoot()],
-    exports: [DropdownComponent]
+        BsDropdownModule.forRoot()
+    ],
+    exports: []
 })
 export class DropdownModule { }

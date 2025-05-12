@@ -11,8 +11,8 @@ describe('PositionBlotterComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [PositionBlotterComponent],
       imports: [
+        PositionBlotterComponent,
         AgGridModule
       ],
       providers: [

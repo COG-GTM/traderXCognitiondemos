@@ -9,7 +9,9 @@ import { MockAccountService, MockSymbolService, accounts } from '../test-utils/m
 import { SymbolService } from '../service/symbols.service';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { TradeTicket, Side } from '../model/trade.model';
-import { DropdownModule } from '../dropdown/dropdown.module';
+import { DropdownComponent } from '../dropdown/dropdown.component';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('TradeComponent', () => {
     let component: TradeComponent;
@@ -17,14 +19,14 @@ describe('TradeComponent', () => {
 
     beforeEach(async () => {
         await TestBed.configureTestingModule({
-            declarations: [
-                TradeComponent
-            ],
             imports: [
+                TradeComponent,
                 FormsModule,
-                DropdownModule,
+                DropdownComponent,
                 ModalModule.forRoot(),
-                AlertModule.forRoot()
+                AlertModule.forRoot(),
+                BrowserAnimationsModule,
+                HttpClientTestingModule
             ],
             providers: [
                 {

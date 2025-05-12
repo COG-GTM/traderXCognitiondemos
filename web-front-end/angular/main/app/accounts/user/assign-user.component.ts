@@ -4,12 +4,19 @@ import { Account } from 'main/app/model/account.model';
 import { User } from 'main/app/model/user.model';
 import { AccountService } from 'main/app/service/account.service';
 import { UserService } from 'main/app/service/user.service';
-import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
+import { TypeaheadMatch, TypeaheadModule } from 'ngx-bootstrap/typeahead';
 import { map, noop, Observable, Observer, of, switchMap, tap } from 'rxjs';
+import { FormsModule } from '@angular/forms';
+import { AlertModule } from 'ngx-bootstrap/alert';
+import { DropdownComponent } from 'main/app/dropdown/dropdown.component';
+import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
 
 @Component({
     selector: 'app-assign-user',
-    templateUrl: 'assign-user.component.html'
+    templateUrl: 'assign-user.component.html',
+    standalone: true,
+    imports: [FormsModule, TypeaheadModule, AlertModule, DropdownComponent, CommonModule, HttpClientModule]
 })
 export class AssignUserToAccountComponent implements OnInit {
     @Input() accounts: any = [];
@@ -25,7 +32,7 @@ export class AssignUserToAccountComponent implements OnInit {
         this.users$ = new Observable((observer: Observer<string | undefined>) => {
             observer.next(this.search as string | undefined);
         }).pipe(
-            switchMap<string, Observable<User[]>>((query: string) => {
+            switchMap<string | undefined, Observable<User[]>>((query: string | undefined) => {
                 if (query && query.length > 2) {
                     return this.userService.getUsers(query).pipe(
                         map((data: User[]) => data || []),

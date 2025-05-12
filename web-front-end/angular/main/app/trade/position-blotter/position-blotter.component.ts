@@ -5,11 +5,14 @@ import { Position } from 'main/app/model/trade.model';
 import { PositionService } from 'main/app/service/position.service';
 import { Observable } from 'rxjs';
 import { TradeFeedService } from 'main/app/service/trade-feed.service';
+import { AgGridModule } from 'ag-grid-angular';
 
 @Component({
   selector: 'app-position-blotter',
   templateUrl: './position-blotter.component.html',
-  styleUrls: ['./position-blotter.component.scss']
+  styleUrls: ['./position-blotter.component.scss'],
+  standalone: true,
+  imports: [AgGridModule]
 })
 export class PositionBlotterComponent implements OnChanges, OnDestroy {
   @Input() account?: Account;
