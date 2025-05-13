@@ -4,16 +4,25 @@ import { TradeBlotterComponent } from './trade-blotter.component';
 import { PositionService } from 'main/app/service/position.service';
 import { MockTradeService, MockTradeFeedService, accounts as dummyAccounts, trades } from 'main/app/test-utils/mocks.service';
 import { TradeFeedService } from 'main/app/service/trade-feed.service';
+import { HttpClientModule } from '@angular/common/http';
+import { ModuleRegistry } from 'ag-grid-community';
+import { ClientSideRowModelModule } from 'ag-grid-community';
+import { ValidationModule } from 'ag-grid-community';
+import { HighlightChangesModule } from 'ag-grid-community';
+import { RowSelectionModule } from 'ag-grid-community';
 
 describe('TradeBlotterComponent', () => {
     let component: TradeBlotterComponent;
     let fixture: ComponentFixture<TradeBlotterComponent>;
 
     beforeEach(async () => {
+        ModuleRegistry.registerModules([ClientSideRowModelModule, ValidationModule, HighlightChangesModule, RowSelectionModule]);
+        
         await TestBed.configureTestingModule({
             imports: [
                 AgGridModule,
-                TradeBlotterComponent
+                TradeBlotterComponent,
+                HttpClientModule
             ],
             providers: [
                 {

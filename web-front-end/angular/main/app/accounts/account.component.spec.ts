@@ -7,6 +7,11 @@ import { AgGridModule } from 'ag-grid-angular';
 import { ButtonCellRendererComponent } from './button-renderer.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { ModuleRegistry } from 'ag-grid-community';
+import { ClientSideRowModelModule } from 'ag-grid-community';
+import { ValidationModule } from 'ag-grid-community';
+import { HighlightChangesModule } from 'ag-grid-community';
+import { RowSelectionModule } from 'ag-grid-community';
 
 describe('Account tests', () => {
   let comp: AccountComponent;
@@ -14,6 +19,8 @@ describe('Account tests', () => {
   let element: HTMLElement;
   beforeEach(
     waitForAsync(() => {
+      ModuleRegistry.registerModules([ClientSideRowModelModule, ValidationModule, HighlightChangesModule, RowSelectionModule]);
+      
       TestBed.configureTestingModule({
         imports: [AgGridModule, AccountComponent, HttpClientTestingModule],
         providers: [
