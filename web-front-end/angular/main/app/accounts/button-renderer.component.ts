@@ -8,7 +8,8 @@ type ICellParams = ICellRendererParams & { clicked: (val: any) => void };
   selector: 'app-btn-cell-renderer',
   template: `
       <button class="btn btn-sm btn-info" (click)="clickHandler()">Update</button>
-    `
+    `,
+  standalone: false
 })
 export class ButtonCellRendererComponent implements ICellRendererAngularComp {
   private params: ICellParams;
