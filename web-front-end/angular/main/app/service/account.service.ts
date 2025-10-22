@@ -47,8 +47,9 @@ export class AccountService {
     );
   }
 
-  getAccountUsers(): Observable<AccountUser[]> {
-    return this.http.get<AccountUser[]>(`${this.baseUrl}/accountuser/`, this.httpOptions).pipe(
+  getAccountUsers(accountId?: number): Observable<AccountUser[]> {
+    const params = accountId !== undefined ? `?accountId=${accountId}` : '';
+    return this.http.get<AccountUser[]>(`${this.baseUrl}/accountuser/${params}`, this.httpOptions).pipe(
       catchError((error: HttpErrorResponse) => {
         console.error(error);
         return throwError(() => error);

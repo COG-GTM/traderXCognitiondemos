@@ -44,4 +44,8 @@ public class AccountUserService {
 		return this.accountUserRepository.save(accountUser);
 	}
 
+	public List<AccountUser> getAccountUsersByAccountId(int accountId) {
+		return this.accountUserRepository.findByAccountId(accountId);
+	}
+
 }

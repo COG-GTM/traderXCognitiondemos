@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -62,7 +63,11 @@ public class AccountUserController {
 	}
 
 	@GetMapping("/")
-	public ResponseEntity<List<AccountUser>> getAllAccountUsers() {
+	public ResponseEntity<List<AccountUser>> getAllAccountUsers(
+			@RequestParam(required = false) Integer accountId) {
+		if (accountId != null) {
+			return ResponseEntity.ok(this.accountUserService.getAccountUsersByAccountId(accountId));
+		}
 		return ResponseEntity.ok(this.accountUserService.getAllAccountUsers());
 	}
 
