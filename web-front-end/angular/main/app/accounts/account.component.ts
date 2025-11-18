@@ -67,9 +67,7 @@ export class AccountComponent implements OnInit {
 
         this.users$ = this.accountAddAction$.pipe(
             debounceTime(200),
-            switchMap((accountId) => this.accountService.getAccountUsers().pipe(
-                map((users) => users.filter((user) => user.accountId === accountId))
-            ))
+            switchMap((accountId) => this.accountService.getAccountUsers(accountId))
         );
     }
 
