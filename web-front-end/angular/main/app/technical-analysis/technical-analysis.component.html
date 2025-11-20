@@ -1,0 +1,181 @@
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="dropdown-container">
+                <label for="accountSelect">Account:</label>
+                <app-ngx-dropdown 
+                    id="accountSelect"
+                    [items]="accounts" 
+                    [selectedItem]="accountModel"
+                    itemKey="displayName"
+                    (selectedItemChange)="onAccountChange($event)">
+                </app-ngx-dropdown>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="dropdown-container">
+                <label for="symbolSelect">Symbol:</label>
+                <select id="symbolSelect" class="form-select" [(ngModel)]="selectedSymbol" (change)="onSymbolChange(selectedSymbol)">
+                    <option value="AAPL">AAPL</option>
+                    <option value="GOOGL">GOOGL</option>
+                    <option value="MSFT">MSFT</option>
+                    <option value="TSLA">TSLA</option>
+                    <option value="AMZN">AMZN</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <h2>Technical Analysis Dashboard - {{ selectedSymbol }}</h2>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Price Chart with Fibonacci Retracements</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="height: 400px; position: relative;">
+                        <canvas #priceChart width="100%" height="400"></canvas>
+                        <div class="fibonacci-levels">
+                            <div *ngFor="let level of fibonacciLevels" 
+                                 class="fib-level" 
+                                 [style.bottom.%]="(level.level * 100)"
+                                 [attr.data-price]="level.price.toFixed(2)">
+                                <span class="fib-label">{{ level.label }} - ${{ level.price.toFixed(2) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Key Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="metric-item" *ngIf="priceData.length > 0">
+                        <label>Current Price:</label>
+                        <span class="metric-value">${{ priceData[priceData.length - 1]?.price.toFixed(2) }}</span>
+                    </div>
+                    <div class="metric-item" *ngIf="rsiData.length > 0">
+                        <label>RSI (14):</label>
+                        <span class="metric-value" [class.overbought]="rsiData[rsiData.length - 1]?.rsi > 70" 
+                              [class.oversold]="rsiData[rsiData.length - 1]?.rsi < 30">
+                            {{ rsiData[rsiData.length - 1]?.rsi.toFixed(2) }}
+                        </span>
+                    </div>
+                    <div class="metric-item" *ngIf="macdData.length > 0">
+                        <label>MACD:</label>
+                        <span class="metric-value" [class.positive]="macdData[macdData.length - 1]?.macd > 0"
+                              [class.negative]="macdData[macdData.length - 1]?.macd < 0">
+                            {{ macdData[macdData.length - 1]?.macd.toFixed(4) }}
+                        </span>
+                    </div>
+                    <div class="metric-item" *ngIf="bollingerBands.length > 0">
+                        <label>Bollinger Position:</label>
+                        <span class="metric-value">
+                            {{ getBollingerPosition() }}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>MACD Indicator</h5>
+                </div>
+                <div class="card-body">
+                    <div class="indicator-chart" style="height: 250px;">
+                        <canvas #macdChart width="100%" height="250"></canvas>
+                    </div>
+                    <div class="indicator-legend">
+                        <span class="legend-item macd-line">MACD Line</span>
+                        <span class="legend-item signal-line">Signal Line</span>
+                        <span class="legend-item histogram">Histogram</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>RSI (Relative Strength Index)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="indicator-chart" style="height: 250px;">
+                        <canvas #rsiChart width="100%" height="250"></canvas>
+                    </div>
+                    <div class="rsi-levels">
+                        <div class="level-line overbought-line">Overbought (70)</div>
+                        <div class="level-line oversold-line">Oversold (30)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Bollinger Bands &amp; Moving Averages</h5>
+                </div>
+                <div class="card-body">
+                    <div class="indicator-chart" style="height: 300px;">
+                        <canvas #bollingerChart width="100%" height="300"></canvas>
+                    </div>
+                    <div class="indicator-legend">
+                        <span class="legend-item price-line">Price</span>
+                        <span class="legend-item bb-upper">BB Upper</span>
+                        <span class="legend-item bb-middle">BB Middle (SMA 20)</span>
+                        <span class="legend-item bb-lower">BB Lower</span>
+                        <span class="legend-item ma-10">MA 10</span>
+                        <span class="legend-item ma-50">MA 50</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Technical Analysis Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="analysis-grid">
+                        <div class="analysis-item">
+                            <h6>Trend Analysis</h6>
+                            <p>{{ getTrendAnalysis() }}</p>
+                        </div>
+                        <div class="analysis-item">
+                            <h6>Momentum</h6>
+                            <p>{{ getMomentumAnalysis() }}</p>
+                        </div>
+                        <div class="analysis-item">
+                            <h6>Support/Resistance</h6>
+                            <p>{{ getSupportResistanceAnalysis() }}</p>
+                        </div>
+                        <div class="analysis-item">
+                            <h6>Overall Signal</h6>
+                            <p class="overall-signal" [class]="getOverallSignalClass()">
+                                {{ getOverallSignal() }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

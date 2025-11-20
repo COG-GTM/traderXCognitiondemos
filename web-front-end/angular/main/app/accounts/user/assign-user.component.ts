@@ -25,8 +25,8 @@ export class AssignUserToAccountComponent implements OnInit {
         this.users$ = new Observable((observer: Observer<string | undefined>) => {
             observer.next(this.search as string | undefined);
         }).pipe(
-            switchMap<string, Observable<User[]>>((query: string) => {
-                if (query && query.length > 2) {
+            switchMap<string | undefined, Observable<User[]>>((query: string | undefined) => {
+                if (query && typeof query === 'string' && query.length > 2) {
                     return this.userService.getUsers(query).pipe(
                         map((data: User[]) => data || []),
                         tap(() => noop, err => {

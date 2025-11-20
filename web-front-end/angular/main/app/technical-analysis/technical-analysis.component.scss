@@ -1,0 +1,289 @@
+.container-fluid {
+    padding: 20px;
+}
+
+.dropdown-container {
+    margin-bottom: 15px;
+    
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #333;
+    }
+}
+
+.card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e0e0e0;
+        padding: 15px 20px;
+        
+        h5 {
+            margin: 0;
+            color: #333;
+            font-weight: 600;
+        }
+    }
+    
+    .card-body {
+        padding: 20px;
+    }
+}
+
+.chart-container {
+    position: relative;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    
+    canvas {
+        width: 100%;
+        height: 100%;
+    }
+}
+
+.fibonacci-levels {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    
+    .fib-level {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: rgba(255, 193, 7, 0.7);
+        border-top: 1px dashed #ffc107;
+        
+        .fib-label {
+            position: absolute;
+            right: 10px;
+            top: -10px;
+            background: rgba(255, 193, 7, 0.9);
+            color: #333;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+    }
+}
+
+.metric-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+    
+    &:last-child {
+        border-bottom: none;
+    }
+    
+    label {
+        font-weight: 600;
+        color: #666;
+    }
+    
+    .metric-value {
+        font-weight: 700;
+        font-size: 16px;
+        
+        &.positive {
+            color: #28a745;
+        }
+        
+        &.negative {
+            color: #dc3545;
+        }
+        
+        &.overbought {
+            color: #dc3545;
+            background: rgba(220, 53, 69, 0.1);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        
+        &.oversold {
+            color: #28a745;
+            background: rgba(40, 167, 69, 0.1);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+    }
+}
+
+.indicator-chart {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    position: relative;
+    
+    canvas {
+        width: 100%;
+        height: 100%;
+    }
+}
+
+.indicator-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 10px;
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        font-size: 12px;
+        
+        &::before {
+            content: '';
+            width: 16px;
+            height: 2px;
+            margin-right: 6px;
+            display: inline-block;
+        }
+        
+        &.macd-line::before {
+            background: #007bff;
+        }
+        
+        &.signal-line::before {
+            background: #dc3545;
+        }
+        
+        &.histogram::before {
+            background: #6c757d;
+        }
+        
+        &.price-line::before {
+            background: #333;
+        }
+        
+        &.bb-upper::before {
+            background: #17a2b8;
+        }
+        
+        &.bb-middle::before {
+            background: #6f42c1;
+        }
+        
+        &.bb-lower::before {
+            background: #17a2b8;
+        }
+        
+        &.ma-10::before {
+            background: #28a745;
+        }
+        
+        &.ma-50::before {
+            background: #ffc107;
+        }
+    }
+}
+
+.rsi-levels {
+    position: relative;
+    margin-top: 10px;
+    
+    .level-line {
+        font-size: 11px;
+        font-weight: 600;
+        
+        &.overbought-line {
+            color: #dc3545;
+        }
+        
+        &.oversold-line {
+            color: #28a745;
+        }
+    }
+}
+
+.analysis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    
+    .analysis-item {
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 6px;
+        border-left: 4px solid #007bff;
+        
+        h6 {
+            margin: 0 0 8px 0;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        p {
+            margin: 0;
+            color: #666;
+            line-height: 1.4;
+        }
+        
+        .overall-signal {
+            font-weight: 700;
+            font-size: 18px;
+            
+            &.bullish {
+                color: #28a745;
+            }
+            
+            &.bearish {
+                color: #dc3545;
+            }
+            
+            &.neutral {
+                color: #6c757d;
+            }
+        }
+    }
+}
+
+.form-select {
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: #fff;
+    font-size: 14px;
+    
+    &:focus {
+        border-color: #007bff;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+}
+
+h2 {
+    color: #333;
+    font-weight: 600;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #007bff;
+}
+
+@media (max-width: 768px) {
+    .analysis-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .indicator-legend {
+        justify-content: center;
+    }
+    
+    .fibonacci-levels .fib-label {
+        font-size: 10px;
+        padding: 1px 4px;
+    }
+}
