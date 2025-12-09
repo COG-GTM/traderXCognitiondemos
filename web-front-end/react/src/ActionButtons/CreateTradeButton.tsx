@@ -4,6 +4,43 @@ import { style } from "../style";
 import { ActionButtonsProps, Side } from "./types";
 import { Environment } from '../env';
 
+/**
+ * CreateTradeButton Component
+ * 
+ * A React functional component that provides a modal dialog for creating new trades.
+ * This component was migrated from the Angular TradeTicketComponent.
+ * 
+ * @description
+ * Renders a button that opens a modal containing a trade creation form with:
+ * - Security dropdown (populated from reference data service)
+ * - Quantity input field
+ * - Buy/Sell toggle buttons
+ * - Submit button with success feedback
+ * 
+ * On modal open, fetches available securities from the reference data service.
+ * On submission, sends a POST request to the trade service API to create the trade.
+ * Displays a success message briefly before closing the modal.
+ * 
+ * @migration
+ * - Angular Source: TradeTicketComponent in trade/trade-ticket/trade-ticket.component.ts
+ * - Angular @Input() stocks replaced with internal state populated on modal open
+ * - Angular @Input() account replaced with accountId prop
+ * - Angular @Output() create EventEmitter replaced with direct API call
+ * - Angular @Output() cancel EventEmitter replaced with modal close handler
+ * - ngOnInit ticket initialization replaced with useState hooks
+ * - Angular TypeaheadMatch replaced with MUI Select component
+ * - Angular form binding replaced with controlled components and useCallback handlers
+ * 
+ * @param {ActionButtonsProps} props - Component props
+ * @param {number} props.accountId - The ID of the account to create the trade for
+ * 
+ * @example
+ * ```tsx
+ * <CreateTradeButton accountId={12345} />
+ * ```
+ * 
+ * @returns {JSX.Element} A button that opens a modal with a trade creation form
+ */
 export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 	const [refData, setRefData] = useState<any>([]);
 	const tradeId = Math.floor(Math.random() * 1000000);
