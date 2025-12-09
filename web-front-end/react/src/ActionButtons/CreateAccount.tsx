@@ -6,6 +6,30 @@ import Form, { IChangeEvent } from '@rjsf/core';
 import { style } from "../style";
 import { Environment } from '../env';
 
+/**
+ * CreateAccount Component
+ * 
+ * A React functional component that provides a modal dialog for creating new trading accounts.
+ * This component was migrated from the Angular AccountService.addAccount() functionality.
+ * 
+ * @description
+ * Renders a button that opens a modal containing a form for creating a new account.
+ * The form uses react-jsonschema-form (@rjsf/core) for form rendering and validation.
+ * On submission, it sends a POST request to the account service API to create the account.
+ * 
+ * @migration
+ * - Angular Source: AccountService.addAccount() in service/account.service.ts
+ * - Angular HttpClient replaced with fetch API
+ * - RxJS Observables replaced with async/await pattern
+ * - Angular form handling replaced with @rjsf/core
+ * 
+ * @example
+ * ```tsx
+ * <CreateAccount />
+ * ```
+ * 
+ * @returns {JSX.Element} A button that opens a modal with an account creation form
+ */
 export const CreateAccount = () => {
 	const accountId = Math.floor(Math.random() * 10000)
 	const schema: RJSFSchema = {

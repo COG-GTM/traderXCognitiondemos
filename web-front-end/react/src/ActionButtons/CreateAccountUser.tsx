@@ -8,6 +8,36 @@ import { ActionButtonsProps, PeopleData } from "./types";
 import { MatchingPeople } from "../AccountsDropdown";
 import { Environment } from '../env';
 
+/**
+ * CreateAccountUser Component
+ * 
+ * A React functional component that provides a modal dialog for assigning users to trading accounts.
+ * This component was migrated from the Angular AssignUserToAccountComponent.
+ * 
+ * @description
+ * Renders a button that opens a modal containing a form for creating or updating account users.
+ * The form includes a typeahead search for users that queries the People Service API.
+ * On form change, it fetches matching people from the API to provide autocomplete suggestions.
+ * On submission, it sends a POST request to the account service API to assign the user.
+ * 
+ * @migration
+ * - Angular Source: AssignUserToAccountComponent in accounts/user/assign-user.component.ts
+ * - Angular @Input() account replaced with accountId prop
+ * - Angular @Output() update EventEmitter replaced with internal state management
+ * - RxJS Observable pipe with switchMap replaced with useCallback and async/await
+ * - Angular HttpClient replaced with fetch API
+ * - ngOnInit Observable setup replaced with useCallback onChange handler
+ * 
+ * @param {ActionButtonsProps} props - Component props
+ * @param {number} props.accountId - The ID of the account to assign users to
+ * 
+ * @example
+ * ```tsx
+ * <CreateAccountUser accountId={12345} />
+ * ```
+ * 
+ * @returns {JSX.Element} A button that opens a modal with a user assignment form
+ */
 export const CreateAccountUser = (
 	{accountId}:ActionButtonsProps
 	) => {
