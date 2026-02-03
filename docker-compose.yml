@@ -171,6 +171,29 @@ services:
     depends_on:
       - database
       - trade-feed
+  pnl-service:
+    restart: always
+    image: pnl-service
+    build:
+      context: pnl-service
+      dockerfile: Dockerfile
+    working_dir: /pnl-service
+    expose:
+      - 18095
+    ports:
+      - 18095:18095
+    environment:
+      - DATABASE_TCP_HOST=database
+      - TRADE_FEED_HOST=trade-feed
+    volumes:
+      # Mount the root folder that contains .git
+      - .:/workspace:cached
+    command: ./gradlew bootRun
+    networks:
+      - localnet
+    depends_on:
+      - database
+      - trade-feed
   web-front-end-angular:
     restart: always
     image: web-front-end-angular
@@ -213,6 +236,7 @@ services:
       - position-service
       - trade-service
       - trade-processor
+      - pnl-service
       - web-front-end-angular
 
 networks:
