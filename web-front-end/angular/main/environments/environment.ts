@@ -9,7 +9,8 @@ export const environment = {
     tradesUrl:          `//${window.location.hostname}:18092/trade/`,
     positionsUrl:       `//${window.location.hostname}:18090`,
     peopleUrl:          `//${window.location.hostname}:18089`,
-    tradeFeedUrl:       `//${window.location.hostname}:18086`
+    tradeFeedUrl:       `//${window.location.hostname}:18086`,
+    pnlUrl:             `//${window.location.hostname}:18095`
 };
 
 /*
