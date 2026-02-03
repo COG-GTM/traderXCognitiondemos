@@ -205,6 +205,37 @@ resource tradeprocessor 'Applications.Core/containers@2023-10-01-preview' = {
   }
 }
 
+resource pnlservice 'Applications.Core/containers@2023-10-01-preview' = {
+  name: 'pnl-service'
+  properties: {
+    application: application
+    container: {
+      image: 'ghcr.io/finos/traderx/pnl-service:latest'
+      ports: {
+        web: {
+          containerPort: 18095
+        }
+      }
+      env: {
+        DATABASE_TCP_HOST: {
+          value: database.name
+        }
+        TRADE_FEED_HOST: {
+          value: tradefeed.name
+        }
+      }
+    }
+    connections: {
+      db: {
+        source: database.id
+      }
+      tradefeed: {
+        source: tradefeed.id
+      }
+    }
+  }
+}
+
 resource webfrontend 'Applications.Core/containers@2023-10-01-preview' = {
   name: 'web-front-end-angular'
   properties: {
@@ -271,6 +302,9 @@ resource ingress 'Applications.Core/containers@2023-10-01-preview' = {
       }
       tradeprocessor: {
         source: tradeprocessor.id
+      }
+      pnlservice: {
+        source: pnlservice.id
       }
       webfrontend: {
         source: webfrontend.id

@@ -55,6 +55,9 @@
         location /trade-processor/ {
             proxy_pass http://trade-processor:18091/;
         }
+        location /pnl-service/ {
+            proxy_pass http://pnl-service:18095/;
+        }
         location / {
             proxy_pass http://web-front-end-angular:18093/;
         }
