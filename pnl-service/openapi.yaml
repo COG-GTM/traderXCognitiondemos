@@ -1,0 +1,153 @@
+openapi: 3.0.1
+info:
+  title: FINOS TraderX P&L Service
+  description: Service for calculating and retrieving profit and loss data for trading accounts
+  version: 0.1.0
+servers:
+  - url: ''
+    description: Empty URL to help proxied documentation work
+paths:
+  /pnl/{accountId}:
+    get:
+      tags:
+        - pnl-controller
+      summary: Get P&L summary for an account
+      operationId: getPnlSummary
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PnlSummary'
+  /pnl/{accountId}/realized:
+    get:
+      tags:
+        - pnl-controller
+      summary: Get realized P&L breakdown by security
+      operationId: getRealizedPnl
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SecurityPnl'
+  /pnl/{accountId}/unrealized:
+    get:
+      tags:
+        - pnl-controller
+      summary: Get unrealized P&L breakdown by security
+      operationId: getUnrealizedPnl
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SecurityPnl'
+  /pnl/{accountId}/securities/{security}:
+    get:
+      tags:
+        - pnl-controller
+      summary: Get P&L for a specific security
+      operationId: getSecurityPnl
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: security
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityPnl'
+components:
+  schemas:
+    PnlSummary:
+      type: object
+      properties:
+        accountId:
+          type: integer
+          format: int32
+          example: 22214
+        realizedPnl:
+          type: number
+          format: decimal
+          example: 1250.50
+        unrealizedPnl:
+          type: number
+          format: decimal
+          example: 2500.75
+        totalPnl:
+          type: number
+          format: decimal
+          example: 3751.25
+        securityBreakdown:
+          type: array
+          items:
+            $ref: '#/components/schemas/SecurityPnl'
+    SecurityPnl:
+      type: object
+      properties:
+        security:
+          type: string
+          example: 'AAPL'
+        quantity:
+          type: integer
+          format: int32
+          example: 100
+        averageCost:
+          type: number
+          format: decimal
+          example: 150.25
+        currentPrice:
+          type: number
+          format: decimal
+          example: 175.50
+        realizedPnl:
+          type: number
+          format: decimal
+          example: 500.00
+        unrealizedPnl:
+          type: number
+          format: decimal
+          example: 2525.00
+        totalPnl:
+          type: number
+          format: decimal
+          example: 3025.00

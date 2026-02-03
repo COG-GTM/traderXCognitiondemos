@@ -1,5 +1,7 @@
 Drop Table Trades IF EXISTS;
 
+Drop Table MarketPrices IF EXISTS;
+
 Drop Table AccountUsers IF EXISTS; 
 
 Drop Table Positions IF EXISTS; 
@@ -18,7 +20,9 @@ CREATE TABLE Positions ( AccountID INTEGER , Security VARCHAR(15) , Updated TIME
 
 Alter Table Positions ADD FOREIGN KEY (AccountID) References Accounts(ID) ; 
 
-CREATE TABLE Trades ( ID Varchar (50) Primary Key, AccountID INTEGER, Created TIMESTAMP, Updated TIMESTAMP, Security VARCHAR (15) ,  Side VARCHAR(10) check (Side in ('Buy','Sell')),  Quantity INTEGER check Quantity > 0 , State VARCHAR(20) check (State in ('New', 'Processing', 'Settled', 'Cancelled'))) ;  
+CREATE TABLE Trades ( ID Varchar (50) Primary Key, AccountID INTEGER, Created TIMESTAMP, Updated TIMESTAMP, Security VARCHAR (15) ,  Side VARCHAR(10) check (Side in ('Buy','Sell')),  Quantity INTEGER check Quantity > 0 , State VARCHAR(20) check (State in ('New', 'Processing', 'Settled', 'Cancelled')), Price DECIMAL(10,2)) ;
+
+CREATE TABLE MarketPrices ( Security VARCHAR(15) Primary Key, Price DECIMAL(10,2), Updated TIMESTAMP) ;  
 
 Alter Table Trades Add Foreign Key (AccountID) references Accounts(ID); 
 
@@ -57,14 +61,24 @@ INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user01');
 INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user06'); 
  
 
-INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID) VALUES('TRADE-22214-AABBCC', NOW(), NOW(), 'IBM', 'Sell', 100, 'Settled', 22214); 
-INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID) VALUES('TRADE-22214-DDEEFF', NOW(), NOW(), 'MS', 'Buy', 1000, 'Settled', 22214); 
-INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID) VALUES('TRADE-22214-GGHHII', NOW(), NOW(), 'C', 'Sell', 2000, 'Settled', 22214); 
+INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID, Price) VALUES('TRADE-22214-AABBCC', NOW(), NOW(), 'IBM', 'Sell', 100, 'Settled', 22214, 145.50); 
+INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID, Price) VALUES('TRADE-22214-DDEEFF', NOW(), NOW(), 'MS', 'Buy', 1000, 'Settled', 22214, 85.25); 
+INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID, Price) VALUES('TRADE-22214-GGHHII', NOW(), NOW(), 'C', 'Sell', 2000, 'Settled', 22214, 52.75); 
 
 INSERT into Positions (AccountID, Security, Updated, Quantity) VALUES(22214, 'MS',NOW(), 1000); 
 INSERT into Positions (AccountID, Security, Updated, Quantity) VALUES(22214, 'IBM',NOW(), -100); 
 INSERT into Positions (AccountID, Security, Updated, Quantity) VALUES(22214, 'C',NOW(), -2000); 
 
 
-INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID) VALUES('TRADE-52355-AABBCC', NOW(), NOW(), 'BAC', 'Sell', 2400, 'Settled', 52355); 
-INSERT into Positions (AccountID, Security, Updated, Quantity) VALUES(52355, 'BAC',NOW(), -2400); 
+INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID, Price) VALUES('TRADE-52355-AABBCC', NOW(), NOW(), 'BAC', 'Sell', 2400, 'Settled', 52355, 32.50); 
+INSERT into Positions (AccountID, Security, Updated, Quantity) VALUES(52355, 'BAC',NOW(), -2400);
+
+--- MARKET PRICES ---
+INSERT into MarketPrices (Security, Price, Updated) VALUES('IBM', 148.75, NOW());
+INSERT into MarketPrices (Security, Price, Updated) VALUES('MS', 87.50, NOW());
+INSERT into MarketPrices (Security, Price, Updated) VALUES('C', 54.25, NOW());
+INSERT into MarketPrices (Security, Price, Updated) VALUES('BAC', 33.75, NOW());
+INSERT into MarketPrices (Security, Price, Updated) VALUES('AAPL', 175.50, NOW());
+INSERT into MarketPrices (Security, Price, Updated) VALUES('GOOGL', 142.25, NOW());
+INSERT into MarketPrices (Security, Price, Updated) VALUES('MSFT', 378.50, NOW());
+INSERT into MarketPrices (Security, Price, Updated) VALUES('AMZN', 178.25, NOW());       
