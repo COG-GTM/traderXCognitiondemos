@@ -8,13 +8,14 @@ import { ModalModule } from 'ngx-bootstrap/modal';
 import { FormsModule } from '@angular/forms';
 import { AlertModule } from 'ngx-bootstrap/alert';
 import { PositionBlotterComponent } from './position-blotter/position-blotter.component';
+import { AnalyticsDashboardComponent } from './analytics-dashboard/analytics-dashboard.component';
 import { DropdownModule } from '../dropdown/dropdown.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-
+import { NgChartsModule } from 'ng2-charts';
 import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
 
 @NgModule({
-  declarations: [TradeComponent, TradeTicketComponent, TradeBlotterComponent, PositionBlotterComponent],
+  declarations: [TradeComponent, TradeTicketComponent, TradeBlotterComponent, PositionBlotterComponent, AnalyticsDashboardComponent],
   imports: [
     CommonModule,
     AgGridModule,
@@ -23,8 +24,9 @@ import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
     ModalModule.forRoot(),
     AlertModule.forRoot(),
     FormsModule,
-    DropdownModule
+    DropdownModule,
+    NgChartsModule
   ],
-  exports: [TradeComponent, TradeTicketComponent, TradeBlotterComponent]
+  exports: [TradeComponent, TradeTicketComponent, TradeBlotterComponent, AnalyticsDashboardComponent]
 })
 export class TradeModule { }
