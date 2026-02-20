@@ -1,0 +1,21 @@
+.account-management {
+  padding: 20px;
+  padding-top: 12px;
+}
+
+.account-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.account-grid-section {
+  margin-top: 16px;
+}
+
+.user-section {
+  margin-top: 16px;
+}
+
+.user-grid-section {
+  margin-top: 16px;
+}
