@@ -46,6 +46,7 @@ public class TradeService {
         t.setSecurity(order.getSecurity());
         t.setSide(order.getSide());
         t.setQuantity(order.getQuantity());
+        t.setPrice(order.getPrice());
 		t.setState(TradeState.New);
 		Position position=positionRepository.findByAccountIdAndSecurity(order.getAccountId(), order.getSecurity());
 		log.info("Position for "+order.getAccountId()+" "+order.getSecurity()+" is "+position);

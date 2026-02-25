@@ -89,6 +89,17 @@ public class Trade implements Serializable {
 		this.quantity = quantity;
 	}
 
+	@Column(name = "PRICE")
+	private Double price;
+
+	public Double getPrice() {
+		return this.price;
+	}
+
+	public void setPrice(Double price) {
+		this.price = price;
+	}
+
 	@Column(name = "UPDATED")
 	private Date updated;
 
