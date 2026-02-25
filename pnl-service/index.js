@@ -172,13 +172,14 @@ function connectToTradeFeed() {
   socket.on('connect', () => {
     log.info(`Connected to trade-feed, socket id: ${socket.id}`);
 
-    // Subscribe to all known accounts
+    // Subscribe to the global wildcard topic to receive all messages
+    socket.emit('subscribe', '/*');
+    log.info('Subscribed to /* (global wildcard)');
+
+    // Also subscribe per-account for known accounts
     for (const entry of pnlMap.values()) {
       subscribeToAccount(entry.accountId);
     }
-
-    // Also subscribe to wildcard for new accounts
-    socket.emit('subscribe', '/accounts/*/positions');
   });
 
   socket.on('disconnect', () => {
@@ -195,6 +196,14 @@ function connectToTradeFeed() {
     if (posMatch && data) {
       const accountId = parseInt(posMatch[1], 10);
       await handlePositionUpdate(accountId, data);
+      return;
+    }
+
+    // Match /accounts/{accountId}/trades for cost basis updates
+    const tradeMatch = topic.match(/^\/accounts\/(\d+)\/trades$/);
+    if (tradeMatch && data) {
+      const accountId = parseInt(tradeMatch[1], 10);
+      await handleTradeUpdate(accountId, data);
     }
   });
 }
@@ -234,6 +243,33 @@ async function handlePositionUpdate(accountId, data) {
 
   // Subscribe to this account if new
   subscribeToAccount(accountId);
+}
+
+async function handleTradeUpdate(accountId, data) {
+  const security = data.security;
+  const state = data.state;
+  if (!security || state !== 'Settled') return;
+
+  const side = data.side;
+  const qty = data.quantity || 0;
+  const price = data.price || 0;
+  const entry = getOrCreateEntry(accountId, security);
+
+  if (side === 'Buy') {
+    // Update weighted average cost basis
+    const existingLongQty = Math.max(entry.netQuantity - qty, 0); // qty before this trade
+    if (existingLongQty + qty > 0) {
+      entry.avgCostBasis = Math.round(
+        ((entry.avgCostBasis * existingLongQty + price * qty) / (existingLongQty + qty)) * 100
+      ) / 100;
+    }
+  } else if (side === 'Sell') {
+    // Compute realized P&L for this sell
+    entry.realizedPnL += (price - entry.avgCostBasis) * qty;
+    entry.realizedPnL = Math.round(entry.realizedPnL * 100) / 100;
+  }
+
+  log.info(`Processed ${side} trade for account ${accountId}, security ${security}, qty ${qty}, price ${price}`);
 }
 
 // ── REST API ─────────────────────────────────────────────────────────
