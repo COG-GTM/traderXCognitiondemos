@@ -1,0 +1,19 @@
+{
+  "name": "@finos/pnl-service",
+  "version": "1.0.0",
+  "description": "P&L analytics service for computing realized, unrealized, and total P&L per account",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "axios": "^1.7.2",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "socket.io-client": "^4.7.5",
+    "winston": "^3.13.0"
+  }
+}

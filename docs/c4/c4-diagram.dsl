@@ -12,6 +12,7 @@ workspace "FINOS TraderX Sample Application" "An example distributed system in f
             tradingService = container "Trading Services" "Allows employees create and update trades" "Java and Spring Boot"
             messagebus = container "Trade Feed" "Message bus for streaming updates to trades and positions" "Topic-based Publish-subscribe engine" "SocketIO"
             tradeProcessor = container "Trade Processor" "Process incoming trade requests, settle, and persist" "Java and Spring Boot"
+            pnlService = container "PnL Service" "Computes realized, unrealized, and total P&L per account" "NodeJS and Express"
             database = container "Database" "Stores account, trade, and position state." "Relational database schema" "H2 Standalone"
         }
             userDirectory = softwaresystem "User Directory" "Golden source of User Data"  "External"
@@ -34,6 +35,10 @@ workspace "FINOS TraderX Sample Application" "An example distributed system in f
         accountService -> peopleService "Validates People IDs when creating/modifying accounts" "REST/JSON/HTTP"
         tradingService -> accountService "Validates accounts when creating trades" "REST/JSON/HTTP"
         tradingService -> refDataService "Validates securities when creating trades" "REST/JSON/HTTP"
+        pnlService -> positionService "Bootstraps trade history and positions" "REST/JSON/HTTP"
+        pnlService -> refDataService "Fetches current market prices" "REST/JSON/HTTP"
+        pnlService -> messagebus "Subscribes to position updates; publishes P&L updates" "SocketIO/JSON"
+        webFrontend -> pnlService "Loads P&L snapshot for account" "REST/JSON/HTTP"
         
         trader  -> webFrontend "Manage Accounts"
         trader  -> webFrontend "Execute Trades"

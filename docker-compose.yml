@@ -171,6 +171,30 @@ services:
     depends_on:
       - database
       - trade-feed
+  pnl-service:
+    restart: always
+    image: pnl-service
+    build:
+      context: pnl-service
+      dockerfile: Dockerfile
+    working_dir: /pnl-service
+    expose:
+      - 18095
+    ports:
+      - 18095:18095
+    environment:
+      - TRADE_FEED_HOST=trade-feed
+      - POSITION_SERVICE_HOST=position-service
+      - REFERENCE_DATA_HOST=reference-data
+    volumes:
+      - .:/workspace:cached
+    command: npm run start
+    networks:
+      - localnet
+    depends_on:
+      - trade-feed
+      - position-service
+      - reference-data
   web-front-end-angular:
     restart: always
     image: web-front-end-angular
@@ -213,6 +237,7 @@ services:
       - position-service
       - trade-service
       - trade-processor
+      - pnl-service
       - web-front-end-angular
 
 networks:

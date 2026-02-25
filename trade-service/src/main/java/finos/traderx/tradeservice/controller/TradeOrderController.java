@@ -56,6 +56,10 @@ public class TradeOrderController {
 		else
 		{
 			try{
+				Double executionPrice = fetchExecutionPrice(tradeOrder.getSecurity());
+				if (executionPrice != null) {
+					tradeOrder.setPrice(executionPrice);
+				}
 				log.info("Trade is valid. Submitting {}", tradeOrder);
 				tradePublisher.publish("/trades",tradeOrder);
 				return  ResponseEntity.ok(tradeOrder);
@@ -88,6 +92,23 @@ public class TradeOrderController {
 		}
 	}		
 	
+	private Double fetchExecutionPrice(String ticker)
+	{
+		String url = this.referenceDataServiceAddress + "//prices/" + ticker;
+		try {
+			ResponseEntity<java.util.Map> response = this.restTemplate.getForEntity(url, java.util.Map.class);
+			Object priceObj = response.getBody().get("price");
+			if (priceObj instanceof Number) {
+				return ((Number) priceObj).doubleValue();
+			}
+			return null;
+		}
+		catch (Exception ex) {
+			log.warn("Could not fetch execution price for " + ticker + ": " + ex.getMessage());
+			return null;
+		}
+	}
+
 	private boolean validateAccount(Integer id)
 	{
 		// Move whole method to a sperate class that handles all accounts 
