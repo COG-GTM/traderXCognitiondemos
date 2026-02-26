@@ -1,0 +1,74 @@
+<div class="analytics-dashboard">
+    <h5 class="dashboard-title">Analytics Dashboard</h5>
+
+    <div class="metrics-row" *ngIf="!isPending">
+        <div class="metric-card">
+            <span class="metric-label">Total Trades</span>
+            <span class="metric-value">{{ totalTrades }}</span>
+        </div>
+        <div class="metric-card">
+            <span class="metric-label">Buy Orders</span>
+            <span class="metric-value metric-positive">{{ buyCount }}</span>
+            <span class="metric-sub">{{ buyRatioPercent }}%</span>
+        </div>
+        <div class="metric-card">
+            <span class="metric-label">Sell Orders</span>
+            <span class="metric-value metric-negative">{{ sellCount }}</span>
+            <span class="metric-sub">{{ sellRatioPercent }}%</span>
+        </div>
+        <div class="metric-card">
+            <span class="metric-label">Securities</span>
+            <span class="metric-value">{{ positions.length }}</span>
+        </div>
+    </div>
+
+    <div class="charts-grid" *ngIf="!isPending">
+        <div class="chart-card">
+            <h6 class="chart-title">Trade Volume by Security</h6>
+            <div class="chart-container">
+                <canvas baseChart
+                    [data]="volumeChartData"
+                    [options]="volumeChartOptions"
+                    type="bar">
+                </canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h6 class="chart-title">Buy / Sell Ratio</h6>
+            <div class="chart-container chart-container-sm">
+                <canvas baseChart
+                    [data]="buySellChartData"
+                    [options]="buySellChartOptions"
+                    type="doughnut">
+                </canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h6 class="chart-title">Position Concentration</h6>
+            <div class="chart-container">
+                <canvas baseChart
+                    [data]="positionChartData"
+                    [options]="positionChartOptions"
+                    type="bar">
+                </canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h6 class="chart-title">Trade State Distribution</h6>
+            <div class="chart-container chart-container-sm">
+                <canvas baseChart
+                    [data]="stateChartData"
+                    [options]="stateChartOptions"
+                    type="doughnut">
+                </canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-state" *ngIf="isPending">
+        <span>Loading analytics data...</span>
+    </div>
+</div>
