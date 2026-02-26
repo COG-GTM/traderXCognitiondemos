@@ -5,16 +5,6 @@ import { PositionService } from 'main/app/service/position.service';
 import { TradeFeedService } from 'main/app/service/trade-feed.service';
 import { ChartConfiguration, ChartData } from 'chart.js';
 
-interface SecurityVolume {
-    security: string;
-    totalQuantity: number;
-}
-
-interface StateCount {
-    state: string;
-    count: number;
-}
-
 @Component({
     selector: 'app-analytics-dashboard',
     templateUrl: './analytics-dashboard.component.html',
@@ -25,7 +15,8 @@ export class AnalyticsDashboardComponent implements OnChanges, OnDestroy {
 
     trades: Trade[] = [];
     positions: Position[] = [];
-    isPending = true;
+    isPendingTrades = true;
+    isPendingPositions = true;
     pendingTrades: Trade[] = [];
     pendingPositions: Position[] = [];
 
@@ -176,12 +167,17 @@ export class AnalyticsDashboardComponent implements OnChanges, OnDestroy {
         this.positionUnsubscribeFn?.();
     }
 
+    get isPending(): boolean {
+        return this.isPendingTrades || this.isPendingPositions;
+    }
+
     private resetData() {
         this.trades = [];
         this.positions = [];
         this.pendingTrades = [];
         this.pendingPositions = [];
-        this.isPending = true;
+        this.isPendingTrades = true;
+        this.isPendingPositions = true;
         this.totalTrades = 0;
         this.buyCount = 0;
         this.sellCount = 0;
@@ -228,12 +224,28 @@ export class AnalyticsDashboardComponent implements OnChanges, OnDestroy {
     private processPendingTrades() {
         this.pendingTrades.forEach(t => this.applyTradeUpdate(t));
         this.pendingTrades = [];
-        this.isPending = false;
+        this.isPendingTrades = false;
+        this.drainRemainingPending();
     }
 
     private processPendingPositions() {
         this.pendingPositions.forEach(p => this.applyPositionUpdate(p));
         this.pendingPositions = [];
+        this.isPendingPositions = false;
+        this.drainRemainingPending();
+    }
+
+    private drainRemainingPending() {
+        if (!this.isPending) {
+            if (this.pendingTrades.length) {
+                this.pendingTrades.forEach(t => this.applyTradeUpdate(t));
+                this.pendingTrades = [];
+            }
+            if (this.pendingPositions.length) {
+                this.pendingPositions.forEach(p => this.applyPositionUpdate(p));
+                this.pendingPositions = [];
+            }
+        }
     }
 
     private recalculate() {
