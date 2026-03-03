@@ -119,6 +119,25 @@ services:
       - localnet
     depends_on:
       - database
+  validation-service:
+    restart: always
+    image: validation-service
+    build:
+      context: validation-service
+      dockerfile: Dockerfile
+    expose:
+      - 18095
+    ports:
+      - 18095:18095
+    environment:
+      - ACCOUNT_SERVICE_HOST=account-service
+      - REFERENCE_DATA_HOST=reference-data
+    command: ./gradlew bootRun
+    networks:
+      - localnet
+    depends_on:
+      - account-service
+      - reference-data
   trade-service:
     restart: always
     image: trade-service
@@ -133,8 +152,7 @@ services:
     environment:
       - DATABASE_TCP_HOST=database
       - PEOPLE_SERVICE_HOST=people-service
-      - ACCOUNT_SERVICE_HOST=account-service
-      - REFERENCE_DATA_HOST=reference-data
+      - VALIDATION_SERVICE_HOST=validation-service
       - TRADE_FEED_HOST=trade-feed
     volumes:
       # Mount the root folder that contains .git
@@ -145,8 +163,7 @@ services:
     depends_on:
       - database
       - people-service
-      - account-service
-      - reference-data
+      - validation-service
       - trade-feed
   trade-processor:
     restart: always

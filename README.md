@@ -71,6 +71,7 @@ export TRADE_PROCESSOR_SERVICE_PORT=18091
 export TRADING_SERVICE_PORT=18092
 export WEB_SERVICE_ANGULAR_PORT=18093  #Angular
 export WEB_SERVICE_REACT_PORT=18094  #React
+export VALIDATION_SERVICE_PORT=18095
 ```
 
 The recommended starting sequence to let everything find what it needs is:
@@ -81,6 +82,7 @@ reference-data
 trade-feed
 people-service
 account-service
+validation-service
 position-service
 trade-processor
 trade-service
