@@ -83,6 +83,7 @@ people-service
 account-service
 position-service
 trade-processor
+validation-service
 trade-service
 web-front-end
 ```
