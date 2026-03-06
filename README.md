@@ -82,6 +82,7 @@ trade-feed
 people-service
 account-service
 position-service
+validation-service
 trade-processor
 trade-service
 web-front-end
