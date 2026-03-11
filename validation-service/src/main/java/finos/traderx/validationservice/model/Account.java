@@ -1,4 +1,4 @@
-package finos.traderx.tradeservice.model;
+package finos.traderx.validationservice.model;
 
 public class Account {
     private Integer id;
@@ -7,10 +7,9 @@ public class Account {
     public Account()
     {
 
-
     }
 
-    public Account (Integer id,String displayName)
+    public Account (Integer id, String displayName)
     {
         this.id = id;
         this.displayName = displayName;

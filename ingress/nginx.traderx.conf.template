@@ -55,6 +55,9 @@
         location /trade-processor/ {
             proxy_pass http://trade-processor:18091/;
         }
+        location /validation-service/ {
+            proxy_pass http://validation-service:18094/;
+        }
         location / {
             proxy_pass http://web-front-end-angular:18093/;
         }

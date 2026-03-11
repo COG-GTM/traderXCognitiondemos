@@ -88,7 +88,7 @@ services:
       - 18088:18088
     environment:
       - DATABASE_TCP_HOST=database
-      - PEOPLE_SERVICE_HOST=people-service
+      - VALIDATION_SERVICE_HOST=validation-service
     volumes:
       # Mount the root folder that contains .git
       - .:/workspace:cached
@@ -97,6 +97,29 @@ services:
       - localnet
     depends_on:
       - database
+      - validation-service
+  validation-service:
+    restart: always
+    image: validation-service
+    build:
+      context: validation-service
+      dockerfile: Dockerfile
+    working_dir: /validation-service
+    expose:
+      - 18094
+    ports:
+      - 18094:18094
+    environment:
+      - REFERENCE_DATA_HOST=reference-data
+      - ACCOUNT_SERVICE_HOST=account-service
+      - PEOPLE_SERVICE_HOST=people-service
+    volumes:
+      - .:/workspace:cached
+    command: ./gradlew bootRun
+    networks:
+      - localnet
+    depends_on:
+      - reference-data
       - people-service
   position-service:
     restart: always
@@ -132,9 +155,7 @@ services:
       - 18092:18092
     environment:
       - DATABASE_TCP_HOST=database
-      - PEOPLE_SERVICE_HOST=people-service
-      - ACCOUNT_SERVICE_HOST=account-service
-      - REFERENCE_DATA_HOST=reference-data
+      - VALIDATION_SERVICE_HOST=validation-service
       - TRADE_FEED_HOST=trade-feed
     volumes:
       # Mount the root folder that contains .git
@@ -144,9 +165,7 @@ services:
       - localnet
     depends_on:
       - database
-      - people-service
-      - account-service
-      - reference-data
+      - validation-service
       - trade-feed
   trade-processor:
     restart: always
@@ -214,6 +233,7 @@ services:
       - trade-service
       - trade-processor
       - web-front-end-angular
+      - validation-service
 
 networks:
   localnet:
