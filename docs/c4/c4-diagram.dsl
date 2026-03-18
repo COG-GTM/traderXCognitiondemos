@@ -10,6 +10,7 @@ workspace "FINOS TraderX Sample Application" "An example distributed system in f
             positionService = container "Position Service" "View all trades and positions for an account" "Python and Flask"
             refDataService = container "Reference Data Service" "Provides REST API to securities reference data" "NodeJS"
             tradingService = container "Trading Services" "Allows employees create and update trades" "Java and Spring Boot"
+            validationService = container "Validation Service" "Validates tickers and accounts before trade submission" "Java and Spring Boot"
             messagebus = container "Trade Feed" "Message bus for streaming updates to trades and positions" "Topic-based Publish-subscribe engine" "SocketIO"
             tradeProcessor = container "Trade Processor" "Process incoming trade requests, settle, and persist" "Java and Spring Boot"
             database = container "Database" "Stores account, trade, and position state." "Relational database schema" "H2 Standalone"
@@ -32,8 +33,9 @@ workspace "FINOS TraderX Sample Application" "An example distributed system in f
         webFrontend -> messagebus "Subscribes to trade/position updates feed for currently viewed account" "WebSocket/JSON/WS"
         tradeProcessor -> database "Looks up current positions when bootstraping state, persist trade state and position state" "SQL"
         accountService -> peopleService "Validates People IDs when creating/modifying accounts" "REST/JSON/HTTP"
-        tradingService -> accountService "Validates accounts when creating trades" "REST/JSON/HTTP"
-        tradingService -> refDataService "Validates securities when creating trades" "REST/JSON/HTTP"
+        tradingService -> validationService "Validates trade orders" "REST/JSON/HTTP"
+        validationService -> accountService "Validates accounts" "REST/JSON/HTTP"
+        validationService -> refDataService "Validates securities" "REST/JSON/HTTP"
         
         trader  -> webFrontend "Manage Accounts"
         trader  -> webFrontend "Execute Trades"
@@ -49,17 +51,17 @@ workspace "FINOS TraderX Sample Application" "An example distributed system in f
         }
          
         container  tradingSystem "multiple-services-no-db" {
-            include refDataService webFrontend accountService peopleService userDirectory
+            include refDataService webFrontend accountService peopleService userDirectory validationService
             
         }
         
         container  tradingSystem "multiple-services-db-no-messaging" {
-            include refDataService webFrontend accountService peopleService userDirectory database positionService
+            include refDataService webFrontend accountService peopleService userDirectory database positionService validationService
             
         }
         
         container  tradingSystem "multiple-services-no-async" {
-            include refDataService webFrontend accountService peopleService userDirectory database positionService messagebus
+            include refDataService webFrontend accountService peopleService userDirectory database positionService messagebus validationService
             
         }
         

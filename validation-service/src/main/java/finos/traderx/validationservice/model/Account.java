@@ -1,4 +1,4 @@
-package finos.traderx.tradeservice.model;
+package finos.traderx.validationservice.model;
 
 public class Account {
     private Integer id;
@@ -6,7 +6,6 @@ public class Account {
 
     public Account()
     {
-
 
     }
 
