@@ -1,4 +1,4 @@
-package finos.traderx.tradeservice.model;
+package finos.traderx.validationservice.model;
 
 public class Security {
     private String ticker;

@@ -1,0 +1,47 @@
+openapi: 3.0.1
+info:
+  title: FINOS TraderX Validation Service
+  version: 0.1.0
+servers:
+  - url: ''
+paths:
+  /validate/trade:
+    post:
+      tags:
+        - validation-controller
+      operationId: validateTrade
+      summary: Validate a trade order's security and account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidationRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/ValidationResult'
+components:
+  schemas:
+    ValidationRequest:
+      type: object
+      properties:
+        security:
+          type: string
+          example: 'ADBE'
+        accountId:
+          type: integer
+          format: int32
+          example: 22214
+    ValidationResult:
+      type: object
+      properties:
+        valid:
+          type: boolean
+          example: true
+        errorMessage:
+          type: string
+          example: null
