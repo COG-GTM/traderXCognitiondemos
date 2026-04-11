@@ -1,4 +1,4 @@
-FROM nginx
+FROM nginx:1.29.8-trixie
 
 EXPOSE 8080
 ARG NGINX_HOST="localhost"
