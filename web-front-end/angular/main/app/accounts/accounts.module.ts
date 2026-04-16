@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AccountComponent } from './account.component';
-import { AgGridModule } from 'ag-grid-angular';
+import { AgGridAngular } from 'ag-grid-angular';
 import { EditAccountComponent } from './edit/edit.component';
 import { FormsModule } from '@angular/forms';
 import { ButtonCellRendererComponent } from './button-renderer.component';
@@ -18,7 +18,7 @@ import { DropdownModule } from '../dropdown/dropdown.module';
     TypeaheadModule.forRoot(),
     DropdownModule,
     AlertModule.forRoot(),
-    AgGridModule
+    AgGridAngular
   ],
   exports: [AccountComponent, EditAccountComponent, AssignUserToAccountComponent]
 })

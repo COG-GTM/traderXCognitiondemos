@@ -8,6 +8,7 @@ import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
 import { map, noop, Observable, Observer, of, switchMap, tap } from 'rxjs';
 
 @Component({
+    standalone: false,
     selector: 'app-assign-user',
     templateUrl: 'assign-user.component.html'
 })
@@ -22,8 +23,8 @@ export class AssignUserToAccountComponent implements OnInit {
     constructor(private userService: UserService, private accountService: AccountService) { }
 
     ngOnInit(): void {
-        this.users$ = new Observable((observer: Observer<string | undefined>) => {
-            observer.next(this.search as string | undefined);
+        this.users$ = new Observable((observer: Observer<string>) => {
+            observer.next(this.search || '');
         }).pipe(
             switchMap<string, Observable<User[]>>((query: string) => {
                 if (query && query.length > 2) {
