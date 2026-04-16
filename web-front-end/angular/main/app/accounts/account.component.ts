@@ -1,6 +1,5 @@
-import { ColDef, GridApi, GridReadyEvent, Module } from 'ag-grid-community';
+import { ColDef, GridApi, GridReadyEvent } from 'ag-grid-community';
 import { Component, OnInit } from '@angular/core';
-import { AgGridModule } from 'ag-grid-angular';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AccountService } from '../service/account.service';
 import { Account } from '../model/account.model';
@@ -10,6 +9,7 @@ import { AccountUser, User } from '../model/user.model';
 import { UserService } from '../service/user.service';
 
 @Component({
+    standalone: false,
     selector: 'app-account',
     templateUrl: 'account.component.html',
     styleUrls: ['account.component.scss']
