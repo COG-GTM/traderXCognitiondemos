@@ -1,5 +1,8 @@
 package finos.traderx.tradeservice.controller;
 
+import java.net.URI;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +43,22 @@ public class TradeOrderController {
 	@Value("${account.service.url}")
 	private String accountServiceAddress;
 
+	private Set<String> getAllowedBaseUrls() {
+		return Set.of(referenceDataServiceAddress, accountServiceAddress);
+	}
+
+	private void validateOutboundUrl(String url) {
+		URI parsed = URI.create(url);
+		String scheme = parsed.getScheme();
+		if (scheme == null || (!scheme.equals("http") && !scheme.equals("https"))) {
+			throw new IllegalArgumentException("Invalid URL scheme: " + scheme);
+		}
+		boolean allowed = getAllowedBaseUrls().stream().anyMatch(url::startsWith);
+		if (!allowed) {
+			throw new IllegalArgumentException("Outbound request to untrusted URL: " + url);
+		}
+	}
+
 	@Operation(description = "Submit a new trade order")
 	@PostMapping("/")
 	public ResponseEntity<TradeOrder> createTradeOrder(@Parameter(description = "the intendeded trade order") @RequestBody TradeOrder tradeOrder) {
@@ -70,6 +89,7 @@ public class TradeOrderController {
 		// Move whole method to a sperate class that handles all reference data 
 		// so we can mock it and run without this service up.
 		String url = this.referenceDataServiceAddress + "//stocks/" + ticker;
+		validateOutboundUrl(url);
 		ResponseEntity<Security> response = null;
 
 		try {
@@ -94,6 +114,7 @@ public class TradeOrderController {
 		// so we can mock it and run without this service up.
 
 		String url = this.accountServiceAddress + "//account/" + id;
+		validateOutboundUrl(url);
 		ResponseEntity<Account> response = null;
 
 		try 
