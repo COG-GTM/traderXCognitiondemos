@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 
 import finos.traderx.messaging.Publisher;
 import finos.traderx.messaging.socketio.SocketIOJSONPublisher;
-import finos.traderx.tradeservice.model.TradeOrder;
+import finos.traderx.domain.TradeOrder;
 
 @Configuration
 public class PubSubConfig {

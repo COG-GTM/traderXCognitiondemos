@@ -12,4 +12,4 @@ public interface Envelope<T> {
     public Date getDate();
 
     public String getFrom();
-}
+} 

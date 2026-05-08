@@ -5,7 +5,7 @@ import org.springframework.core.ParameterizedTypeReference;
 
 import finos.traderx.messaging.Envelope;
 import finos.traderx.messaging.socketio.SocketIOJSONSubscriber;
-import finos.traderx.tradeprocessor.model.TradeOrder;
+import finos.traderx.domain.TradeOrder;
 import finos.traderx.tradeprocessor.service.TradeService;
 
 public class TradeFeedHandler extends SocketIOJSONSubscriber<TradeOrder> {

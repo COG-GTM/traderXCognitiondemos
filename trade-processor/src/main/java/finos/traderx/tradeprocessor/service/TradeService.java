@@ -11,6 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import finos.traderx.domain.TradeSide;
+import finos.traderx.domain.TradeState;
+import finos.traderx.domain.TradeOrder;
 import finos.traderx.messaging.PubSubException;
 import finos.traderx.messaging.Publisher;
 import finos.traderx.tradeprocessor.model.*;

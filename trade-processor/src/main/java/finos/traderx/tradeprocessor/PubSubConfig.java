@@ -9,7 +9,7 @@ import finos.traderx.messaging.Subscriber;
 import finos.traderx.messaging.socketio.SocketIOJSONPublisher;
 import finos.traderx.tradeprocessor.model.Position;
 import finos.traderx.tradeprocessor.model.Trade;
-import finos.traderx.tradeprocessor.model.TradeOrder;
+import finos.traderx.domain.TradeOrder;
 
 @Configuration
 public class PubSubConfig {
