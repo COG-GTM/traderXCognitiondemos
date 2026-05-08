@@ -1,5 +1,6 @@
 package finos.traderx.tradeservice.model;
 
+import finos.traderx.domain.TradeSide;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(name = "Request object to initiate a trade on a specific account and details")

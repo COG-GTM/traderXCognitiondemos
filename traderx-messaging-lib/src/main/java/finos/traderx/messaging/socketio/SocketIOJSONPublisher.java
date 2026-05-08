@@ -1,19 +1,17 @@
 package finos.traderx.messaging.socketio;
 
-import java.net.URI;
-
-import org.json.JSONObject;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import finos.traderx.messaging.PubSubException;
-import finos.traderx.messaging.Publisher;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
+import org.json.JSONObject;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import finos.traderx.messaging.Publisher;
+import finos.traderx.messaging.PubSubException;
+
+import java.net.URI;
 
 /**
  * Simple socketIO Publisher, which uses 3 commands - 'subscribe',

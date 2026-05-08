@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import finos.traderx.tradeprocessor.model.TradeBookingResult;
-import finos.traderx.tradeprocessor.model.TradeOrder;
+import finos.traderx.domain.TradeOrder;
 import finos.traderx.tradeprocessor.service.TradeService;
 
 @CrossOrigin("*")

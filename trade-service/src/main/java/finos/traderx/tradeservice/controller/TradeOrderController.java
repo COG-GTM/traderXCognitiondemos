@@ -18,7 +18,7 @@ import finos.traderx.messaging.Publisher;
 import finos.traderx.tradeservice.exceptions.ResourceNotFoundException;
 import finos.traderx.tradeservice.model.Account;
 import finos.traderx.tradeservice.model.Security;
-import finos.traderx.tradeservice.model.TradeOrder;
+import finos.traderx.domain.TradeOrder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 

@@ -1,6 +1,6 @@
 openapi: 3.0.1
 info:
-  title: "Position Service - TraderX"
+  title: "Trade Processor Service - TraderX"
   version: "1.0"
 paths:
   /health:

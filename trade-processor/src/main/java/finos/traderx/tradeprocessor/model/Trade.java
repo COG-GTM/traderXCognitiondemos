@@ -12,6 +12,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import finos.traderx.domain.TradeSide;
+import finos.traderx.domain.TradeState;
+
 @Entity
 @Table(name = "TRADES")
 public class Trade implements Serializable {

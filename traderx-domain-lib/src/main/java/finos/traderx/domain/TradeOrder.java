@@ -1,4 +1,4 @@
-package finos.traderx.tradeprocessor.model;
+package finos.traderx.domain;
 
 public class TradeOrder {
 
