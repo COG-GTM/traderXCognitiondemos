@@ -50,146 +50,30 @@ The project consists of multiple moving parts, and you can see how things hang t
 | [trade-processor](trade-processor) | java/spring | Trade Feed consumer which processes trade/orders |
 | [web-front-end](web-front-end) | html/angular or react | Interactive UI for executing trades and viewing blotter. Note: the AngularJS GUI was an initial contribution and contains account management capabilities. The React GUI was contributed during a hack day and may not work for managing accounts, but it does work for executing trades and viewing the blotter |
 
-## Installation  
-
-This is installed locally through normal git clone operations.
-
-## Usage example (Manual)
-
-In order to get things working together, it is recommended to select a range of ports to provide all running processes with, so that the pieces can interconnect as needed.  To run this all up 'by hand' here are default ports which are used, and you can easily export these variables to your favorite shell. 
+## Check out Code
 
 ```bash
-export DATABASE_TCP_PORT=18082
-export DATABASE_PG_PORT=18083
-export DATABASE_WEB_PORT=18084
-export REFERENCE_DATA_SERVICE_PORT=18085
-export TRADE_FEED_PORT=18086
-export ACCOUNT_SERVICE_PORT=18088
-export PEOPLE_SERVICE_PORT=18089
-export POSITION_SERVICE_PORT=18090
-export TRADE_PROCESSOR_SERVICE_PORT=18091
-export TRADING_SERVICE_PORT=18092
-export WEB_SERVICE_ANGULAR_PORT=18093  #Angular
-export WEB_SERVICE_REACT_PORT=18094  #React
+git clone https://github.com/finos/traderX.git
 ```
 
-The recommended starting sequence to let everything find what it needs is:
+## Run TraderX
+
+**Quick start with Docker Compose:**
 
 ```bash
-database
-reference-data
-trade-feed
-people-service
-account-service
-position-service
-trade-processor
-trade-service
-web-front-end
-```
-
-## Usage (Docker + Docker Compose)
-
-The easiest way to run up the entire system is using Docker Compose. This should work on your local computer using Docker Desktop / Docker Compose (tested on Mac Silicon) and also in Github Codespaces. 
-
-### Codespaces
-If using Github Codespaces it is recommended you select an 8-core type machine with 32GB RAM to ensure all the components have the required resources to start. 
-
-To do this 
-* Select the Green Code menu at the top of this page
-* Select the Codespace tab then click the three dots '...' and select 'New with options...'.
-* Change the machine type to '8-core' and click 'Create codespace'
-
-As of writing, personal Github accounts receive 120 free core hours per month for using Codespaces, see the most recent details [here](https://docs.github.com/en/billing/managing-billing-for-github-codespaces/about-billing-for-github-codespaces#monthly-included-storage-and-core-hours-for-personal-accounts) 
-
-Once you have cloned the repository locally or once your Codespace has started, from the root traderX directory run
-```
+cd traderX
 docker compose up
 ```
-On first run this will build all of the containers from the project specific Dockerfile's and then start them in the correct sequence.
 
-The Docker containers are configured via Docker Compose to connect to a shred virtual network enabling them to communciate whether running on your local computer or via a Codespace.
+WebUI available at http://localhost:8080
 
-Once everything has started the WebUI will be accessible at http://localhost:8080 (even if using a codespace, the localhost URL will be mapped through from your local browser to the Codespace).
+**Other run options:**
+- Docker Compose (easiest)
+- Kubernetes with Tilt
+- Manual run (each service individually)
+- Corporate environments (custom artifact repos)
 
-## Local Building (Corporate Environments)
-
-When building locally in your company, if you are using a corporate artifact repository, you might need to override certain settings such as mavenCentral() in gradle, for the Java projects.
-
-In order to do this, we have designated a `.gitignore`'d folder where you can leave company-specific build scripts. This folder is not managed by git and can be modified locally.
-
-### Local Gradle Use Case
-
-Create a `.corp` directory and in there you can create a `settings.gradle` file which will allow you to build all gradle projects
-
-```sh
-# in the traderX main directory
-mkdir .corp
-touch settings.gradle
-```
-
-The `settings.gradle` file should contain any overrides on your `repositories` and `plugins` block but should also contain these contents:
-
-```groovy
-rootProject.name = 'finos-traderX'
-includeFlat 'database'
-includeFlat 'account-service'
-includeFlat 'position-service'
-includeFlat 'trade-service'
-includeFlat 'trade-processor'
-```
-
-This will include projects in directories at the same level as the .corp directory.
-
-You can also store a separate gradle wrapper here, if you need the `distributionUrl` in your `gradle.properties`  to differ from the public internet one.
-
-To build and run these projects, you can do the following:
-
-```sh
-###### From traderX root #####
-# Note: gradle or ./gradlew can be used, depending on your path
-
-gradle --settings-file .corp/settings.gradle build
-
-# Build specific project
-gradle --settings-file .corp/settings.gradle database:build
-
-# Run specific project
-gradle --settings-file .corp/settings.gradle account-service:bootRun
-
-##### From inside the .corp directory ####
-cd .corp
-./gradlew build
-./gradlew account-service:bootRun
-```
-
-## Usage (K8s)
-
-The following are instructions to build and deploy all TraderX apps to your local enviroment using [tilt](https://tilt.dev) and kustomize files.
-
-## Prerequistes 
-- Running [Docker](https://www.docker.com/products/docker-desktop/) or similar
-- Running K8s - [Kind](https://kind.sigs.k8s.io/) /[Minikube](https://minikube.sigs.k8s.io/docs/start/)/[k3s](https://k3s.io/) or similar
-- Install an [Ingress Controller](https://kubernetes.github.io/ingress-nginx/deploy/)
-
-### Preflight checks
-
-```
-kubectl get pods
-```
-
-or 
-
-Check your cluster is running using the epic tool `k9s` - https://k9scli.io/  
-
-### Start Tilt
-
-This command will build and start all locally built applications and deploy them to your local K8s environment.
-
-```
-cd ./gitops/local/
-tilt up
-```
-
+📖 **[Full Build & Run Guide](docs/running.md)** - detailed instructions for all methods.
 
 # Getting Involved
 

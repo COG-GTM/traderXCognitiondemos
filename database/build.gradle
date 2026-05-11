@@ -12,7 +12,7 @@ plugins {
 }
 
 dependencies {
-   implementation 'com.h2database:h2:2.2.224'
+   implementation 'com.h2database:h2:2.4.240'
 }
 
 application {
@@ -29,6 +29,7 @@ jar {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
+
 tasks.withType(Test).configureEach {
     useJUnitPlatform()
 }
