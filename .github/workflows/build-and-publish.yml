@@ -8,7 +8,7 @@ on:
 
 env:
   VERSION: 'latest'
-  CONTAINER_REGISTRY: 'ghcr.io/finos'
+  CONTAINER_REGISTRY: 'ghcr.io/cog-gtm'
  
 jobs:
   build-ghcr:
