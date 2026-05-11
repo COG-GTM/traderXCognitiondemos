@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 
 import finos.traderx.messaging.PubSubException;
 import finos.traderx.messaging.Publisher;
+import finos.traderx.tradeprocessor.audit.TradeAuditLogger;
 import finos.traderx.tradeprocessor.model.*;
 import finos.traderx.tradeprocessor.repository.*;
 
@@ -25,7 +26,9 @@ public class TradeService {
 	@Autowired
 	PositionRepository positionRepository;
 
-	
+	@Autowired
+	private TradeAuditLogger auditLogger;
+
     @Autowired 
     private Publisher<Trade> tradePublisher;
     
@@ -47,6 +50,7 @@ public class TradeService {
         t.setSide(order.getSide());
         t.setQuantity(order.getQuantity());
 		t.setState(TradeState.New);
+		auditLogger.logTradeReceived(order, t.getId());
 		Position position=positionRepository.findByAccountIdAndSecurity(order.getAccountId(), order.getSecurity());
 		log.info("Position for "+order.getAccountId()+" "+order.getSecurity()+" is "+position);
 		if(position==null) {
@@ -63,12 +67,15 @@ public class TradeService {
 		positionRepository.save(position);
 		// Simulate the handling of this trade...
 		// Now mark as processing
+		TradeState previousState = t.getState();
 		t.setUpdated(new Date());
 		t.setState(TradeState.Processing);
+		auditLogger.logTradeStateChange(t, previousState);
 		// Now mark as settled
 		t.setUpdated(new Date());
 		t.setState(TradeState.Settled);
 		tradeRepository.save(t);
+		auditLogger.logTradeSettled(t);
 		
 
 		TradeBookingResult result=new TradeBookingResult(t, position);

@@ -57,6 +57,9 @@ dependencies {
     implementation 'ch.qos.logback:logback-core:1.5.21'
     implementation 'ch.qos.logback:logback-classic:1.5.21' // Ensure compatibility
 
+    // Structured JSON logging for audit trail (SIEM ingestion)
+    implementation 'net.logstash.logback:logstash-logback-encoder:8.0'
+
     // Override commons-lang3 to fix CVE-2025-48924
     implementation 'org.apache.commons:commons-lang3:3.18.0' // Latest version to fix CVE-2025-48924
 
