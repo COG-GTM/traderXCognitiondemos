@@ -9,6 +9,7 @@ services:
     build:
       context: database
       dockerfile: Dockerfile
+      target: builder
     working_dir: /database
     expose:
       - 18082
@@ -81,6 +82,7 @@ services:
     build:
       context: account-service
       dockerfile: Dockerfile
+      target: builder
     working_dir: /account-service
     expose:
       - 18088
@@ -104,6 +106,7 @@ services:
     build:
       context: position-service
       dockerfile: Dockerfile
+      target: builder
     working_dir: /position-service
     expose:
       - 18090
@@ -125,6 +128,7 @@ services:
     build:
       context: trade-service
       dockerfile: Dockerfile
+      target: builder
     working_dir: /trade-service
     expose:
       - 18092
@@ -154,6 +158,7 @@ services:
     build:
       context: trade-processor
       dockerfile: Dockerfile
+      target: builder
     working_dir: /trade-processor
     expose:
       - 18091
