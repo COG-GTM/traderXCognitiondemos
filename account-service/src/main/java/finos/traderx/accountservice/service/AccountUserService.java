@@ -61,7 +61,9 @@ public class AccountUserService {
 	public AccountUser upsertAccountUser(AccountUser accountUser) {
 		Span span = Span.current();
 		span.setAttribute("accountUser.username", accountUser.getUsername());
-		span.setAttribute("accountUser.accountId", accountUser.getAccountId());
+		if (accountUser.getAccountId() != null) {
+			span.setAttribute("accountUser.accountId", (long) accountUser.getAccountId());
+		}
 		log.info("Upserting account user: username={}, accountId={}", accountUser.getUsername(), accountUser.getAccountId());
 
 		Optional<Account> account = this.accountRepository.findById(accountUser.getAccountId());

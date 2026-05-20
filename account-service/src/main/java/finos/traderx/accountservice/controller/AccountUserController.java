@@ -58,7 +58,9 @@ public class AccountUserController {
 		try {
 			AccountUser retVal = this.accountUserService.getAccountUserById(id);
 			span.setAttribute("accountUser.username", retVal.getUsername());
-			span.setAttribute("accountUser.accountId", retVal.getAccountId());
+			if (retVal.getAccountId() != null) {
+				span.setAttribute("accountUser.accountId", (long) retVal.getAccountId());
+			}
 			span.setStatus(StatusCode.OK);
 			log.info("Account user found: id={}, username={}", id, retVal.getUsername());
 			return ResponseEntity.ok(retVal);
@@ -74,7 +76,9 @@ public class AccountUserController {
 	public ResponseEntity<AccountUser> createAccountUser(@RequestBody AccountUser accountUser) {
 		Span span = Span.current();
 		span.setAttribute("accountUser.username", accountUser.getUsername());
-		span.setAttribute("accountUser.accountId", accountUser.getAccountId());
+		if (accountUser.getAccountId() != null) {
+			span.setAttribute("accountUser.accountId", (long) accountUser.getAccountId());
+		}
 		log.info("Creating account user: username={}, accountId={}", accountUser.getUsername(), accountUser.getAccountId());
 
 		if (validatePerson(accountUser.getUsername())) {
@@ -97,7 +101,9 @@ public class AccountUserController {
 	public ResponseEntity<AccountUser> updateAccountUser(@RequestBody AccountUser accountUser) {
 		Span span = Span.current();
 		span.setAttribute("accountUser.username", accountUser.getUsername());
-		span.setAttribute("accountUser.accountId", accountUser.getAccountId());
+		if (accountUser.getAccountId() != null) {
+			span.setAttribute("accountUser.accountId", (long) accountUser.getAccountId());
+		}
 		log.info("Updating account user: username={}, accountId={}", accountUser.getUsername(), accountUser.getAccountId());
 		AccountUser updated = this.accountUserService.upsertAccountUser(accountUser);
 		span.setStatus(StatusCode.OK);

@@ -56,8 +56,12 @@ public class TradeOrderController {
 	public ResponseEntity<TradeOrder> createTradeOrder(@Parameter(description = "the intendeded trade order") @RequestBody TradeOrder tradeOrder) {
 		Span parentSpan = Span.current();
 		parentSpan.setAttribute("trade.security", tradeOrder.getSecurity());
-		parentSpan.setAttribute("trade.accountId", tradeOrder.getAccountId());
-		parentSpan.setAttribute("trade.quantity", tradeOrder.getQuantity());
+		if (tradeOrder.getAccountId() != null) {
+			parentSpan.setAttribute("trade.accountId", (long) tradeOrder.getAccountId());
+		}
+		if (tradeOrder.getQuantity() != null) {
+			parentSpan.setAttribute("trade.quantity", (long) tradeOrder.getQuantity());
+		}
 		parentSpan.setAttribute("trade.side", tradeOrder.getSide() != null ? tradeOrder.getSide().name() : "unknown");
 		log.info("Called createTradeOrder: security={}, accountId={}, side={}, quantity={}",
 				tradeOrder.getSecurity(), tradeOrder.getAccountId(), tradeOrder.getSide(), tradeOrder.getQuantity());
