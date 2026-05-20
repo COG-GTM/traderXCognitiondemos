@@ -1,5 +1,12 @@
 package finos.traderx.tradeservice.controller;
 
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.context.Scope;
+import io.opentelemetry.instrumentation.annotations.SpanAttribute;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +38,10 @@ public class TradeOrderController {
 
 	@Autowired
 	private Publisher<TradeOrder> tradePublisher;
-	
+
+	@Autowired
+	private Tracer tracer;
+
 	private RestTemplate restTemplate = new RestTemplate();
 
 	@Value("${reference.data.service.url}")
@@ -42,24 +52,45 @@ public class TradeOrderController {
 
 	@Operation(description = "Submit a new trade order")
 	@PostMapping("/")
+	@WithSpan("trade.submit")
 	public ResponseEntity<TradeOrder> createTradeOrder(@Parameter(description = "the intendeded trade order") @RequestBody TradeOrder tradeOrder) {
-		log.info("Called createTradeOrder");
-		
-		if (!validateTicker(tradeOrder.getSecurity())) 
+		Span parentSpan = Span.current();
+		parentSpan.setAttribute("trade.security", tradeOrder.getSecurity());
+		if (tradeOrder.getAccountId() != null) {
+			parentSpan.setAttribute("trade.accountId", (long) tradeOrder.getAccountId());
+		}
+		if (tradeOrder.getQuantity() != null) {
+			parentSpan.setAttribute("trade.quantity", (long) tradeOrder.getQuantity());
+		}
+		parentSpan.setAttribute("trade.side", tradeOrder.getSide() != null ? tradeOrder.getSide().name() : "unknown");
+		log.info("Called createTradeOrder: security={}, accountId={}, side={}, quantity={}",
+				tradeOrder.getSecurity(), tradeOrder.getAccountId(), tradeOrder.getSide(), tradeOrder.getQuantity());
+
+		if (!validateTicker(tradeOrder.getSecurity()))
 		{
+			parentSpan.setStatus(StatusCode.ERROR, "Invalid ticker");
+			parentSpan.setAttribute("trade.validation.result", "ticker_not_found");
 			throw new ResourceNotFoundException(tradeOrder.getSecurity() + " not found in Reference data service.");
 		}
 		else if(!validateAccount(tradeOrder.getAccountId()))
 		{
+			parentSpan.setStatus(StatusCode.ERROR, "Invalid account");
+			parentSpan.setAttribute("trade.validation.result", "account_not_found");
 			throw new ResourceNotFoundException(tradeOrder.getAccountId() + " not found in Account service.");
 		}
 		else
 		{
 			try{
+				parentSpan.setAttribute("trade.validation.result", "passed");
+				parentSpan.addEvent("Trade validated successfully");
 				log.info("Trade is valid. Submitting {}", tradeOrder);
-				tradePublisher.publish("/trades",tradeOrder);
+				publishTrade(tradeOrder);
+				parentSpan.setStatus(StatusCode.OK);
+				parentSpan.addEvent("Trade published to feed");
 				return  ResponseEntity.ok(tradeOrder);
 			}  catch (PubSubException e){
+				parentSpan.recordException(e);
+				parentSpan.setStatus(StatusCode.ERROR, "Failed to publish trade order");
 				throw new RuntimeException("Failed to publish trade order", e);
 			}
 		}
@@ -67,49 +98,94 @@ public class TradeOrderController {
 
 	private boolean validateTicker(String ticker)
 	{
-		// Move whole method to a sperate class that handles all reference data 
-		// so we can mock it and run without this service up.
-		String url = this.referenceDataServiceAddress + "//stocks/" + ticker;
-		ResponseEntity<Security> response = null;
+		Span span = tracer.spanBuilder("trade.validateTicker")
+				.setParent(Context.current())
+				.startSpan();
+		try (Scope scope = span.makeCurrent()) {
+			span.setAttribute("trade.ticker", ticker);
+			String url = this.referenceDataServiceAddress + "//stocks/" + ticker;
+			ResponseEntity<Security> response = null;
 
-		try {
-			response = this.restTemplate.getForEntity(url, Security.class);
-			log.info("Validate ticker " + response.getBody().toString());
-			return true;
-		}
-		catch (HttpClientErrorException ex) {
-			if (ex.getRawStatusCode() == 404) {
-				log.info(ticker + " not found in reference data service.");
+			try {
+				response = this.restTemplate.getForEntity(url, Security.class);
+				log.info("Validate ticker {}", response.getBody().toString());
+				span.setStatus(StatusCode.OK);
+				span.setAttribute("trade.ticker.valid", true);
+				return true;
 			}
-			else {
-				log.error(ex.getMessage());
+			catch (HttpClientErrorException ex) {
+				if (ex.getRawStatusCode() == 404) {
+					log.info("{} not found in reference data service.", ticker);
+					span.setAttribute("trade.ticker.valid", false);
+					span.setStatus(StatusCode.ERROR, "Ticker not found");
+				}
+				else {
+					log.error(ex.getMessage());
+					span.recordException(ex);
+					span.setStatus(StatusCode.ERROR, ex.getMessage());
+				}
+				return false;
 			}
-			return false;
+		} finally {
+			span.end();
 		}
-	}		
-	
+	}
+
 	private boolean validateAccount(Integer id)
 	{
-		// Move whole method to a sperate class that handles all accounts 
-		// so we can mock it and run without this service up.
+		Span span = tracer.spanBuilder("trade.validateAccount")
+				.setParent(Context.current())
+				.startSpan();
+		try (Scope scope = span.makeCurrent()) {
+			span.setAttribute("trade.accountId", id);
+			String url = this.accountServiceAddress + "//account/" + id;
+			ResponseEntity<Account> response = null;
 
-		String url = this.accountServiceAddress + "//account/" + id;
-		ResponseEntity<Account> response = null;
-
-		try 
-		{
-				response = this.restTemplate.getForEntity(url, Account.class);
-				log.info("Validate account " + response.getBody().toString());
-				return true;
+			try
+			{
+					response = this.restTemplate.getForEntity(url, Account.class);
+					log.info("Validate account {}", response.getBody().toString());
+					span.setStatus(StatusCode.OK);
+					span.setAttribute("trade.account.valid", true);
+					return true;
+			}
+			catch (HttpClientErrorException ex) {
+				if (ex.getRawStatusCode() == 404) {
+					log.info("Account {} not found in account service.", id);
+					span.setAttribute("trade.account.valid", false);
+					span.setStatus(StatusCode.ERROR, "Account not found");
+				}
+				else {
+					log.error(ex.getMessage());
+					span.recordException(ex);
+					span.setStatus(StatusCode.ERROR, ex.getMessage());
+				}
+				return false;
+			}
+		} finally {
+			span.end();
 		}
-		catch (HttpClientErrorException ex) {
-			if (ex.getRawStatusCode() == 404) {
-				log.info("Account" + id + " not found in account service.");				
-			}
-			else {
-				log.error(ex.getMessage());
-			}
-			return false;
+	}
+
+	private void publishTrade(TradeOrder tradeOrder) throws PubSubException {
+		Span span = tracer.spanBuilder("trade.publish")
+				.setParent(Context.current())
+				.startSpan();
+		try (Scope scope = span.makeCurrent()) {
+			span.setAttribute("trade.security", tradeOrder.getSecurity());
+			span.setAttribute("trade.accountId", tradeOrder.getAccountId());
+			span.setAttribute("messaging.destination", "/trades");
+			span.setAttribute("messaging.system", "socketio");
+			tradePublisher.publish("/trades", tradeOrder);
+			span.setStatus(StatusCode.OK);
+			log.info("Trade published successfully for account={}, security={}",
+					tradeOrder.getAccountId(), tradeOrder.getSecurity());
+		} catch (PubSubException e) {
+			span.recordException(e);
+			span.setStatus(StatusCode.ERROR, "Failed to publish trade");
+			throw e;
+		} finally {
+			span.end();
 		}
 	}
 }

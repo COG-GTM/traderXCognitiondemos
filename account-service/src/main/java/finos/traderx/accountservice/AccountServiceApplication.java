@@ -1,14 +1,20 @@
 package finos.traderx.accountservice;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 @SpringBootApplication
+@EnableAspectJAutoProxy
 public class AccountServiceApplication {
 
+	private static final Logger log = LoggerFactory.getLogger(AccountServiceApplication.class);
 
 	public static void main(String[] args) {
 		SpringApplication.run(AccountServiceApplication.class, args);
+		log.info("AccountServiceApplication started with OpenTelemetry tracing enabled");
 	}
 
 }
