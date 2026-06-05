@@ -31,6 +31,14 @@
       function addMessage(category,message){
         var item = document.createElement('li');
         item.textContent = `[${category}] ${JSON.stringify(message)}`;
+        // Display the compliance status of trade payloads inline so it is
+        // visible in the feed inspector.
+        var compliance = message && message.payload && message.payload.complianceStatus;
+        if (compliance) {
+          var badge = document.createElement('strong');
+          badge.textContent = ` [compliance: ${compliance}]`;
+          item.appendChild(badge);
+        }
         messages.appendChild(item);
         window.scrollTo(0, document.body.scrollHeight);
       }

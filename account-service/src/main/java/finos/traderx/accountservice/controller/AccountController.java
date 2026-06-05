@@ -4,7 +4,9 @@ import java.util.List;
 
 import finos.traderx.accountservice.exceptions.ResourceNotFoundException;
 import finos.traderx.accountservice.model.Account;
+import finos.traderx.accountservice.model.AccountTradeSummary;
 import finos.traderx.accountservice.service.AccountService;
+import finos.traderx.accountservice.service.TradeSummaryService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,10 +30,18 @@ public class AccountController {
 	@Autowired
 	AccountService accountService;
 
+	@Autowired
+	TradeSummaryService tradeSummaryService;
+
 	@GetMapping("/{id}")
 	public ResponseEntity<Account> getAccountById(@PathVariable int id) {
 		Account retVal = this.accountService.getAccountById(id);
 		return ResponseEntity.ok(retVal);
+	}
+
+	@GetMapping("/{id}/trade-summary")
+	public ResponseEntity<AccountTradeSummary> getTradeSummary(@PathVariable int id) {
+		return ResponseEntity.ok(this.tradeSummaryService.getTradeSummaryForAccount(id));
 	}
 
 	@PostMapping("/")

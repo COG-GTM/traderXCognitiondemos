@@ -50,3 +50,18 @@ components:
           enum:
             - Buy
             - Sell
+        complianceStatus:
+          type: string
+          description: >-
+            Compliance review state of the trade order. Required field added to
+            the shared TradeOrder contract. Defaults to PENDING_REVIEW when not
+            supplied by the client.
+          default: PENDING_REVIEW
+          example: 'PENDING_REVIEW'
+          enum:
+            - PENDING_REVIEW
+            - APPROVED
+            - FLAGGED
+            - REJECTED
+      required:
+        - complianceStatus

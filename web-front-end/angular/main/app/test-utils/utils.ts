@@ -2,7 +2,7 @@ import { Account } from '../model/account.model';
 import { User } from '../model/user.model';
 import { faker } from '@faker-js/faker';
 import { Stock } from '../model/symbol.model';
-import { Trade, State, Side, Position } from '../model/trade.model';
+import { Trade, State, Side, Position, ComplianceStatus } from '../model/trade.model';
 
 export function sleep(delay = 0) {
   return new Promise((re) => setTimeout(re, delay));
@@ -39,6 +39,7 @@ export function createTrade(): Trade {
     id: faker.random.alpha(5),
     state: State.Pending,
     side: Side.Buy,
+    complianceStatus: ComplianceStatus.PendingReview,
     ...createPosition()
   };
 }

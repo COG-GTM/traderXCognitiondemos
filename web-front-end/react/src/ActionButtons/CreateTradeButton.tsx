@@ -23,6 +23,7 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 					quantity: quantity,
 					accountId: accountId,
 					side: side,
+					complianceStatus: 'PENDING_REVIEW',
 				}),
 			});
 			if (response.ok) {
