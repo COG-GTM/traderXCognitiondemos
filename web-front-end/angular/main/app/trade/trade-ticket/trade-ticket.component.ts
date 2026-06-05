@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
-import { TradeTicket } from 'main/app/model/trade.model';
+import { TradeTicket, ComplianceStatus } from 'main/app/model/trade.model';
 import { Stock } from 'main/app/model/symbol.model';
 import { Account } from 'main/app/model/account.model';
 import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
@@ -26,7 +26,8 @@ export class TradeTicketComponent implements OnInit {
       quantity: 0,
       accountId: this.account?.id || 0,
       side: 'Buy',
-      security: ''
+      security: '',
+      complianceStatus: ComplianceStatus.PendingReview
     };
 
     this.filteredStocks = this.stocks;

@@ -78,6 +78,18 @@ public class Trade implements Serializable {
 		this.state = state;
 	}
 
+	@Enumerated(EnumType.STRING)
+    @Column(length = 20, name = "COMPLIANCESTATUS")
+	private ComplianceStatus complianceStatus = ComplianceStatus.PENDING_REVIEW;
+
+	public ComplianceStatus getComplianceStatus() {
+		return this.complianceStatus;
+	}
+
+	public void setComplianceStatus(ComplianceStatus complianceStatus) {
+		this.complianceStatus = complianceStatus;
+	}
+
 	@Column(name = "QUANTITY")
 	private Integer quantity;
 

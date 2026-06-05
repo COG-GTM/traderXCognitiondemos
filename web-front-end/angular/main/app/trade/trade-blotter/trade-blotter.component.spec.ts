@@ -41,7 +41,7 @@ describe('TradeBlotterComponent', () => {
     it('should show given trades columns in the grid', async () => {
         const columns = fixture.nativeElement.querySelectorAll('.ag-header-cell');
         const rows = fixture.nativeElement.querySelectorAll('.ag-row');
-        expect(columns.length).toEqual(4);
+        expect(columns.length).toEqual(5);
         expect(rows.length).toEqual(0);
     });
 

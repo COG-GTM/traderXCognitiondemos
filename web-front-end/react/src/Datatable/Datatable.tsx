@@ -52,7 +52,7 @@ export const Datatable = () => {
 
 	useEffect(() => {
 			const positionKeys = ['security','quantity','updated'];
-			const tradeKeys = ['security','quantity','side','state','updated'];
+			const tradeKeys = ['security','quantity','side','state','complianceStatus','updated'];
 			setPositionRowData(positionData);
 			setTradeRowData(tradeData);
 			setPositionColumnDefs([])

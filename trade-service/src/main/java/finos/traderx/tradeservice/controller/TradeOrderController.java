@@ -17,6 +17,7 @@ import finos.traderx.messaging.PubSubException;
 import finos.traderx.messaging.Publisher;
 import finos.traderx.tradeservice.exceptions.ResourceNotFoundException;
 import finos.traderx.tradeservice.model.Account;
+import finos.traderx.tradeservice.model.ComplianceStatus;
 import finos.traderx.tradeservice.model.Security;
 import finos.traderx.tradeservice.model.TradeOrder;
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,7 +45,14 @@ public class TradeOrderController {
 	@PostMapping("/")
 	public ResponseEntity<TradeOrder> createTradeOrder(@Parameter(description = "the intendeded trade order") @RequestBody TradeOrder tradeOrder) {
 		log.info("Called createTradeOrder");
-		
+
+		// complianceStatus is a required field on the TradeOrder contract; default it
+		// to PENDING_REVIEW when a client does not supply it.
+		if (tradeOrder.getComplianceStatus() == null) {
+			tradeOrder.setComplianceStatus(ComplianceStatus.PENDING_REVIEW);
+		}
+		log.info("Trade order compliance status: {}", tradeOrder.getComplianceStatus());
+
 		if (!validateTicker(tradeOrder.getSecurity())) 
 		{
 			throw new ResourceNotFoundException(tradeOrder.getSecurity() + " not found in Reference data service.");

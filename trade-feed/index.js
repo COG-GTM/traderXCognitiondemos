@@ -46,6 +46,11 @@ function leaveMessage(user,topic){
 
 function broadcast(from, data) {
   var message=wrapMessage(from,data.topic,data.type,data.payload);
+  // Surface the compliance status of trade payloads in the feed log so the
+  // new TradeOrder contract field is visible as it flows through the bus.
+  if (data.payload && data.payload.complianceStatus) {
+    log.info(`Trade ${data.payload.id || ''} complianceStatus=${data.payload.complianceStatus} on ${data.topic}`);
+  }
   log.info(`Publish ${data.topic} -> ${JSON.stringify(message)}`);
   io.sockets.in([data.topic, "/*"]).emit(PUBLISH, message);
 }

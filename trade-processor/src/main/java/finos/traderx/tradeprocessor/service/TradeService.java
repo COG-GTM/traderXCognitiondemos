@@ -34,6 +34,15 @@ public class TradeService {
     
 	public TradeBookingResult processTrade(TradeOrder order) {
 		log.info("Trade order received : "+order);
+
+		// Read the compliance status off the shared TradeOrder contract. Default to
+		// PENDING_REVIEW for orders produced before this field existed.
+		ComplianceStatus complianceStatus = order.getComplianceStatus();
+		if (complianceStatus == null) {
+			complianceStatus = ComplianceStatus.PENDING_REVIEW;
+		}
+		log.info("Processing trade order {} with compliance status {}", order.getId(), complianceStatus);
+
         Trade t=new Trade();
         t.setAccountId(order.getAccountId());
 
@@ -47,6 +56,7 @@ public class TradeService {
         t.setSide(order.getSide());
         t.setQuantity(order.getQuantity());
 		t.setState(TradeState.New);
+		t.setComplianceStatus(complianceStatus);
 		Position position=positionRepository.findByAccountIdAndSecurity(order.getAccountId(), order.getSecurity());
 		log.info("Position for "+order.getAccountId()+" "+order.getSecurity()+" is "+position);
 		if(position==null) {

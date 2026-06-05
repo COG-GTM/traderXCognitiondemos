@@ -6,7 +6,15 @@ export interface Trade {
     security: string;
     side: Side;
     state: State;
+    complianceStatus: ComplianceStatus;
     updated: Date;
+}
+
+export enum ComplianceStatus {
+    PendingReview = 'PENDING_REVIEW',
+    Approved = 'APPROVED',
+    Flagged = 'FLAGGED',
+    Rejected = 'REJECTED'
 }
 
 export enum Side {
@@ -33,4 +41,5 @@ export interface TradeTicket {
     quantity: number;
     security: string;
     accountId: number;
+    complianceStatus?: ComplianceStatus;
 }

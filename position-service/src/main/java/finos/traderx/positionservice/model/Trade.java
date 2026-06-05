@@ -72,6 +72,17 @@ public class Trade implements Serializable {
 		this.state = state;
 	}
 
+    @Column(length = 20, name = "COMPLIANCESTATUS")
+	private String complianceStatus = ComplianceStatus.PENDING_REVIEW.name();
+
+	public String getComplianceStatus() {
+		return this.complianceStatus;
+	}
+
+	public void setComplianceStatus(String complianceStatus) {
+		this.complianceStatus = complianceStatus;
+	}
+
 	@Column(name = "QUANTITY")
 	private Integer quantity;
 
