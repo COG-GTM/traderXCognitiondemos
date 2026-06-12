@@ -18,6 +18,8 @@ java{
 	sourceCompatibility = JavaVersion.VERSION_21
 }
 
+ext['tomcat.version'] = '10.1.55'
+
 dependencies {
     
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
