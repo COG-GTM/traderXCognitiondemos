@@ -19,6 +19,7 @@ import finos.traderx.tradeservice.exceptions.ResourceNotFoundException;
 import finos.traderx.tradeservice.model.Account;
 import finos.traderx.tradeservice.model.Security;
 import finos.traderx.tradeservice.model.TradeOrder;
+import finos.traderx.tradeservice.service.CreditCheckService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 
@@ -31,7 +32,10 @@ public class TradeOrderController {
 
 	@Autowired
 	private Publisher<TradeOrder> tradePublisher;
-	
+
+	@Autowired
+	private CreditCheckService creditCheckService;
+
 	private RestTemplate restTemplate = new RestTemplate();
 
 	@Value("${reference.data.service.url}")
@@ -55,6 +59,7 @@ public class TradeOrderController {
 		}
 		else
 		{
+			creditCheckService.assertWithinCreditLimit(tradeOrder);
 			try{
 				log.info("Trade is valid. Submitting {}", tradeOrder);
 				tradePublisher.publish("/trades",tradeOrder);

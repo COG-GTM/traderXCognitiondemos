@@ -134,6 +134,7 @@ services:
       - DATABASE_TCP_HOST=database
       - PEOPLE_SERVICE_HOST=people-service
       - ACCOUNT_SERVICE_HOST=account-service
+      - POSITION_SERVICE_HOST=position-service
       - REFERENCE_DATA_HOST=reference-data
       - TRADE_FEED_HOST=trade-feed
     volumes:
@@ -146,6 +147,7 @@ services:
       - database
       - people-service
       - account-service
+      - position-service
       - reference-data
       - trade-feed
   trade-processor:

@@ -9,6 +9,7 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = "ACCOUNTS")
@@ -26,6 +27,9 @@ public class Account implements Serializable {
 		@Column(length = 50, name = "DisplayName")
 		private String displayName;
 
+		@Transient
+		private Long creditLimit;
+
 		public int getId() {
 			return this.id;
 		}
@@ -40,5 +44,13 @@ public class Account implements Serializable {
 
 		public void setDisplayName(String displayName) {
 			this.displayName = displayName;
+		}
+
+		public Long getCreditLimit() {
+			return this.creditLimit;
+		}
+
+		public void setCreditLimit(Long creditLimit) {
+			this.creditLimit = creditLimit;
 		}
 }

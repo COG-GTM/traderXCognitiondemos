@@ -20,6 +20,8 @@ spec:
         - env:
             - name: ACCOUNT_SERVICE_HOST
               value: account-service
+            - name: POSITION_SERVICE_HOST
+              value: position-service
             - name: DATABASE_TCP_HOST
               value: database
             - name: PEOPLE_SERVICE_HOST
