@@ -2,7 +2,8 @@
 using FluentValidation;
 using MediatR;
 using JetBrains.Annotations;
-using PeopleService.Core.DirectoryService;
+using PeopleService.Core.Directory;
+using PeopleService.Core.Domain;
 
 namespace PeopleService.Core.Queries
 {

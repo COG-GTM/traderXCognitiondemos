@@ -64,7 +64,6 @@ services:
     build:
       context: people-service
       dockerfile: Dockerfile
-    working_dir: /people-service
     expose:
       - 18089
     ports:
@@ -72,7 +71,6 @@ services:
     volumes:
       # Mount the root folder that contains .git
       - .:/workspace:cached
-    command: /PeopleService.WebApi dotnet run
     networks:
       - localnet
   account-service:

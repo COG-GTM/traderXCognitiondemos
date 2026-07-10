@@ -20,26 +20,23 @@ builder.Services.AddSwaggerGen(
                     c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
                 });
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
-builder.Services.AddPeopleServiceCore(builder.Configuration.GetSection("PeopleJsonFilePath"));
+builder.Services.AddPeopleServiceCore(builder.Configuration);
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
 
 builder.Host.UseSerilog((hostContext, services, configuration) =>
 {
     configuration.WriteTo.Console();
-    configuration.WriteTo.RollingFile("Logs/PeopleService.log");
+    configuration.WriteTo.File("Logs/PeopleService.log", rollingInterval: RollingInterval.Day);
 });
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "PeopleService.WebApi v1"));
-}
-
-app.UseHttpsRedirection();
+// Swagger/OpenAPI is enabled in all environments for parity with the Java
+// services (springdoc), so the UI is available in containerized deployments.
+app.UseSwagger();
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "PeopleService.WebApi v1"));
 
 app.UseAuthorization();
 
