@@ -1,6 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using PeopleService.Core.DirectoryService;
+using PeopleService.Core.Domain;
 using PeopleService.Core.Queries;
 
 namespace PeopleService.WebApi.Controllers

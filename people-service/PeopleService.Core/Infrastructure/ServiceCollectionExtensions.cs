@@ -1,54 +1,59 @@
-﻿using CacheManager.Core;
+using System.Reflection;
+using CacheManager.Core;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using PeopleService.Core.DirectoryService;
+using PeopleService.Core.Directory;
 using PeopleService.Core.Queries;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace PeopleService.Core.Infrastructure
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddPeopleServiceCore(this IServiceCollection serviceCollection, IConfigurationSection configurationSection)
+        public static IServiceCollection AddPeopleServiceCore(
+            this IServiceCollection services,
+            IConfiguration configuration)
         {
-            return serviceCollection
+            services
                 .AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly()))
                 .AddValidatorsFromAssembly(Assembly.GetExecutingAssembly())
-                .AddSingleton(ConfigureDirectoryService(configurationSection))
                 .AddCacheManager<GetMatchingPeople.Response>(
                     c => c.WithDictionaryHandle()
                         .WithExpiration(ExpirationMode.Sliding, TimeSpan.FromMinutes(1)));
 
+            services.AddDirectory(configuration);
+
+            return services;
         }
 
-        private static IDirectoryService ConfigureDirectoryService(IConfigurationSection configurationSection)
+        private static IServiceCollection AddDirectory(this IServiceCollection services, IConfiguration configuration)
         {
-            string filePath = configurationSection.Value;
+            var options = new DirectoryOptions();
+            configuration.GetSection(DirectoryOptions.SectionName).Bind(options);
+            // Backwards-compatible fallback to the legacy flat configuration key.
+            options.PeopleJsonFilePath ??= configuration["PeopleJsonFilePath"];
 
-            try
+            services.Configure<DirectoryOptions>(o =>
             {
-                List<Person>? people = JsonFileReader.ReadJsonFile(filePath);
-                return new DirectoryService.DirectoryService(people!);
-            }
-            catch (FileNotFoundException)
+                o.Provider = options.Provider;
+                o.PeopleJsonFilePath = options.PeopleJsonFilePath;
+            });
+
+            switch (options.Provider?.Trim().ToLowerInvariant())
             {
-                throw new Exception($"File not found: {filePath}");
+                case null:
+                case "":
+                case "json":
+                    services.AddSingleton<IPersonDataReader, JsonFilePersonReader>();
+                    services.AddSingleton<IDirectoryService, JsonFileDirectoryService>();
+                    break;
+                default:
+                    throw new NotSupportedException(
+                        $"Directory provider '{options.Provider}' is not supported. " +
+                        "Implement IDirectoryService (for example an LDAP-backed service) and register it here.");
             }
-            catch (DirectoryNotFoundException)
-            {
-                throw new Exception($"Directory not found: {Path.GetDirectoryName(filePath)}");
-            }
-            catch (JsonException ex)
-            {
-                throw new Exception($"Error parsing JSON file: {ex.Message}");
-            }
+
+            return services;
         }
     }
 }
