@@ -9,7 +9,9 @@
     "build": "cross-env NG_CLI_ANALYTICS=ci ng build --base-href=. --configuration production --output-path=./dist --aot --output-hashing=all",
     "buildlocal": "cross-env NG_CLI_ANALYTICS=ci ng build --base-href=. --configuration local --output-path=./dist --aot --output-hashing=all",
     "test": "ng test --code-coverage --watch=true",
-    "test:ci": "ng test --code-coverage --watch=false --browsers=ChromeHeadlessNoSandbox"
+    "test:ci": "ng test --code-coverage --watch=false --browsers=ChromeHeadlessNoSandbox",
+    "e2e": "cypress run",
+    "e2e:open": "cypress open"
   },
   "private": true,
   "license": "Apache-2.0",
@@ -41,6 +43,7 @@
     "@types/node": "^20.12.13",
     "codelyzer": "^6.0.2",
     "cross-env": "^7.0.3",
+    "cypress": "^13.17.0",
     "jasmine-core": "~5.1.2",
     "jasmine-spec-reporter": "^7.0.0",
     "karma": "^6.4.3",
