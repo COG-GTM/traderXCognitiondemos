@@ -1,0 +1,61 @@
+name: e2e
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  playwright-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /usr/local/.ghcup
+          docker system prune -af || true
+          df -h /
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build & start the full TraderX stack
+        run: docker compose up --build -d
+
+      - name: Wait for stack readiness
+        run: |
+          npx --yes wait-on -t 900000 \
+            http-get://localhost:8080 \
+            http-get://localhost:8080/account-service/account/ \
+            http-get://localhost:8080/reference-data/stocks/IBM
+
+      - name: Install Playwright
+        working-directory: e2e
+        run: |
+          npm install
+          npx playwright install --with-deps chromium
+
+      - name: Run E2E specs
+        working-directory: e2e
+        run: npx playwright test
+
+      - name: Dump compose logs on failure
+        if: failure()
+        run: docker compose logs --no-color > compose-logs.txt
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-artifacts
+          path: |
+            e2e/playwright-report/
+            e2e/test-results/
+            e2e/results.xml
+            compose-logs.txt
+          if-no-files-found: ignore
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
