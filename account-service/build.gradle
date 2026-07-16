@@ -26,6 +26,11 @@ dependencies {
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.wiremock:wiremock-standalone:3.9.1'
+	testImplementation('com.atlassian.oai:swagger-request-validator-wiremock:2.40.0') {
+		exclude group: 'org.wiremock'
+		exclude group: 'com.github.tomakehurst'
+	}
 }
 
 tasks.named('test') {
