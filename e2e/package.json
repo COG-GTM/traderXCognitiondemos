@@ -1,0 +1,18 @@
+{
+  "name": "traderx-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright end-to-end browser tests for the full TraderX stack",
+  "scripts": {
+    "test": "playwright test",
+    "test:e2e:local": "playwright test",
+    "test:e2e": "start-server-and-test 'docker compose -f ../docker-compose.yml up --build' http-get://localhost:8080 'playwright test'",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.48.2",
+    "@types/node": "20.14.10",
+    "start-server-and-test": "2.0.8",
+    "typescript": "^5.5.4"
+  }
+}
