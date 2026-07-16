@@ -32,13 +32,18 @@ public class AccountUserController {
 
 	private static final Logger logger = LoggerFactory.getLogger(AccountUserController.class);
 
-	private RestTemplate restTemplate = new RestTemplate();
+	private final RestTemplate restTemplate;
 
 	@Autowired
 	AccountUserService accountUserService;
 
 	@Value("${people.service.url}")
 	private String peopleServiceAddress;
+
+	@Autowired
+	public AccountUserController(RestTemplate peopleServiceRestTemplate) {
+		this.restTemplate = peopleServiceRestTemplate;
+	}
 
 	@GetMapping("/{id}")
 	public ResponseEntity<AccountUser> getAccountUserById(@PathVariable int id) {
