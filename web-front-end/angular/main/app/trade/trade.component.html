@@ -1,5 +1,6 @@
 <div class="trade-container p-5">
     <div class="trade-ops mb-4">
+        <span data-test="selected-account" [attr.data-test-value]="accountModel?.displayName" hidden>{{ accountModel?.displayName }}</span>
         <div class="trade-filter me-3">
             <app-ngx-dropdown
                 name="account"
@@ -32,7 +33,7 @@
     </div>
 
     <div class="trade-blotter">
-        <app-trade-blotter [account]="accountModel" class="trade-blotter-items me-2"> </app-trade-blotter>
-        <app-position-blotter [account]="accountModel" class="position-blotter-items"> </app-position-blotter>
+        <app-trade-blotter [account]="accountModel" class="trade-blotter-items me-2" data-test="trade-blotter" [attr.data-test-account]="accountModel?.id"> </app-trade-blotter>
+        <app-position-blotter [account]="accountModel" class="position-blotter-items" data-test="position-blotter" [attr.data-test-account]="accountModel?.id"> </app-position-blotter>
     </div>
 </div>

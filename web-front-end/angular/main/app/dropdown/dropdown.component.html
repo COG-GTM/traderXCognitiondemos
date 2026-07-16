@@ -1,9 +1,9 @@
 <div class="btn-group" dropdown>
-    <button [id]="drpBtnId" dropdownToggle type="button" class="btn btn-sm btn-primary dropdown-toggle" [attr.aria-controls]="drpId">
+    <button [id]="drpBtnId" dropdownToggle type="button" class="btn btn-sm btn-primary dropdown-toggle" [attr.aria-controls]="drpId" data-test="dropdown-toggle">
         {{ selectedItem?.[itemKey] || placeholder  }} <span class="caret"></span>
     </button>
     <ul [id]="drpId" *dropdownMenu class="dropdown-menu" role="menu" [attr.aria-labelledby]="drpBtnId">
-        <li role="menuitem" *ngFor="let item of items" (click)="onItemClick(item)">
+        <li role="menuitem" *ngFor="let item of items" (click)="onItemClick(item)" data-test="dropdown-item" [attr.data-test-value]="item[itemKey]">
             <a class="dropdown-item" [ngClass]="selectionComparator(selectedItem, item) ? 'active' : ''">{{ item[itemKey] }}</a>
         </li>
     </ul>
