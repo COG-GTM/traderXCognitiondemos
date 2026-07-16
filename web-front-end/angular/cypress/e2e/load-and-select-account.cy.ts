@@ -1,12 +1,11 @@
 /// <reference types="cypress" />
 
 // True end-to-end test for the "load list of accounts and select an account"
-// trader journey. It drives the Angular UI served through the ingress at the
-// configured baseUrl and hits the live account-service; nothing is stubbed.
+// trader journey. It drives the Angular UI (served at the configured baseUrl)
+// and hits the live account-service; nothing is stubbed.
 //
 // Seed data (database/initialSchema.sql) guarantees these accounts exist.
 const SEEDED_ACCOUNTS = ['Big Corporate Fund', 'Hedge Fund TXY1', 'Internal Trading Book'];
-const ACCOUNT_TO_SELECT = 'Big Corporate Fund';
 
 describe('Trader journey: load list of accounts and select an account', () => {
     it('loads accounts from the live account-service and updates the UI on selection', () => {
@@ -27,15 +26,23 @@ describe('Trader journey: load list of accounts and select an account', () => {
             cy.get('[data-test=dropdown-item]').contains(name).should('exist');
         });
 
-        // Select a specific, known account.
-        cy.get(`[data-test=dropdown-item][data-test-value="${ACCOUNT_TO_SELECT}"]`).click();
+        // Pick a seeded account that is NOT the one already selected on load, so we
+        // genuinely exercise a selection change (the dropdown only emits on change).
+        cy.get('[data-test=selected-account]')
+            .invoke('attr', 'data-test-value')
+            .then((currentlySelected) => {
+                const target =
+                    SEEDED_ACCOUNTS.find((name) => name !== currentlySelected) ?? SEEDED_ACCOUNTS[0];
 
-        // The selection propagated to the trade component state.
-        cy.get('[data-test=selected-account]').should('have.attr', 'data-test-value', ACCOUNT_TO_SELECT);
-        cy.get('[data-test=dropdown-toggle]').should('contain', ACCOUNT_TO_SELECT);
+                cy.get(`[data-test=dropdown-item][data-test-value="${target}"]`).click();
 
-        // The blotters received the selected account and are rendered.
-        cy.get('[data-test=trade-blotter]').should('exist').and('be.visible');
-        cy.get('[data-test=position-blotter]').should('exist').and('be.visible');
+                // The selection propagated to the trade component state.
+                cy.get('[data-test=selected-account]').should('have.attr', 'data-test-value', target);
+                cy.get('[data-test=dropdown-toggle]').should('contain', target);
+
+                // The blotters received the selected account and are rendered.
+                cy.get('[data-test=trade-blotter]').should('exist').and('be.visible');
+                cy.get('[data-test=position-blotter]').should('exist').and('be.visible');
+            });
     });
 });
