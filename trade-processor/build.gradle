@@ -35,6 +35,37 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
+sourceSets {
+	integrationTest {
+		java.srcDir 'src/integrationTest/java'
+		resources.srcDir 'src/integrationTest/resources'
+		compileClasspath += sourceSets.main.output
+		runtimeClasspath += sourceSets.main.output
+	}
+}
+
+configurations {
+	integrationTestImplementation.extendsFrom testImplementation
+	integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
+dependencies {
+	integrationTestImplementation 'org.awaitility:awaitility:4.2.1'
+	integrationTestImplementation 'com.corundumstudio.socketio:netty-socketio:2.0.9'
+}
+
+tasks.register('integrationTest', Test) {
+	description = 'Runs service-to-service integration tests.'
+	group = 'verification'
+	testClassesDirs = sourceSets.integrationTest.output.classesDirs
+	classpath = sourceSets.integrationTest.runtimeClasspath
+	useJUnitPlatform()
+	shouldRunAfter tasks.named('test')
+	testLogging {
+		events 'passed', 'skipped', 'failed'
+	}
+}
+
 tasks.named('test') {
   useJUnitPlatform()
 }

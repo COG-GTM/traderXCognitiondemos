@@ -1,0 +1,41 @@
+name: Integration Tests
+
+on:
+  pull_request: {}
+  push:
+    branches: [main]
+
+jobs:
+  java-integration:
+    name: Java integration tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - trade-service
+          - trade-processor
+          - position-service
+          - account-service
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Run integration tests (offline, real H2 + embedded trade-feed)
+        working-directory: ${{ matrix.service }}
+        run: ./gradlew integrationTest --no-daemon --console=plain
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-report-${{ matrix.service }}
+          path: |
+            ${{ matrix.service }}/build/reports/tests/integrationTest
+            ${{ matrix.service }}/build/test-results/integrationTest
+          if-no-files-found: ignore

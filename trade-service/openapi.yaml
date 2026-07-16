@@ -33,6 +33,7 @@ components:
           example: 'ABC-123-XYZ'
         state:
           type: string
+          nullable: true
           example: 'New'
         security:
           type: string
@@ -41,7 +42,7 @@ components:
           type: integer
           format: int32
           example: 100
-        accountID:
+        accountId:
           type: integer
           format: int32
           example: 22214
