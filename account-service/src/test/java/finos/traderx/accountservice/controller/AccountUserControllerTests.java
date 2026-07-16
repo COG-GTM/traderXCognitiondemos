@@ -84,7 +84,7 @@ class AccountUserControllerTests {
 	}
 
 	@Test
-	void createAccountUserWhenPersonNotFound() {
+	void createAccountUserWhenPersonNotFound() throws Exception {
 		mockWebServer.enqueue(new MockResponse().setResponseCode(404));
 
 		AccountUser accountUser = new AccountUser();
@@ -95,5 +95,8 @@ class AccountUserControllerTests {
 				"/accountuser/", accountUser, String.class);
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+
+		RecordedRequest recordedRequest = mockWebServer.takeRequest();
+		assertThat(recordedRequest.getPath()).isEqualTo("/People/GetPerson?LogonId=missing");
 	}
 }
