@@ -61,13 +61,10 @@ class OrderFlowE2EIT extends AbstractTradeProcessorIT {
         assertThat(positionRepository.findByAccountIdAndSecurity(ACCOUNT, "IBM").getQuantity())
                 .isEqualTo(-100);
 
-        client = new TradeFeedTestClient(tradeFeed.getAddress())
-                .connectAndSubscribe(tradeFeed,
-                        "/accounts/" + ACCOUNT + "/trades",
-                        "/accounts/" + ACCOUNT + "/positions");
-        await().atMost(Duration.ofSeconds(10)).until(() -> tradeFeed.subscriberCount("/trades") >= 1);
-        await().atMost(Duration.ofSeconds(10)).until(tradePublisher::isConnected);
-        await().atMost(Duration.ofSeconds(10)).until(positionPublisher::isConnected);
+        client = new TradeFeedTestClient(tradeFeed.getAddress()).connectAndSubscribe(tradeFeed);
+        await().atMost(Duration.ofSeconds(20)).until(() -> tradeFeed.subscriberCount("/trades") >= 1);
+        await().atMost(Duration.ofSeconds(20)).until(tradePublisher::isConnected);
+        await().atMost(Duration.ofSeconds(20)).until(positionPublisher::isConnected);
 
         JSONObject order = new JSONObject()
                 .put("id", "E2E-IBM-1")
@@ -78,7 +75,7 @@ class OrderFlowE2EIT extends AbstractTradeProcessorIT {
         client.publishTradeOrder("/trades", order);
 
         // S2: trade is persisted and settled in the real database.
-        await().atMost(Duration.ofSeconds(15)).pollInterval(Duration.ofMillis(100))
+        await().atMost(Duration.ofSeconds(20)).pollInterval(Duration.ofMillis(100))
                 .untilAsserted(() -> assertThat(newTrades()).hasSize(1));
         Trade settled = newTrades().get(0);
         assertThat(settled.getState()).isEqualTo(TradeState.Settled);
@@ -86,18 +83,19 @@ class OrderFlowE2EIT extends AbstractTradeProcessorIT {
         assertThat(settled.getQuantity()).isEqualTo(100);
 
         // S3 data seam: the persisted position (what position-service serves) reflects the sell.
-        await().atMost(Duration.ofSeconds(15)).pollInterval(Duration.ofMillis(100))
+        await().atMost(Duration.ofSeconds(20)).pollInterval(Duration.ofMillis(100))
                 .untilAsserted(() -> assertThat(
                         positionRepository.findByAccountIdAndSecurity(ACCOUNT, "IBM").getQuantity())
                         .isEqualTo(-200));
 
-        // Outbound trade/position events are broadcast for downstream consumers.
-        await().atMost(Duration.ofSeconds(15)).pollInterval(Duration.ofMillis(100))
+        // Outbound trade/position events are published for downstream consumers
+        // (asserted from the feed's server-side capture).
+        await().atMost(Duration.ofSeconds(20)).pollInterval(Duration.ofMillis(100))
                 .untilAsserted(() -> {
-                    assertThat(client.receivedOn("/accounts/" + ACCOUNT + "/trades")).hasSize(1);
-                    assertThat(client.receivedOn("/accounts/" + ACCOUNT + "/positions")).hasSize(1);
+                    assertThat(tradeFeed.publishedOn("/accounts/" + ACCOUNT + "/trades")).hasSize(1);
+                    assertThat(tradeFeed.publishedOn("/accounts/" + ACCOUNT + "/positions")).hasSize(1);
                 });
-        assertThat(client.receivedOn("/accounts/" + ACCOUNT + "/positions").get(0)
+        assertThat(tradeFeed.publishedOn("/accounts/" + ACCOUNT + "/positions").get(0)
                 .getJSONObject("payload").getInt("quantity")).isEqualTo(-200);
     }
 

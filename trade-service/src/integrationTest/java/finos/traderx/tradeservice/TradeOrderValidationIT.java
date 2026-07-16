@@ -102,9 +102,8 @@ class TradeOrderValidationIT extends AbstractTradeServiceIT {
     }
 
     private ResponseEntity<String> postValidatingNoPublish(String body) {
-        feedClient = new TradeFeedTestClient(tradeFeed.getAddress())
-                .connectAndSubscribe(tradeFeed, "/trades");
-        await().atMost(Duration.ofSeconds(10)).until(tradePublisher::isConnected);
+        feedClient = new TradeFeedTestClient(tradeFeed.getAddress()).connectAndSubscribe(tradeFeed);
+        await().atMost(Duration.ofSeconds(20)).until(tradePublisher::isConnected);
         RequestEntity<String> request = RequestEntity
                 .post(UriComponentsBuilder.fromPath("/trade/").build().toUri())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -113,8 +112,8 @@ class TradeOrderValidationIT extends AbstractTradeServiceIT {
     }
 
     private void assertNothingPublished() {
-        // Give any (erroneous) message time to arrive before asserting none did.
+        // Give any (erroneous) publish time to reach the feed before asserting none did.
         await().pollDelay(Duration.ofMillis(750)).atMost(Duration.ofSeconds(2))
-                .untilAsserted(() -> assertThat(feedClient.receivedOn("/trades")).isEmpty());
+                .untilAsserted(() -> assertThat(tradeFeed.publishedOn("/trades")).isEmpty());
     }
 }

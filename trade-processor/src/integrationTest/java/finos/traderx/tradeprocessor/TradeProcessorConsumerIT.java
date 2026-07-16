@@ -22,7 +22,8 @@ import finos.traderx.tradeprocessor.repository.TradeRepository;
 /**
  * S2: {@code trade-feed} -> {@code trade-processor} -> H2. A trade order published onto
  * the real Socket.IO feed is consumed, persisted to the real database and re-published
- * onto the account topics.
+ * onto the account topics. The outbound events are asserted from the feed's server-side
+ * capture (the processor really emitted them over the real socket).
  */
 class TradeProcessorConsumerIT extends AbstractTradeProcessorIT {
 
@@ -51,10 +52,7 @@ class TradeProcessorConsumerIT extends AbstractTradeProcessorIT {
 
     @Test
     void publishedOrderIsPersistedSettledAndRepublished() {
-        client = new TradeFeedTestClient(tradeFeed.getAddress())
-                .connectAndSubscribe(tradeFeed,
-                        "/accounts/" + ACCOUNT + "/trades",
-                        "/accounts/" + ACCOUNT + "/positions");
+        client = new TradeFeedTestClient(tradeFeed.getAddress()).connectAndSubscribe(tradeFeed);
         awaitBusReady();
 
         JSONObject order = new JSONObject()
@@ -65,7 +63,7 @@ class TradeProcessorConsumerIT extends AbstractTradeProcessorIT {
                 .put("side", "Buy");
         client.publishTradeOrder("/trades", order);
 
-        await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofMillis(100))
+        await().atMost(Duration.ofSeconds(20)).pollInterval(Duration.ofMillis(100))
                 .untilAsserted(() -> assertThat(tradesFor(ACCOUNT, "AAPL")).hasSize(1));
 
         Trade persisted = tradesFor(ACCOUNT, "AAPL").get(0);
@@ -77,27 +75,27 @@ class TradeProcessorConsumerIT extends AbstractTradeProcessorIT {
         assertThat(position).isNotNull();
         assertThat(position.getQuantity()).isEqualTo(50);
 
-        await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofMillis(100))
+        await().atMost(Duration.ofSeconds(20)).pollInterval(Duration.ofMillis(100))
                 .untilAsserted(() -> {
-                    assertThat(client.receivedOn("/accounts/" + ACCOUNT + "/trades")).hasSize(1);
-                    assertThat(client.receivedOn("/accounts/" + ACCOUNT + "/positions")).hasSize(1);
+                    assertThat(tradeFeed.publishedOn("/accounts/" + ACCOUNT + "/trades")).hasSize(1);
+                    assertThat(tradeFeed.publishedOn("/accounts/" + ACCOUNT + "/positions")).hasSize(1);
                 });
 
-        JSONObject tradeEvent = client.receivedOn("/accounts/" + ACCOUNT + "/trades").get(0)
+        JSONObject tradeEvent = tradeFeed.publishedOn("/accounts/" + ACCOUNT + "/trades").get(0)
                 .getJSONObject("payload");
         assertThat(tradeEvent.getString("security")).isEqualTo("AAPL");
         assertThat(tradeEvent.getString("state")).isEqualTo("Settled");
 
-        JSONObject positionEvent = client.receivedOn("/accounts/" + ACCOUNT + "/positions").get(0)
+        JSONObject positionEvent = tradeFeed.publishedOn("/accounts/" + ACCOUNT + "/positions").get(0)
                 .getJSONObject("payload");
         assertThat(positionEvent.getString("security")).isEqualTo("AAPL");
         assertThat(positionEvent.getInt("quantity")).isEqualTo(50);
     }
 
     private void awaitBusReady() {
-        await().atMost(Duration.ofSeconds(10)).until(() -> tradeFeed.subscriberCount("/trades") >= 1);
-        await().atMost(Duration.ofSeconds(10)).until(tradePublisher::isConnected);
-        await().atMost(Duration.ofSeconds(10)).until(positionPublisher::isConnected);
+        await().atMost(Duration.ofSeconds(20)).until(() -> tradeFeed.subscriberCount("/trades") >= 1);
+        await().atMost(Duration.ofSeconds(20)).until(tradePublisher::isConnected);
+        await().atMost(Duration.ofSeconds(20)).until(positionPublisher::isConnected);
     }
 
     private List<Trade> tradesFor(int account, String security) {

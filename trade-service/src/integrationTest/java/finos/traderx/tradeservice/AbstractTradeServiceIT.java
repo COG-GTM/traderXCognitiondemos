@@ -42,6 +42,7 @@ public abstract class AbstractTradeServiceIT {
     @BeforeEach
     void resetStubs() {
         wireMock.resetAll();
+        tradeFeed.clearPublished();
     }
 
     @AfterEach

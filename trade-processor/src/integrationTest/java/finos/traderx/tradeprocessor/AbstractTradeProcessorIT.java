@@ -1,5 +1,6 @@
 package finos.traderx.tradeprocessor;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -22,6 +23,11 @@ public abstract class AbstractTradeProcessorIT {
 
     static {
         tradeFeed.start();
+    }
+
+    @BeforeEach
+    void resetFeedCapture() {
+        tradeFeed.clearPublished();
     }
 
     @DynamicPropertySource

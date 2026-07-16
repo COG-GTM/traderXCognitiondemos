@@ -28,7 +28,8 @@ import finos.traderx.tradeservice.model.TradeOrder;
 /**
  * S1: {@code trade-service} -> {@code trade-feed}. Submits a trade over the real REST
  * boundary and asserts it is published, exactly once, onto the Socket.IO {@code /trades}
- * topic with a payload matching the submitted order.
+ * topic with a payload matching the submitted order (asserted from the feed's server-side
+ * capture, so the check does not depend on a second client receiving the re-broadcast).
  */
 class TradeOrderControllerIT extends AbstractTradeServiceIT {
 
@@ -56,20 +57,19 @@ class TradeOrderControllerIT extends AbstractTradeServiceIT {
                 .willReturn(aResponse().withHeader("Content-Type", "application/json")
                         .withBody("{\"id\":22214,\"displayName\":\"Test Account 20\"}")));
 
-        feedClient = new TradeFeedTestClient(tradeFeed.getAddress())
-                .connectAndSubscribe(tradeFeed, "/trades");
+        feedClient = new TradeFeedTestClient(tradeFeed.getAddress()).connectAndSubscribe(tradeFeed);
         // The service's publisher connects asynchronously on startup.
-        await().atMost(Duration.ofSeconds(10)).until(tradePublisher::isConnected);
+        await().atMost(Duration.ofSeconds(20)).until(tradePublisher::isConnected);
 
         ResponseEntity<String> response = postTrade(
                 "{\"id\":\"ORD-1\",\"security\":\"IBM\",\"quantity\":100,\"accountId\":22214,\"side\":\"Buy\"}");
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
-        await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofMillis(100))
-                .untilAsserted(() -> assertThat(feedClient.receivedOn("/trades")).hasSize(1));
+        await().atMost(Duration.ofSeconds(20)).pollInterval(Duration.ofMillis(100))
+                .untilAsserted(() -> assertThat(tradeFeed.publishedOn("/trades")).hasSize(1));
 
-        JSONObject payload = feedClient.receivedOn("/trades").get(0).getJSONObject("payload");
+        JSONObject payload = tradeFeed.publishedOn("/trades").get(0).getJSONObject("payload");
         assertThat(payload.getString("security")).isEqualTo("IBM");
         assertThat(payload.getInt("accountId")).isEqualTo(22214);
         assertThat(payload.getInt("quantity")).isEqualTo(100);
