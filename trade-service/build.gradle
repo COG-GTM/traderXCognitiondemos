@@ -18,8 +18,13 @@ java{
 	sourceCompatibility = JavaVersion.VERSION_21
 }
 
-configurations.all {
-  exclude group: 'org.yaml', module: 'snakeyaml'
+// Keep snakeyaml out of the app and unit-test classpaths (CVE hygiene) but allow the
+// integrationTest source set to resolve it, as the OpenAPI/Swagger parser used by the
+// contract tests requires it.
+['compileClasspath', 'runtimeClasspath', 'testCompileClasspath', 'testRuntimeClasspath'].each { cfg ->
+  configurations.named(cfg).configure {
+    exclude group: 'org.yaml', module: 'snakeyaml'
+  }
 }
 
 dependencies {
@@ -37,6 +42,39 @@ dependencies {
 	}
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+sourceSets {
+	integrationTest {
+		java.srcDir 'src/integrationTest/java'
+		resources.srcDir 'src/integrationTest/resources'
+		compileClasspath += sourceSets.main.output
+		runtimeClasspath += sourceSets.main.output
+	}
+}
+
+configurations {
+	integrationTestImplementation.extendsFrom testImplementation
+	integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
+dependencies {
+	integrationTestImplementation 'org.awaitility:awaitility:4.2.1'
+	integrationTestImplementation 'org.wiremock:wiremock-standalone:3.9.1'
+	integrationTestImplementation 'com.corundumstudio.socketio:netty-socketio:2.0.9'
+	integrationTestImplementation 'com.atlassian.oai:swagger-request-validator-core:2.40.0'
+}
+
+tasks.register('integrationTest', Test) {
+	description = 'Runs service-to-service integration tests.'
+	group = 'verification'
+	testClassesDirs = sourceSets.integrationTest.output.classesDirs
+	classpath = sourceSets.integrationTest.runtimeClasspath
+	useJUnitPlatform()
+	shouldRunAfter tasks.named('test')
+	testLogging {
+		events 'passed', 'skipped', 'failed'
+	}
 }
 
 tasks.named('test') {
