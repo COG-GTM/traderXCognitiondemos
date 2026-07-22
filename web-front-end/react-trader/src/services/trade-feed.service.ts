@@ -1,43 +1,62 @@
-import { io, Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
 import { environment } from '../environments/environment';
 
-interface FeedMessage {
+interface PublishMessage {
   from: string;
   topic: string;
   payload: unknown;
 }
 
-let socket: Socket | undefined;
+export class TradeFeedService {
+  private socket: Socket;
 
-function getSocket(): Socket {
-  if (!socket) {
-    socket = io(environment.tradeFeedUrl);
-    socket.on('connect', () => {
-      console.log('Trade feed is connected, connection id ' + socket?.id);
-    });
-    socket.on('disconnect', () => {
-      console.log('Trade feed is disconnected, connection id was ' + socket?.id);
-    });
+  constructor(url: string = environment.tradeFeedUrl) {
+    this.socket = io(url);
+    this.socket.on('connect', this.onConnect);
+    this.socket.on('disconnect', this.onDisconnect);
   }
-  return socket;
+
+  private onConnect = () => {
+    console.log('Trade feed is connected, connection id' + this.socket.id);
+  };
+
+  private onDisconnect = () => {
+    console.log('Trade feed is disconnected, connection id was ' + this.socket.id);
+  };
+
+  public subscribe(topic: string, callback: (...args: any[]) => void) {
+    const callbackFn = (args: PublishMessage) => {
+      if (args.from !== 'System' && args.topic === topic) {
+        callback(args.payload);
+      }
+    };
+    this.socket.on('publish', callbackFn);
+    this.socket.emit('subscribe', topic);
+    return () => {
+      this.unSubscribe(topic, callbackFn);
+    };
+  }
+
+  public unSubscribe(topic: string, callback: (...args: any[]) => void) {
+    this.socket.emit('unsubscribe', topic);
+    this.socket.off('publish', callback);
+  }
 }
 
-export function subscribe(topic: string, callback: (payload: never) => void): () => void {
-  const feed = getSocket();
-  const callbackFn = (args: FeedMessage) => {
-    if (args.from !== 'System' && args.topic === topic) {
-      callback(args.payload as never);
-    }
-  };
-  feed.on('publish', callbackFn);
-  feed.emit('subscribe', topic);
-  return () => {
-    unSubscribe(topic, callbackFn);
-  };
+let instance: TradeFeedService | undefined;
+
+export function getTradeFeedService(): TradeFeedService {
+  if (!instance) {
+    instance = new TradeFeedService();
+  }
+  return instance;
 }
 
-export function unSubscribe(topic: string, callback: (args: FeedMessage) => void) {
-  const feed = getSocket();
-  feed.emit('unsubscribe', topic);
-  feed.off('publish', callback);
+export function subscribe(topic: string, callback: (...args: any[]) => void): () => void {
+  return getTradeFeedService().subscribe(topic, callback);
+}
+
+export function unSubscribe(topic: string, callback: (...args: any[]) => void): void {
+  getTradeFeedService().unSubscribe(topic, callback);
 }

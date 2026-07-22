@@ -1,17 +1,21 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-
-function Placeholder({ name }: { name: string }) {
-  return <div className="container mt-4">{name} (migration in progress)</div>;
-}
+import Header from './components/Header';
+import PageNotFound from './components/PageNotFound';
+import AccountPage from './pages/accounts/AccountPage';
+import TradePage from './pages/trade/TradePage';
+import { switchTheme } from './services/theme.service';
 
 function App() {
   return (
-    <Routes>
-      <Route path="/trade" element={<Placeholder name="Trade" />} />
-      <Route path="/account" element={<Placeholder name="Accounts" />} />
-      <Route path="/" element={<Navigate to="/trade" replace />} />
-      <Route path="*" element={<Placeholder name="Page not found" />} />
-    </Routes>
+    <>
+      <Header onSwitchTheme={switchTheme} />
+      <Routes>
+        <Route path="/trade" element={<TradePage />} />
+        <Route path="/account" element={<AccountPage />} />
+        <Route path="/" element={<Navigate to="/trade" replace />} />
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+    </>
   );
 }
 

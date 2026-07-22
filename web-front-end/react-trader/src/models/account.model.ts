@@ -1,4 +1,4 @@
 export interface Account {
-  id: number;
-  displayName: string;
+    id: number;
+    displayName: string;
 }
