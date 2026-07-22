@@ -7,8 +7,14 @@ export type ButtonCellRendererProps = ICellRendererParams & {
   clicked: (data: any) => void;
 };
 
-// Placeholder: replace with a small Bootstrap button that calls
-// `props.clicked(props.data)` when pressed.
-export const ButtonCellRenderer = (_props: ButtonCellRendererProps) => {
-  return <span data-testid="button-cell-renderer-placeholder" />;
+export const ButtonCellRenderer = (props: ButtonCellRendererProps) => {
+  const clickHandler = () => {
+    props.clicked(props.data);
+  };
+
+  return (
+    <button className="btn btn-sm btn-info" onClick={clickHandler}>
+      Update
+    </button>
+  );
 };
