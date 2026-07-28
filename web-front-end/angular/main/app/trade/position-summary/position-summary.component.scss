@@ -1,0 +1,51 @@
+.position-summary {
+    &-card {
+        flex: 1;
+        min-width: 200px;
+        background-color: #ffffff;
+        border: 1px solid #dee2e6;
+        border-left: 4px solid #044fbd;
+        border-radius: 6px;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+        padding: 16px 18px;
+
+        &--long {
+            border-left-color: #198754;
+
+            .position-summary-value {
+                color: #198754;
+            }
+        }
+
+        &--short {
+            border-left-color: #dc3545;
+
+            .position-summary-value {
+                color: #dc3545;
+            }
+        }
+    }
+
+    &-label {
+        color: #6c757d;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+    }
+
+    &-value {
+        color: #212529;
+        font-size: 1.875rem;
+        font-weight: 600;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+    }
+
+    &-caption {
+        color: #6c757d;
+        font-size: 0.75rem;
+        margin-top: 8px;
+    }
+}

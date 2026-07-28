@@ -1,0 +1,25 @@
+<div class="position-summary d-flex flex-wrap gap-3">
+    <div class="position-summary-card">
+        <div class="position-summary-label">Securities Held</div>
+        <div class="position-summary-value" id="securitiesHeld">{{ securitiesHeld | number }}</div>
+        <div class="position-summary-caption">Distinct tickers in account</div>
+    </div>
+
+    <div class="position-summary-card">
+        <div class="position-summary-label">Net Quantity</div>
+        <div class="position-summary-value" id="netQuantity">{{ netQuantity | number }}</div>
+        <div class="position-summary-caption">Long minus short shares</div>
+    </div>
+
+    <div class="position-summary-card position-summary-card--long">
+        <div class="position-summary-label">Long Positions</div>
+        <div class="position-summary-value" id="longPositions">{{ longPositions | number }}</div>
+        <div class="position-summary-caption">{{ longQuantity | number }} shares</div>
+    </div>
+
+    <div class="position-summary-card position-summary-card--short">
+        <div class="position-summary-label">Short Positions</div>
+        <div class="position-summary-value" id="shortPositions">{{ shortPositions | number }}</div>
+        <div class="position-summary-caption">{{ shortQuantity | number }} shares</div>
+    </div>
+</div>
