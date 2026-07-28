@@ -1,0 +1,25 @@
+<div class="blotter-filter d-flex align-items-center mb-3">
+    <span class="text-secondary me-3">Filter</span>
+    <div class="btn-group me-3" role="group" aria-label="Filter trades by state">
+        <button
+            *ngFor="let option of stateOptions"
+            type="button"
+            [id]="option.id"
+            class="btn btn-sm"
+            [ngClass]="option.value === selectedState ? 'btn-primary' : 'btn-secondary'"
+            [attr.aria-pressed]="option.value === selectedState"
+            (click)="onStateSelect(option.value)"
+        >
+            {{ option.label }}
+        </button>
+    </div>
+    <input
+        id="securityFilterInput"
+        type="text"
+        class="form-control form-control-sm security-filter"
+        placeholder="Filter by security"
+        aria-label="Filter by security"
+        [ngModel]="security"
+        (ngModelChange)="onSecurityInput($event)"
+    />
+</div>

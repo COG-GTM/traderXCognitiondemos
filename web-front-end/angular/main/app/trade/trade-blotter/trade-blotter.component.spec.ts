@@ -1,9 +1,11 @@
 import { ComponentFixture, TestBed, tick, fakeAsync, flush } from '@angular/core/testing';
 import { AgGridModule } from 'ag-grid-angular';
-import { GetRowIdParams } from 'ag-grid-community';
+import { GetRowIdParams, IRowNode } from 'ag-grid-community';
 import { TradeBlotterComponent } from './trade-blotter.component';
+import { State, Trade } from 'main/app/model/trade.model';
 import { PositionService } from 'main/app/service/position.service';
 import { MockTradeService, MockTradeFeedService, accounts as dummyAccounts, trades } from 'main/app/test-utils/mocks.service';
+import { sleep } from 'main/app/test-utils/utils';
 import { TradeFeedService } from 'main/app/service/trade-feed.service';
 
 describe('TradeBlotterComponent', () => {
@@ -66,6 +68,52 @@ describe('TradeBlotterComponent', () => {
         expect((component as any).tradeService.getTrades).toHaveBeenCalledWith(testAccount.id);
         expect((component as any).tradeFeed.subscribe).toHaveBeenCalled();
 
+    });
+
+    it('should only have an external filter when a state or a security is selected', () => {
+        expect(component.isExternalFilterPresent()).toBeFalse();
+        component.stateFilter = State.Settled;
+        expect(component.isExternalFilterPresent()).toBeTrue();
+        component.stateFilter = 'All';
+        component.securityFilter = 'aa';
+        expect(component.isExternalFilterPresent()).toBeTrue();
+    });
+
+    it('should pass rows matching the state and the security substring', () => {
+        const trade = { ...trades[0], security: 'AAPL', state: State.Pending };
+        const node = { data: trade } as IRowNode<Trade>;
+        component.stateFilter = State.Pending;
+        component.securityFilter = 'aap';
+        expect(component.doesExternalFilterPass(node)).toBeTrue();
+        component.securityFilter = 'msft';
+        expect(component.doesExternalFilterPass(node)).toBeFalse();
+        component.securityFilter = '';
+        component.stateFilter = State.Settled;
+        expect(component.doesExternalFilterPass(node)).toBeFalse();
+    });
+
+    it('should re-filter the grid and show the visible row count when a filter changes', async () => {
+        const visibleRows = () => fixture.nativeElement.querySelectorAll('.ag-center-cols-container .ag-row').length;
+        component.ngOnChanges({ account: { currentValue: dummyAccounts[0] } } as any);
+        fixture.detectChanges();
+        await sleep(250);
+        fixture.detectChanges();
+        expect(component.visibleCount).toEqual(2);
+        expect(visibleRows()).toEqual(2);
+
+        component.stateFilter = State.Settled;
+        component.ngOnChanges({ stateFilter: { currentValue: State.Settled } } as any);
+        await sleep(250);
+        fixture.detectChanges();
+        expect(component.visibleCount).toEqual(0);
+        expect(fixture.nativeElement.querySelector('h5').textContent).toContain('(0)');
+
+        component.stateFilter = 'All';
+        component.securityFilter = trades[0].security.toLowerCase();
+        component.ngOnChanges({ securityFilter: { currentValue: component.securityFilter } } as any);
+        await sleep(250);
+        fixture.detectChanges();
+        expect(component.visibleCount).toEqual(trades.filter((trade) => trade.security === trades[0].security).length);
     });
 
     it('getRowId should return id from trade data', () => {

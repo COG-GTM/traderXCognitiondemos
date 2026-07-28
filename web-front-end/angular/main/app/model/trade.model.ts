@@ -21,6 +21,8 @@ export enum State {
     Settled = 'Settled'
 }
 
+export type StateFilter = State | 'All';
+
 export interface Position {
     accountid: number;
     quantity: number;

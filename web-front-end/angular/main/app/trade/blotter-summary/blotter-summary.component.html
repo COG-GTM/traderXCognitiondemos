@@ -1,0 +1,37 @@
+<div class="row g-3 mb-3">
+    <div class="col">
+        <div id="tradesTodayCard" class="card h-100">
+            <div class="card-body py-3">
+                <div class="text-secondary text-uppercase small">Trades today</div>
+                <div class="fs-4 fw-semibold">{{ tradesToday }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div id="workingCard" class="card h-100">
+            <div class="card-body py-3">
+                <div class="text-secondary text-uppercase small">Working</div>
+                <div class="fs-4 fw-semibold d-flex align-items-center">
+                    {{ working }}
+                    <span class="badge text-bg-warning fs-6 ms-2">Pending</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div id="settledCard" class="card h-100">
+            <div class="card-body py-3">
+                <div class="text-secondary text-uppercase small">Settled</div>
+                <div class="fs-4 fw-semibold">{{ settled }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div id="securitiesHeldCard" class="card h-100">
+            <div class="card-body py-3">
+                <div class="text-secondary text-uppercase small">Securities held</div>
+                <div class="fs-4 fw-semibold">{{ securitiesHeld }}</div>
+            </div>
+        </div>
+    </div>
+</div>
