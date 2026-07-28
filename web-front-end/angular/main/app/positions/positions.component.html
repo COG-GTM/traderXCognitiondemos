@@ -1,0 +1,20 @@
+<div class="p-5 pt-3">
+    <div class="d-flex mb-4">
+        <div class="me-3" id="positionsAccountFilter">
+            <app-ngx-dropdown
+                name="account"
+                [items]="accounts"
+                itemKey="displayName"
+                [selectedItem]="accountModel"
+                placeholder="Select Account"
+                (selectedItemChange)="onAccountChange($event)"
+            >
+            </app-ngx-dropdown>
+        </div>
+    </div>
+
+    <app-positions-summary [positions]="positions"></app-positions-summary>
+
+    <h5 id="positionsHeading">Positions {{ accountModel ? '(' + accountModel.displayName + ')' : '' }}</h5>
+    <app-positions-grid [positions]="positionSnapshot" [positionUpdate]="positionUpdate"></app-positions-grid>
+</div>
