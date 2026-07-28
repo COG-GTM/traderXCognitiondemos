@@ -7,6 +7,7 @@ import { CommonModule } from '@angular/common';
 import { AgGridModule } from 'ag-grid-angular';
 import { HeaderComponent } from './header/header.component';
 import { AccountsModule } from './accounts/accounts.module';
+import { PositionsModule } from './positions/positions.module';
 import { RouterModule } from '@angular/router';
 import { routes } from './routing';
 import { PageNotFoundComponent } from './page-not-found.component';
@@ -16,6 +17,7 @@ import { PageNotFoundComponent } from './page-not-found.component';
         CommonModule,
         TradeModule,
         AccountsModule,
+        PositionsModule,
         AgGridModule,
         RouterModule.forRoot(routes)], providers: [provideHttpClient(withInterceptorsFromDi(), withJsonpSupport())] })
 export class AppModule { }

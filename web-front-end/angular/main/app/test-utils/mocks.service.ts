@@ -67,6 +67,7 @@ export class MockSymbolService {
 export class MockTradeFeedService {
 
   subscribe(topic: string, callback: Function) {
+    return () => this.unSubscribe();
   }
 
   unSubscribe() {
