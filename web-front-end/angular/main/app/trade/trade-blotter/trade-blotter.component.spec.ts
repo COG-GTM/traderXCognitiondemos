@@ -1,5 +1,6 @@
-import { ComponentFixture, TestBed, tick, fakeAsync } from '@angular/core/testing';
+import { ComponentFixture, TestBed, tick, fakeAsync, flush } from '@angular/core/testing';
 import { AgGridModule } from 'ag-grid-angular';
+import { GetRowIdParams } from 'ag-grid-community';
 import { TradeBlotterComponent } from './trade-blotter.component';
 import { PositionService } from 'main/app/service/position.service';
 import { MockTradeService, MockTradeFeedService, accounts as dummyAccounts, trades } from 'main/app/test-utils/mocks.service';
@@ -54,6 +55,7 @@ describe('TradeBlotterComponent', () => {
         const rows = fixture.nativeElement.querySelectorAll('.ag-center-cols-container .ag-row');
         expect(rows.length).toEqual(2);
         expect(component.pendingTrades.length).toEqual(0);
+        flush();
     }));
 
     it('should call getTrades and subscribe to trade feed service for given account', async () => {
@@ -66,8 +68,8 @@ describe('TradeBlotterComponent', () => {
 
     });
 
-    it('getRowNodeId should return id from trade data', () => {
-        expect(component.getRowNodeId(trades[0])).toEqual(trades[0].id);
+    it('getRowId should return id from trade data', () => {
+        expect(component.getRowId({ data: trades[0] } as GetRowIdParams)).toEqual(`Trade-${trades[0].id}`);
     });
 
 });

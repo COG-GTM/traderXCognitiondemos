@@ -77,7 +77,7 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     }
 
     private update(data: Trade) {
-        const row = this.gridApi.getRowNode(data.id);
+        const row = this.gridApi.getRowNode(this.getRowId({ data } as GetRowIdParams<Trade>));
         let tradeData;
         if (row) {
             tradeData = {
