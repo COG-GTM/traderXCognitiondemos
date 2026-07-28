@@ -33,8 +33,16 @@ Run `prompts/frontend-audit.md`. Read-only.
 
 Talking point when the report lands: it ranks by blast radius, quotes the rule and the doc that
 states it, and lists what it checked and found **clean** — that's what makes it an audit rather
-than a wall of nitpicks. And it's allowed to tell you the *doc* is wrong; when we first ran this,
-some of its findings were bugs in the docs, not the code, and we fixed the docs.
+than a wall of nitpicks. And it's allowed to tell you the *doc* is wrong; when we ran this, several
+findings were bugs in the docs rather than the code, and the docs got fixed.
+
+**The line to use here.** Its second finding was a real bug, live in TraderX today: both blotters
+register `getRowId` as `` `Trade-${id}` `` but look rows up with the bare `data.id`, so every
+trade-feed message misses and takes the *add* branch. The `New → Processing → Settled` flash the
+app is built around had never worked, and rows duplicated on update. One line each to fix (commit
+`8cb5617`). It found that by reading a *convention* about `applyTransaction`, not by running a
+linter — no linter has an opinion about this, and in fact `npm run lint` in this repo has been
+dead since Angular 12, which the audit also caught.
 
 ## Beat 3 — a feature, from the conventions alone (3 min)
 
@@ -75,12 +83,30 @@ screenshot side by side.
 
 ## Pre-baked results
 
-| Beat | Artifact |
-| --- | --- |
-| 1 — context | this branch / the `devin_context/` PR |
-| 2 — audit | _session + report attached below once run_ |
-| 3 — feature | _PR link_ |
-| 4 — from mock | _PR link, mock vs. screenshot_ |
+Every beat below was actually run against this branch. Cut to the artifact if a beat runs long.
+
+| Beat | Session | Artifact |
+| --- | --- | --- |
+| 1 — context | — | [PR #90](https://github.com/COG-GTM/traderXCognitiondemos/pull/90) |
+| 2 — audit | [095… audit](https://app.devin.ai/sessions/7a6c73555304445fbd8099346a6c7cea) | 12 findings ranked by blast radius; no code changed |
+| 3 — feature | [Positions tab](https://app.devin.ai/sessions/6041ffa7aea24f8a850bc960b879712b) | [PR #92](https://github.com/COG-GTM/traderXCognitiondemos/pull/92) + recording |
+| 4 — from mock | [blotter summary](https://app.devin.ai/sessions/e52991956d364e7f9244b3a19c9085c8) | [PR #93](https://github.com/COG-GTM/traderXCognitiondemos/pull/93), mock vs. screenshot in the body |
+
+What each build session came back with, worth knowing before you narrate it:
+
+- **Positions tab (#92)** — 40 tests (was 25), verified live: three tickets booked on the Trade tab
+  while an untouched Positions window watched them land. It also reported that `UPDATED` is always
+  blank because `trade-processor` never calls `position.setUpdated(...)` — a backend gap it
+  refused to paper over.
+- **From the mock (#93)** — 42 tests, four cards not five: *"no service or model supplies price,
+  notional or valuation, so it's omitted rather than faked."* It also found the mock's `Pending`
+  filter can never match, because the H2 check constraint and the processor's `TradeState` enum
+  only allow `New/Processing/Settled/Cancelled`. Built as specced, flagged for a decision — that's
+  the behaviour you want on a comp someone drew from memory.
+
+Caveat if you run any of this live: `docker compose up --build` currently fails on the Java
+services (Maven Central 429s). Both build sessions worked around it with the published
+`ghcr.io/finos/traderx/*` images plus `npm --prefix web-front-end/angular start` on `:18093`.
 
 ## Setup
 
