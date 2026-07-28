@@ -1,9 +1,9 @@
-import { ColDef, GridApi, GridReadyEvent, GetRowIdParams } from 'ag-grid-community';
+import { ColDef, GridApi, GridReadyEvent, GetRowIdParams, IRowNode, ModelUpdatedEvent } from 'ag-grid-community';
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { Account } from 'main/app/model/account.model';
 import { PositionService } from 'main/app/service/position.service';
 import { Observable } from 'rxjs';
-import { Trade } from '../../model/trade.model';
+import { StateFilter, Trade } from '../../model/trade.model';
 import { TradeFeedService } from 'main/app/service/trade-feed.service';
 
 @Component({
@@ -13,7 +13,10 @@ import { TradeFeedService } from 'main/app/service/trade-feed.service';
 export class TradeBlotterComponent implements OnChanges, OnDestroy {
     trades$: Observable<Trade[]>;
     @Input() account?: Account;
+    @Input() stateFilter: StateFilter = 'All';
+    @Input() securityFilter = '';
     trades: Trade[] = [];
+    visibleCount = 0;
     gridApi: GridApi;
     pendingTrades: Trade[] = [];
     isPending = true;
@@ -54,6 +57,23 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
                 this.updateTrades(data);
             });
         }
+        if (change.stateFilter || change.securityFilter) {
+            this.gridApi?.onFilterChanged();
+        }
+    }
+
+    isExternalFilterPresent = (): boolean => this.stateFilter !== 'All' || this.securityFilter.trim() !== '';
+
+    doesExternalFilterPass = (node: IRowNode<Trade>): boolean => {
+        const trade = node.data;
+        if (!trade) { return true; }
+        const security = this.securityFilter.trim().toLowerCase();
+        return (this.stateFilter === 'All' || trade.state === this.stateFilter)
+            && (security === '' || trade.security.toLowerCase().includes(security));
+    };
+
+    onModelUpdated(params: ModelUpdatedEvent) {
+        this.visibleCount = params.api.getDisplayedRowCount();
     }
 
     onGridReady(params: GridReadyEvent) {
