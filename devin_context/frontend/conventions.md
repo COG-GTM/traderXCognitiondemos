@@ -33,9 +33,14 @@ cd web-front-end/angular
 npm install
 npm start                     # dev server on :18093 (WEB_SERVICE_PORT)
 npm run build                 # production AOT build — the gate
-npm run test:ci               # Karma/Jasmine, ChromeHeadlessNoSandbox, single run
-npm run lint
+npm run test:ci               # Karma/Jasmine, ChromeHeadlessNoSandbox, single run — the other gate
 ```
+
+`npm run lint` **does not work**: `angular.json` still points at
+`@angular-devkit/build-angular:tslint`, a builder removed in Angular 12, and `main/tslint.json`
+extends a file that no longer exists. Nothing is linted today, so the selector rules below are
+conventions you have to keep by hand, not something a tool enforces. Don't count a green lint as
+evidence, and don't rewire the linter as a side effect of a feature.
 
 The whole stack (all services + this UI on `:8080`) comes up with `docker compose up` from the
 repo root. Ports for running services by hand are in the root `README.md`.
@@ -71,7 +76,7 @@ nav entry in `header/header.component.html`. Nothing else moves.
 
 | Thing | Rule | Example |
 | --- | --- | --- |
-| Component selector | element, `app-` prefix, kebab-case (enforced by `tslint.json`) | `app-trade-blotter` |
+| Component selector | element, `app-` prefix, kebab-case (`tslint.json` states it; nothing enforces it) | `app-trade-blotter` |
 | Directive selector | attribute, `app` prefix, camelCase | `appHighlight` |
 | Files | `<name>.component.ts` / `.html` / `.scss`, `<name>.service.ts`, `<name>.model.ts` | `trade-ticket.component.ts` |
 | Class | PascalCase, suffixed | `TradeBlotterComponent`, `PositionService` |

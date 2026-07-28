@@ -36,7 +36,8 @@ PR rather than dropping the line.
       component.
 - [ ] Service methods are typed, `catchError`-terminated, and re-throw via `throwError(() => error)`.
 - [ ] New URLs added to all three `environments/*.ts`.
-- [ ] Grids update via `applyTransaction`, not array reassignment; rows keyed by `getRowId`.
+- [ ] Grids update via `applyTransaction`, not array reassignment; rows keyed by `getRowId`, and
+      row lookups use that same `getRowId` rather than the raw domain id.
 - [ ] Every `tradeFeed.subscribe(...)` teardown is stored and called on input change **and** in
       `ngOnDestroy`.
 - [ ] Nothing displayed is fabricated: every number on screen comes from an existing endpoint

@@ -53,6 +53,11 @@ Rules:
   blotter spec does.
 - `@faker-js/faker` is available for fixture data.
 
+Baseline today: 25 passing, ~52% statement coverage, and **10 specs disabled** —
+`app.component.spec.ts` and `trade-ticket.component.spec.ts` are `xdescribe`d, plus two `xit`s in
+the accounts specs. Don't add to that pile: new components ship with live specs, and if you touch
+a file whose spec is disabled, re-enabling it is fair game (and welcome).
+
 ## Selectors: `id`, not `data-testid`
 
 This codebase's stable hooks are plain `id` attributes on the elements a test or a demo script

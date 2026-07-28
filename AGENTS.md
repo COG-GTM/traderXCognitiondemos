@@ -30,7 +30,7 @@ web-front-end).
 
 | Area | Commands |
 | --- | --- |
-| Angular UI (`web-front-end/angular`) | `npm install`; `npm start` (:18093); `npm run build` (prod AOT — the gate); `npm run test:ci`; `npm run lint` |
+| Angular UI (`web-front-end/angular`) | `npm install`; `npm start` (:18093); `npm run build` (prod AOT — the gate); `npm run test:ci` (the other gate). `npm run lint` is broken — it points at the tslint builder removed in Angular 12 |
 | Java services (`account-service`, `position-service`, `trade-service`, `trade-processor`, `database`) | `./gradlew :<service>:build`, `./gradlew :<service>:test`, `./gradlew :<service>:bootRun` |
 | Node services (`reference-data`, `trade-feed`) | `npm install`, `npm run build`, `npm test`, `npm start` in the service directory |
 | .NET (`people-service`) | `dotnet build`, `dotnet test`, `dotnet run` |

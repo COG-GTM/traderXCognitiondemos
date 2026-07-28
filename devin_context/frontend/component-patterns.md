@@ -2,12 +2,24 @@
 
 Skeletons extracted from the golden files. Copy them.
 
-## Container / presentational split
+## Container / child split
 
-Every feature page is a **container**: it injects services, owns the data, and passes plain inputs
-down. Children are **presentational**: `@Input()` in, `@Output()` out, no service injection.
-`trade.component.ts` (container) → `trade-ticket` / `trade-blotter` / `position-blotter` (children)
-is the reference.
+Every feature page is a **container**: it injects the services the page needs, owns the page-level
+selection, opens modals and performs **all writes**. `trade.component.ts` is the reference.
+
+Children come in two flavours, and the split is real — don't blur it:
+
+1. **Presentational** — `@Input()` in, `@Output()` out, **injects nothing**: `trade-ticket`,
+   `dropdown`, `button-renderer`. A form child emits its payload; the container calls the service.
+2. **Self-fetching blotter** — takes the account as an `@Input()` and injects **read-only** data
+   sources (`PositionService`, `TradeFeedService`) to load its own snapshot and subscribe to its
+   own feed topic: `trade-blotter`, `position-blotter`. This is deliberate: a blotter owns a live
+   stream keyed to its own topic, and pushing every tick through the container would serialise
+   two independent feeds.
+
+The hard line is **writes**: no child posts, creates or updates. `accounts/edit` and
+`accounts/user/assign-user` currently break that (they inject `AccountService` and post) — they're
+legacy, not a pattern to copy.
 
 ```ts
 // container
@@ -38,7 +50,8 @@ export class TradeTicketComponent implements OnInit {
 }
 ```
 
-A child never calls a service and never navigates. It emits; the container decides.
+A presentational child never calls a service and never navigates. It emits; the container decides.
+A blotter child may read and subscribe, but still never writes and never navigates.
 
 ## Feature module
 
@@ -97,10 +110,12 @@ getRowId(params: GetRowIdParams<any>): string {
 - Row data arrives either as a bound array (`[rowData]="trades"`) or via the `async` pipe
   (`[rowData]="accounts$ | async"`). Both are in use; pick the one that matches how the data is
   fetched (see `data-and-state.md`).
-- **Incremental updates go through `applyTransaction`, never through reassigning the array**:
+- **Incremental updates go through `applyTransaction`, never through reassigning the array** —
+  and look the row up with the **same `getRowId` you gave the grid**, not the raw domain id, or
+  every update silently becomes an insert:
 
 ```ts
-const row = this.gridApi.getRowNode(data.id);
+const row = this.gridApi.getRowNode(this.getRowId({ data } as GetRowIdParams<Trade>));
 this.gridApi.applyTransaction(row
     ? { update: [Object.assign(row.data, { state: data.state })] }
     : { add: [{ ...data }], addIndex: 0 });
