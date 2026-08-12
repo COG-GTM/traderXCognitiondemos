@@ -55,6 +55,15 @@ CREATE INDEX IDX_OrderDecisionAudit_Correlation ON OrderDecisionAudit (Correlati
 
 CREATE INDEX IDX_OrderDecisionAudit_Account_Time ON OrderDecisionAudit (AccountID, DecisionTimestamp);
 
+-- Indexes below back the compliance query API (TRX-105). Every supported filter combination
+-- is anchored on DecisionTimestamp because the table is retained for five years and is always
+-- read as "this filter, over this window, newest first" - never as an unbounded scan.
+CREATE INDEX IDX_OrderDecisionAudit_Time ON OrderDecisionAudit (DecisionTimestamp, ID);
+
+CREATE INDEX IDX_OrderDecisionAudit_Security_Time ON OrderDecisionAudit (Security, DecisionTimestamp);
+
+CREATE INDEX IDX_OrderDecisionAudit_Decision_Time ON OrderDecisionAudit (Decision, DecisionTimestamp);
+
 CREATE SEQUENCE ACCOUNTS_SEQ start with 65000 INCREMENT BY 1;
 
 --- SAMPLE DATA ---

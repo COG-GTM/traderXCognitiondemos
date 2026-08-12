@@ -4,6 +4,7 @@ import { TradeComponent } from './trade.component';
 import { FormsModule } from '@angular/forms';
 import { AlertModule } from 'ngx-bootstrap/alert';
 import { ModalModule } from 'ngx-bootstrap/modal';
+import { TabsModule } from 'ngx-bootstrap/tabs';
 import { AccountService } from '../service/account.service';
 import { MockAccountService, MockSymbolService, accounts } from '../test-utils/mocks.service';
 import { SymbolService } from '../service/symbols.service';
@@ -24,7 +25,8 @@ describe('TradeComponent', () => {
                 FormsModule,
                 DropdownModule,
                 ModalModule.forRoot(),
-                AlertModule.forRoot()
+                AlertModule.forRoot(),
+                TabsModule.forRoot()
             ],
             providers: [
                 {
