@@ -203,7 +203,9 @@ paths:
         "404":
           description: Unknown account
         "503":
-          description: Risk limits are switched off (traderx.risk-limit.enabled=false)
+          description: >-
+            Risk limits are switched off (traderx.risk-limit.enabled=false). Checked before the
+            account is looked up, so a 503 says nothing about whether the account exists.
   /account/{id}/risk-limit/history:
     get:
       tags:
@@ -274,6 +276,9 @@ components:
         effectiveFrom:
           type: string
           format: date-time
+          description: >-
+            When the value shown here took effect, i.e. the latest amendment - not when the account
+            first came under limit control. Use the history endpoint for that.
         setBy:
           type: string
           example: risk.control@traderx
