@@ -51,11 +51,11 @@ export function formatNotional(value: number): string {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 }
 
-const REASON_CODE_PATTERN = /^[A-Z0-9_]{1,64}$/;
+const REASON_CODE_PATTERN = /^[A-Za-z0-9_]{1,64}$/;
 
 export function describeReason(reason: string): string {
-    if (Object.prototype.hasOwnProperty.call(REASON_LABELS, reason)) {
-        return REASON_LABELS[reason];
+    if (Object.prototype.hasOwnProperty.call(REASON_LABELS, reason.toUpperCase())) {
+        return REASON_LABELS[reason.toUpperCase()];
     }
     if (!REASON_CODE_PATTERN.test(reason)) {
         return 'a pre-trade risk check';

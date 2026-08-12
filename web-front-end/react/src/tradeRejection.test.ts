@@ -1,4 +1,4 @@
-import { formatRejectionMessage, parseTradeRejection } from './tradeRejection';
+import { describeReason, formatRejectionMessage, parseTradeRejection } from './tradeRejection';
 
 const rejectionBody = {
 	decision: 'REJECTED',
@@ -38,9 +38,14 @@ test('unwraps a body that carries the raw response under text', () => {
 		.toEqual(rejectionBody);
 });
 
-test('does not treat an inherited object property as a known reason', () => {
+test('recognises a known reason code whatever its case', () => {
+	expect(describeReason('notional_limit_breach')).toEqual('notional limit breach');
+	expect(describeReason('Restricted_Security')).toEqual('restricted security');
+});
+
+test('does not resolve an inherited object property to its function source', () => {
 	expect(formatRejectionMessage({ decision: 'REJECTED', reason: 'constructor' })).toEqual(
-		'Order rejected: a pre-trade risk check. Amend the order and resubmit.'
+		'Order rejected: constructor. Amend the order and resubmit.'
 	);
 });
 

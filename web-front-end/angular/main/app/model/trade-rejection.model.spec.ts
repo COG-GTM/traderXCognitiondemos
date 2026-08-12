@@ -1,4 +1,4 @@
-import { formatRejectionMessage, parseTradeRejection } from './trade-rejection.model';
+import { describeReason, formatRejectionMessage, parseTradeRejection } from './trade-rejection.model';
 
 describe('trade rejection', () => {
 
@@ -46,9 +46,14 @@ describe('trade rejection', () => {
             .toEqual(rejectionBody);
     });
 
-    it('should not treat an inherited object property as a known reason', () => {
+    it('should recognise a known reason code whatever its case', () => {
+        expect(describeReason('notional_limit_breach')).toEqual('notional limit breach');
+        expect(describeReason('Restricted_Security')).toEqual('restricted security');
+    });
+
+    it('should not resolve an inherited object property to its function source', () => {
         expect(formatRejectionMessage({ decision: 'REJECTED', reason: 'constructor' })).toEqual(
-            'Order rejected: a pre-trade risk check. Amend the order and resubmit.'
+            'Order rejected: constructor. Amend the order and resubmit.'
         );
     });
 
