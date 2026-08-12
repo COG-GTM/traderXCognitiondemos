@@ -38,6 +38,11 @@ export class ComplianceBlotterComponent implements OnInit, OnChanges {
     /** Whether the last query narrowed the trail, so an empty result can be explained as such. */
     filtered = false;
 
+    /** No claim is made about the trail until a query has actually answered. */
+    loaded = false;
+
+    private requested = false;
+
     readonly decisionOptions = [
         { value: '', label: 'All decisions' },
         { value: Decision.Rejected, label: 'Rejected only' },
@@ -67,13 +72,9 @@ export class ComplianceBlotterComponent implements OnInit, OnChanges {
 
     constructor(private auditService: AuditService) { }
 
-    /**
-     * Nothing is loaded until the account arrives if the view claims to be scoped to it. An
-     * unscoped first query would briefly show other accounts' decisions under a ticked
-     * "Selected account only", which on a compliance screen is not a cosmetic problem.
-     */
+    /** ngOnChanges runs first when the account is already bound, and has already loaded by then. */
     ngOnInit() {
-        if (!this.limitToAccount || this.account) {
+        if (!this.requested) {
             this.load();
         }
     }
@@ -117,11 +118,28 @@ export class ComplianceBlotterComponent implements OnInit, OnChanges {
         return params.data?.decision === Decision.Rejected ? 'compliance-row-rejected' : '';
     }
 
+    /**
+     * The view cannot honestly answer "scoped to the selected account" before an account exists,
+     * and querying every account under a ticked box is the wrong way to fill the gap.
+     */
+    get awaitingAccount(): boolean {
+        return this.limitToAccount && !this.account;
+    }
+
     get isEmpty(): boolean {
-        return !this.loading && !this.unavailable && !this.error && this.decisions.length === 0;
+        return this.loaded && !this.loading && !this.unavailable && !this.error && this.decisions.length === 0;
     }
 
     private load() {
+        if (this.awaitingAccount) {
+            this.decisions = [];
+            this.totalElements = 0;
+            this.totalPages = 0;
+            this.loaded = false;
+            return;
+        }
+
+        this.requested = true;
         this.filtered = Boolean(this.security?.trim() || this.decision || this.from || this.to);
         const query: AuditQuery = {
             accountId: this.limitToAccount ? this.account?.id : undefined,
@@ -143,6 +161,7 @@ export class ComplianceBlotterComponent implements OnInit, OnChanges {
                 this.totalPages = result.totalPages;
                 this.unavailable = false;
                 this.loading = false;
+                this.loaded = true;
             },
             error: (response) => {
                 this.decisions = [];
@@ -151,6 +170,7 @@ export class ComplianceBlotterComponent implements OnInit, OnChanges {
                 this.unavailable = response?.status === 503;
                 this.error = this.unavailable ? '' : 'Could not load the audit trail.';
                 this.loading = false;
+                this.loaded = false;
             }
         });
     }

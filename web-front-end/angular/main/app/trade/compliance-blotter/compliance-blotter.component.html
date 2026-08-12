@@ -31,6 +31,10 @@
         <button type="submit" class="btn btn-sm btn-primary" id="applyComplianceFilters">Apply</button>
     </form>
 
+    <div class="compliance-state" *ngIf="awaitingAccount && !unavailable">
+        Select an account to see its order decisions, or untick "Selected account only" to search the whole trail.
+    </div>
+
     <div class="compliance-state" *ngIf="unavailable">
         The compliance audit query is switched off in this environment.
     </div>

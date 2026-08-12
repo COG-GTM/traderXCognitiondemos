@@ -71,23 +71,28 @@ public class AuditController {
             return DecisionOutcome.valueOf(decision.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException(
-                    "Unknown decision '" + decision + "'. Expected one of " + Arrays.toString(DecisionOutcome.values()));
+                    "Unknown 'decision' filter. Expected one of " + Arrays.toString(DecisionOutcome.values()));
         }
     }
 
     /**
      * A filter the caller mistyped is a bad request, not an outage. Without this the controller's
      * catch-all would turn Spring's binding failure into a 500 and the Compliance tab would
-     * report the audit trail as unavailable.
+     * report the audit trail as unavailable. Only the parameter name is echoed; the value came
+     * from the caller and Spring's message carries the internal type it failed to bind to.
      */
     @ExceptionHandler(TypeMismatchException.class)
-    public ResponseEntity<String> typeMismatch(TypeMismatchException e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    public ResponseEntity<ApiError> typeMismatch(TypeMismatchException e) {
+        return badRequest("Could not read the '" + e.getPropertyName() + "' filter.");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> badRequest(IllegalArgumentException e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    public ResponseEntity<ApiError> badRequest(IllegalArgumentException e) {
+        return badRequest(e.getMessage());
+    }
+
+    private ResponseEntity<ApiError> badRequest(String message) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(message));
     }
 
     /**
@@ -95,8 +100,17 @@ public class AuditController {
      * detail, and this endpoint answers anyone who can reach the service.
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> generalError(Exception e) {
+    public ResponseEntity<ApiError> generalError(Exception e) {
         log.error("Failed to query the order decision audit trail", e);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not query the audit trail.");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ApiError("Could not query the audit trail."));
+    }
+
+    /**
+     * The endpoint declares {@code application/json}, so errors are JSON too. Messages are written
+     * here rather than lifted from the exception: neither the caller's own input nor Spring's
+     * internal property and type names belong in a response this endpoint hands to anyone.
+     */
+    public record ApiError(String message) {
     }
 }

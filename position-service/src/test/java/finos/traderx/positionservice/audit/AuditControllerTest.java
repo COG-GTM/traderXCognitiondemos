@@ -1,5 +1,7 @@
 package finos.traderx.positionservice.audit;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -7,6 +9,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -18,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -80,6 +84,21 @@ class AuditControllerTest {
         mockMvc.perform(get("/audit/decisions").param("decision", "MAYBE")).andExpect(status().isBadRequest());
 
         verify(auditQueryService, never()).search(any(), any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void answersErrorsWithJsonThatDoesNotEchoWhatTheCallerSent() throws Exception {
+        when(auditQueryService.isEnabled()).thenReturn(true);
+
+        mockMvc.perform(get("/audit/decisions").param("decision", "<script>alert(1)</script>"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value(containsString("Expected one of")))
+                .andExpect(jsonPath("$.message").value(not(containsString("script"))));
+
+        mockMvc.perform(get("/audit/decisions").param("accountId", "all"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(not(containsString("java."))));
     }
 
     @Test

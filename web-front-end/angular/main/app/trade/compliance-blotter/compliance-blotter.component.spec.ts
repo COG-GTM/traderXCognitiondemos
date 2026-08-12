@@ -53,8 +53,30 @@ describe('ComplianceBlotterComponent', () => {
     });
 
     it('should show an empty state before any order has been submitted', () => {
+        component.limitToAccount = false;
+        component.applyFilters();
+        fixture.detectChanges();
+
         expect(component.isEmpty).toBeTrue();
         expect(fixture.nativeElement.textContent).toContain('No order decisions recorded yet');
+    });
+
+    it('should ask for an account rather than claim the trail is empty before it has queried', () => {
+        expect(auditService.lastQuery).toBeUndefined();
+        expect(component.isEmpty).toBeFalse();
+        expect(fixture.nativeElement.textContent).toContain('Select an account');
+        expect(fixture.nativeElement.textContent).not.toContain('No order decisions recorded yet');
+    });
+
+    it('should never query every account while "Selected account only" is ticked', () => {
+        component.security = 'AAPL';
+        component.applyFilters();
+        component.nextPage();
+        expect(auditService.lastQuery).toBeUndefined();
+
+        component.limitToAccount = false;
+        component.applyFilters();
+        expect(auditService.lastQuery?.accountId).toBeUndefined();
     });
 
     it('should mark rejected rows as distinct and accepted rows as ordinary', () => {
@@ -64,6 +86,7 @@ describe('ComplianceBlotterComponent', () => {
     });
 
     it('should send the active filters to the audit service and reset to the first page', () => {
+        component.account = dummyAccounts[0];
         component.page = 3;
         component.security = ' AAPL ';
         component.decision = Decision.Rejected;
@@ -88,6 +111,7 @@ describe('ComplianceBlotterComponent', () => {
     });
 
     it('should page forward and back within the reported page count', () => {
+        component.account = dummyAccounts[0];
         auditService.page = { content: [], page: 0, size: 25, totalElements: 60, totalPages: 3 };
         component.applyFilters();
 
@@ -109,6 +133,7 @@ describe('ComplianceBlotterComponent', () => {
     });
 
     it('should read the date filters as UTC, matching the timestamps it displays', () => {
+        component.account = dummyAccounts[0];
         component.from = '2026-01-01T10:00';
         component.to = '2026-04-01T00:00';
         component.applyFilters();
@@ -118,6 +143,7 @@ describe('ComplianceBlotterComponent', () => {
     });
 
     it('should say a filter matched nothing rather than that nothing was recorded', () => {
+        component.account = dummyAccounts[0];
         component.security = 'MSFT';
         component.applyFilters();
         fixture.detectChanges();
@@ -128,6 +154,7 @@ describe('ComplianceBlotterComponent', () => {
     });
 
     it('should report the feature being switched off rather than an error', () => {
+        component.account = dummyAccounts[0];
         spyOn(auditService, 'getDecisions').and.returnValue(throwError(() => ({ status: 503 })));
         component.applyFilters();
 
@@ -136,6 +163,7 @@ describe('ComplianceBlotterComponent', () => {
     });
 
     it('should surface a failure to load without clearing into an empty state', () => {
+        component.account = dummyAccounts[0];
         spyOn(auditService, 'getDecisions').and.returnValue(throwError(() => ({ status: 500 })));
         component.applyFilters();
 
