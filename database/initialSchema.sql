@@ -1,5 +1,3 @@
-Drop Table OrderDecisionAudit IF EXISTS;
-
 Drop Table Trades IF EXISTS;
 
 Drop Table AccountUsers IF EXISTS; 
@@ -28,7 +26,11 @@ Alter Table Trades Add Foreign Key (AccountID) references Accounts(ID);
 -- trade-service for every submission, accepted or rejected, and never updated or deleted.
 -- Deliberately has no foreign key to Accounts, because a rejected order may name an account
 -- that does not exist - that rejection still has to be reconstructable.
-CREATE TABLE OrderDecisionAudit (
+--
+-- Note the absence of a DROP above, and IF NOT EXISTS below: this script re-runs on every
+-- database start, and every other table here is rebuilt from seed data. This one accumulates.
+-- A retained record that a restart erases is not a retained record.
+CREATE TABLE IF NOT EXISTS OrderDecisionAudit (
   ID VARCHAR(50) PRIMARY KEY,
   CorrelationID VARCHAR(50) NOT NULL,
   OrderID VARCHAR(50),
@@ -51,9 +53,9 @@ CREATE TABLE OrderDecisionAudit (
   DecisionTimestamp TIMESTAMP(3) WITH TIME ZONE NOT NULL
 );
 
-CREATE INDEX IDX_OrderDecisionAudit_Correlation ON OrderDecisionAudit (CorrelationID);
+CREATE INDEX IF NOT EXISTS IDX_OrderDecisionAudit_Correlation ON OrderDecisionAudit (CorrelationID);
 
-CREATE INDEX IDX_OrderDecisionAudit_Account_Time ON OrderDecisionAudit (AccountID, DecisionTimestamp);
+CREATE INDEX IF NOT EXISTS IDX_OrderDecisionAudit_Account_Time ON OrderDecisionAudit (AccountID, DecisionTimestamp);
 
 CREATE SEQUENCE ACCOUNTS_SEQ start with 65000 INCREMENT BY 1;
 

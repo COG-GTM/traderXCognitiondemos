@@ -136,6 +136,19 @@ public class TradeOrderController {
 		}
 	}
 
+	/**
+	 * Classifies a non-404 client error. Only a complaint about the request itself is the
+	 * submitter's fault; an expired credential or a rate limit is our own availability
+	 * problem, and the retained record must not blame the trader for it.
+	 */
+	private LookupResult classify(HttpClientErrorException ex)
+	{
+		return switch (ex.getStatusCode().value()) {
+			case 400, 422 -> LookupResult.INVALID_SUBMISSION;
+			default -> LookupResult.UNAVAILABLE;
+		};
+	}
+
 	private String submittedBy(String submittingUser)
 	{
 		if (submittingUser == null || submittingUser.isBlank()) {
@@ -149,11 +162,13 @@ public class TradeOrderController {
 	{
 		// Move whole method to a sperate class that handles all reference data 
 		// so we can mock it and run without this service up.
-		String url = this.referenceDataServiceAddress + "//stocks/" + ticker;
+		// The ticker is a free-form client string, so it is passed as a URI variable and
+		// encoded rather than concatenated into the path.
+		String url = this.referenceDataServiceAddress + "//stocks/{ticker}";
 		ResponseEntity<Security> response = null;
 
 		try {
-			response = this.restTemplate.getForEntity(url, Security.class);
+			response = this.restTemplate.getForEntity(url, Security.class, ticker);
 			log.info("Validate ticker " + String.valueOf(response.getBody()));
 			return LookupResult.FOUND;
 		}
@@ -162,10 +177,8 @@ public class TradeOrderController {
 				log.info(ticker + " not found in reference data service.");
 				return LookupResult.NOT_FOUND;
 			}
-			// A 4xx that is not a 404 means the service understood us and objected: that is a
-			// bad submission, not an outage, and the audit record has to say so.
 			log.error(ex.getMessage());
-			return LookupResult.INVALID_SUBMISSION;
+			return classify(ex);
 		}
 		catch (RestClientException ex) {
 			log.error("Reference data service unavailable while validating " + ticker, ex);
@@ -178,12 +191,12 @@ public class TradeOrderController {
 		// Move whole method to a sperate class that handles all accounts 
 		// so we can mock it and run without this service up.
 
-		String url = this.accountServiceAddress + "//account/" + id;
+		String url = this.accountServiceAddress + "//account/{id}";
 		ResponseEntity<Account> response = null;
 
 		try 
 		{
-				response = this.restTemplate.getForEntity(url, Account.class);
+				response = this.restTemplate.getForEntity(url, Account.class, id);
 				log.info("Validate account " + String.valueOf(response.getBody()));
 				return LookupResult.FOUND;
 		}
@@ -193,7 +206,7 @@ public class TradeOrderController {
 				return LookupResult.NOT_FOUND;
 			}
 			log.error(ex.getMessage());
-			return LookupResult.INVALID_SUBMISSION;
+			return classify(ex);
 		}
 		catch (RestClientException ex) {
 			log.error("Account service unavailable while validating account " + id, ex);

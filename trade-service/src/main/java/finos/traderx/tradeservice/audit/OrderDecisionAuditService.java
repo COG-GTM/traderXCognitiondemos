@@ -88,7 +88,7 @@ public class OrderDecisionAuditService {
         if (value == null || value.length() <= maxLength) {
             return value;
         }
-        log.warn("Truncating value of length {} to {} characters for the audit record", value.length(), maxLength);
+        log.warn("Truncating value to {} characters for the audit record; original was [{}]", maxLength, value);
         return value.substring(0, maxLength);
     }
 
