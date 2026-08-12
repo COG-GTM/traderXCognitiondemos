@@ -85,6 +85,27 @@ class TradeOrderControllerAuditTest {
     }
 
     @Test
+    void anOrderMissingASecurityIsAuditedAsInvalidWithoutCallingAnyLookupService() {
+        TradeOrder incomplete = new TradeOrder("ORDER-1", 22214, null, TradeSide.Buy, 100);
+
+        assertThrows(InvalidSubmissionException.class, () -> controller.createTradeOrder(incomplete, "user01"));
+
+        assertEquals(DecisionReason.SUBMISSION_INVALID, capturedReason(DecisionOutcome.REJECTED));
+        downstream.verify();
+    }
+
+    @Test
+    void anOrderMissingAnAccountIsAuditedAsInvalidWithoutCallingAnyLookupService() {
+        TradeOrder incomplete = order();
+        ReflectionTestUtils.setField(incomplete, "accountId", null);
+
+        assertThrows(InvalidSubmissionException.class, () -> controller.createTradeOrder(incomplete, "user01"));
+
+        assertEquals(DecisionReason.SUBMISSION_INVALID, capturedReason(DecisionOutcome.REJECTED));
+        downstream.verify();
+    }
+
+    @Test
     void anUnknownSecurityIsAuditedAsRejected() {
         downstream.expect(requestTo(REFERENCE_DATA_URL + "/stocks/IBM"))
                 .andRespond(withStatus(HttpStatus.NOT_FOUND));

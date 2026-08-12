@@ -32,6 +32,8 @@ public class OrderDecisionAuditService {
 
     private static final int ID_MAX_LENGTH = 50;
     private static final int SECURITY_MAX_LENGTH = 50;
+    private static final int LIMIT_FIELD_MAX_LENGTH = 40;
+    private static final int PRICE_SOURCE_MAX_LENGTH = 40;
 
     private final OrderDecisionAuditRepository repository;
     private final BestExecutionAuditProperties properties;
@@ -54,7 +56,11 @@ public class OrderDecisionAuditService {
 
         BigDecimal price = properties.getPricing().getReferencePrice();
         BigDecimal notional = notionalOf(order, price);
-        EvaluatedLimit limit = new EvaluatedLimit(properties.getLimit().getId(), properties.getLimit().getType(),
+        // Configured values are fitted too: a misconfigured limit name must not be able to fail
+        // the insert, because that would fail every order submission rather than one record.
+        EvaluatedLimit limit = new EvaluatedLimit(
+                fitToColumn(properties.getLimit().getId(), LIMIT_FIELD_MAX_LENGTH),
+                fitToColumn(properties.getLimit().getType(), LIMIT_FIELD_MAX_LENGTH),
                 properties.getLimit().getValue(), properties.getLimit().getEffectiveFrom());
 
         OrderDecisionAudit auditRecord = new OrderDecisionAudit(
@@ -66,7 +72,7 @@ public class OrderDecisionAuditService {
                 order.getSide() == null ? null : order.getSide().toString(),
                 order.getQuantity(),
                 price,
-                properties.getPricing().getSource(),
+                fitToColumn(properties.getPricing().getSource(), PRICE_SOURCE_MAX_LENGTH),
                 notional,
                 decision,
                 reason,
@@ -88,8 +94,17 @@ public class OrderDecisionAuditService {
         if (value == null || value.length() <= maxLength) {
             return value;
         }
-        log.warn("Truncating value to {} characters for the audit record; original was [{}]", maxLength, value);
+        log.warn("Truncating value to {} characters for the audit record; original was [{}]", maxLength,
+                forLogging(value));
         return value.substring(0, maxLength);
+    }
+
+    /**
+     * Client supplied text reaches the operational log, which is itself part of how a decision
+     * gets reconstructed, so line breaks are neutralised rather than allowed to forge entries.
+     */
+    private String forLogging(String value) {
+        return value.replaceAll("[\\r\\n]", "_");
     }
 
     private BigDecimal notionalOf(TradeOrder order, BigDecimal price) {

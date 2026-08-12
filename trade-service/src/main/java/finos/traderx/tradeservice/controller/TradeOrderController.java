@@ -83,6 +83,16 @@ public class TradeOrderController {
 		tradeOrder.setCorrelationId(correlationId);
 		String submittedBy = submittedBy(submittingUser);
 
+		// Checked before any lookup, so a submission missing a security or an account is filed
+		// as the submitter's error rather than being classified by whatever status a downstream
+		// service happens to return for an empty path segment.
+		if (tradeOrder.getSecurity() == null || tradeOrder.getSecurity().isBlank() || tradeOrder.getAccountId() == null)
+		{
+			orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.REJECTED,
+					DecisionReason.SUBMISSION_INVALID, submittedBy);
+			throw new InvalidSubmissionException("A trade order must carry both a security and an account id.");
+		}
+
 		LookupResult tickerLookup = validateTicker(tradeOrder.getSecurity());
 		if (tickerLookup == LookupResult.UNAVAILABLE)
 		{
