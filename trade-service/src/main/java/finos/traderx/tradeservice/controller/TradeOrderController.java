@@ -20,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import finos.traderx.messaging.PubSubException;
 import finos.traderx.messaging.Publisher;
 import finos.traderx.tradeservice.exceptions.ResourceNotFoundException;
+import finos.traderx.tradeservice.exceptions.ValidationUnavailableException;
 import finos.traderx.tradeservice.model.Account;
 import finos.traderx.tradeservice.model.Security;
 import finos.traderx.tradeservice.audit.OrderDecisionAuditService;
@@ -84,7 +85,7 @@ public class TradeOrderController {
 		{
 			orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.REJECTED,
 					DecisionReason.VALIDATION_UNAVAILABLE, submittedBy);
-			throw new RuntimeException("Could not validate " + tradeOrder.getSecurity() + " against Reference data service.");
+			throw new ValidationUnavailableException("Could not validate " + tradeOrder.getSecurity() + " against Reference data service.");
 		}
 		else if (tickerLookup == LookupResult.NOT_FOUND) 
 		{
@@ -98,7 +99,7 @@ public class TradeOrderController {
 		{
 			orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.REJECTED,
 					DecisionReason.VALIDATION_UNAVAILABLE, submittedBy);
-			throw new RuntimeException("Could not validate account " + tradeOrder.getAccountId() + " against Account service.");
+			throw new ValidationUnavailableException("Could not validate account " + tradeOrder.getAccountId() + " against Account service.");
 		}
 		else if(accountLookup == LookupResult.NOT_FOUND)
 		{
@@ -138,7 +139,7 @@ public class TradeOrderController {
 
 		try {
 			response = this.restTemplate.getForEntity(url, Security.class);
-			log.info("Validate ticker " + response.getBody().toString());
+			log.info("Validate ticker " + String.valueOf(response.getBody()));
 			return LookupResult.FOUND;
 		}
 		catch (HttpClientErrorException ex) {
@@ -166,7 +167,7 @@ public class TradeOrderController {
 		try 
 		{
 				response = this.restTemplate.getForEntity(url, Account.class);
-				log.info("Validate account " + response.getBody().toString());
+				log.info("Validate account " + String.valueOf(response.getBody()));
 				return LookupResult.FOUND;
 		}
 		catch (HttpClientErrorException ex) {

@@ -25,6 +25,7 @@ import org.springframework.web.client.RestTemplate;
 import finos.traderx.messaging.Publisher;
 import finos.traderx.tradeservice.audit.OrderDecisionAuditService;
 import finos.traderx.tradeservice.exceptions.ResourceNotFoundException;
+import finos.traderx.tradeservice.exceptions.ValidationUnavailableException;
 import finos.traderx.tradeservice.model.TradeOrder;
 import finos.traderx.tradeservice.model.TradeSide;
 import finos.traderx.tradeservice.model.audit.DecisionOutcome;
@@ -108,7 +109,7 @@ class TradeOrderControllerAuditTest {
     void anOrderRefusedBecauseAValidationServiceFailedIsStillAudited() {
         downstream.expect(requestTo(REFERENCE_DATA_URL + "/stocks/IBM")).andRespond(withServerError());
 
-        assertThrows(RuntimeException.class, () -> controller.createTradeOrder(order(), "user01"));
+        assertThrows(ValidationUnavailableException.class, () -> controller.createTradeOrder(order(), "user01"));
 
         assertEquals(DecisionReason.VALIDATION_UNAVAILABLE, capturedReason(DecisionOutcome.REJECTED));
     }
@@ -125,6 +126,18 @@ class TradeOrderControllerAuditTest {
         verify(auditService).recordDecision(any(TradeOrder.class), anyString(), any(DecisionOutcome.class),
                 any(DecisionReason.class), submittedBy.capture());
         assertEquals(50, submittedBy.getValue().length());
+    }
+
+    @Test
+    void anEmptyBodyFromALookupServiceDoesNotEscapeTheAuditPath() {
+        downstream.expect(requestTo(REFERENCE_DATA_URL + "/stocks/IBM"))
+                .andRespond(withSuccess());
+        downstream.expect(requestTo(ACCOUNT_URL + "/account/22214"))
+                .andRespond(withStatus(HttpStatus.NOT_FOUND));
+
+        assertThrows(ResourceNotFoundException.class, () -> controller.createTradeOrder(order(), "user01"));
+
+        assertEquals(DecisionReason.ACCOUNT_NOT_FOUND, capturedReason(DecisionOutcome.REJECTED));
     }
 
     @Test

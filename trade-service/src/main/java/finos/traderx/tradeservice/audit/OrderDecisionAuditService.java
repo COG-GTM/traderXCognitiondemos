@@ -30,6 +30,9 @@ public class OrderDecisionAuditService {
 
     private static final Logger log = LoggerFactory.getLogger(OrderDecisionAuditService.class);
 
+    private static final int ID_MAX_LENGTH = 50;
+    private static final int SECURITY_MAX_LENGTH = 50;
+
     private final OrderDecisionAuditRepository repository;
     private final BestExecutionAuditProperties properties;
     private final Clock clock;
@@ -57,9 +60,9 @@ public class OrderDecisionAuditService {
         OrderDecisionAudit auditRecord = new OrderDecisionAudit(
                 UUID.randomUUID().toString(),
                 correlationId,
-                order.getId(),
+                fitToColumn(order.getId(), ID_MAX_LENGTH),
                 order.getAccountId(),
-                order.getSecurity(),
+                fitToColumn(order.getSecurity(), SECURITY_MAX_LENGTH),
                 order.getSide() == null ? null : order.getSide().toString(),
                 order.getQuantity(),
                 price,
@@ -74,6 +77,19 @@ public class OrderDecisionAuditService {
         OrderDecisionAudit saved = repository.save(auditRecord);
         log.info("Best-execution audit record written: {}", saved);
         return saved;
+    }
+
+    /**
+     * Client supplied values are recorded as far as the column allows rather than being
+     * allowed to fail the insert: a refusal to store the record is the one outcome the
+     * regulatory trail cannot have.
+     */
+    private String fitToColumn(String value, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        log.warn("Truncating value of length {} to {} characters for the audit record", value.length(), maxLength);
+        return value.substring(0, maxLength);
     }
 
     private BigDecimal notionalOf(TradeOrder order, BigDecimal price) {
