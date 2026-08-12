@@ -16,7 +16,13 @@
                 Create Trade Ticket
             </button>
             <ng-template #ticketComponent>
-                <app-trade-ticket [stocks]="stocks" [account]="accountModel" (create)="createTradeTicket($event)" (cancel)="closeTicket()">
+                <app-trade-ticket
+                    [stocks]="stocks"
+                    [account]="accountModel"
+                    [rejectionMessage]="ticketRejectionMessage"
+                    (create)="createTradeTicket($event)"
+                    (cancel)="closeTicket()"
+                >
                 </app-trade-ticket>
             </ng-template>
             <alert
@@ -26,7 +32,7 @@
                 [dismissOnTimeout]="2000"
                 (onClosed)="onCloseAlert()"
             >
-                {{ createTicketResponse | json }}</alert
+                {{ createTicketResponse.success === false ? createTicketResponse.message : (createTicketResponse | json) }}</alert
             >
         </div>
     </div>

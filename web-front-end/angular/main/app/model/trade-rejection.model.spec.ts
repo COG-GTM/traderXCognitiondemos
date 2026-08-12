@@ -1,0 +1,76 @@
+import { describeReason, formatRejectionMessage, parseTradeRejection } from './trade-rejection.model';
+
+describe('trade rejection', () => {
+
+    const rejectionBody = {
+        decision: 'REJECTED',
+        reason: 'NOTIONAL_LIMIT_BREACH',
+        limit: 1000000,
+        attempted: 1250000
+    };
+
+    it('should parse a structured 422 body', () => {
+        expect(parseTradeRejection(422, rejectionBody)).toEqual(rejectionBody);
+    });
+
+    it('should ignore a body on a status other than 422', () => {
+        expect(parseTradeRejection(404, rejectionBody)).toBeUndefined();
+    });
+
+    it('should ignore an unstructured 422 body', () => {
+        expect(parseTradeRejection(422, 'Trade not found')).toBeUndefined();
+        expect(parseTradeRejection(422, { message: 'nope' })).toBeUndefined();
+    });
+
+    it('should name the limit, the attempt and the excess as currency', () => {
+        expect(formatRejectionMessage(rejectionBody)).toEqual(
+            'Order rejected: notional limit breach. Account limit $1,000,000.00, this order $1,250,000.00 — '
+            + 'over by $250,000.00. Amend the order and resubmit.'
+        );
+    });
+
+    it('should omit the excess when the attempt does not exceed the limit', () => {
+        expect(formatRejectionMessage({ ...rejectionBody, attempted: 1000000 })).toEqual(
+            'Order rejected: notional limit breach. Account limit $1,000,000.00, this order $1,000,000.00. '
+            + 'Amend the order and resubmit.'
+        );
+    });
+
+    it('should parse a 422 whose body arrived as an unparsed JSON string', () => {
+        expect(parseTradeRejection(422, JSON.stringify(rejectionBody))).toEqual(rejectionBody);
+        expect(parseTradeRejection(422, 'Trade rejected')).toBeUndefined();
+    });
+
+    it('should unwrap the body Angular hands back when it could not parse the response', () => {
+        expect(parseTradeRejection(422, { error: new SyntaxError('Unexpected token'), text: JSON.stringify(rejectionBody) }))
+            .toEqual(rejectionBody);
+    });
+
+    it('should keep a rejection body that carries its own text field', () => {
+        expect(parseTradeRejection(422, { ...rejectionBody, text: 'over limit' })).toEqual(rejectionBody);
+    });
+
+    it('should recognise a known reason code whatever its case', () => {
+        expect(describeReason('notional_limit_breach')).toEqual('notional limit breach');
+        expect(describeReason('Restricted_Security')).toEqual('restricted security');
+    });
+
+    it('should not resolve an inherited object property to its function source', () => {
+        expect(formatRejectionMessage({ decision: 'REJECTED', reason: 'constructor' })).toEqual(
+            'Order rejected: constructor. Amend the order and resubmit.'
+        );
+    });
+
+    it('should not echo a free-text reason back to the trader', () => {
+        expect(formatRejectionMessage({ decision: 'REJECTED', reason: 'x'.repeat(500) })).toEqual(
+            'Order rejected: a pre-trade risk check. Amend the order and resubmit.'
+        );
+    });
+
+    it('should humanise an unknown reason code and cope with missing amounts', () => {
+        expect(formatRejectionMessage({ decision: 'REJECTED', reason: 'RESTRICTED_SECURITY' })).toEqual(
+            'Order rejected: restricted security. Amend the order and resubmit.'
+        );
+    });
+
+});
