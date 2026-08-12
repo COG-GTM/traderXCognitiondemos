@@ -101,6 +101,18 @@ public class Trade implements Serializable {
 	}
 
 
+	/** Ties the booked trade back to its OrderDecisionAudit record written by trade-service. */
+	@Column(length = 50, name = "CORRELATIONID")
+	private String correlationId;
+
+	public String getCorrelationId() {
+		return this.correlationId;
+	}
+
+	public void setCorrelationId(String correlationId) {
+		this.correlationId = correlationId;
+	}
+
 	@Column(name = "CREATED")
 	private Date created;
 

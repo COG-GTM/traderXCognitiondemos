@@ -18,9 +18,50 @@ CREATE TABLE Positions ( AccountID INTEGER , Security VARCHAR(15) , Updated TIME
 
 Alter Table Positions ADD FOREIGN KEY (AccountID) References Accounts(ID) ; 
 
-CREATE TABLE Trades ( ID Varchar (50) Primary Key, AccountID INTEGER, Created TIMESTAMP, Updated TIMESTAMP, Security VARCHAR (15) ,  Side VARCHAR(10) check (Side in ('Buy','Sell')),  Quantity INTEGER check Quantity > 0 , State VARCHAR(20) check (State in ('New', 'Processing', 'Settled', 'Cancelled'))) ;  
+CREATE TABLE Trades ( ID Varchar (50) Primary Key, AccountID INTEGER, Created TIMESTAMP, Updated TIMESTAMP, Security VARCHAR (15) ,  Side VARCHAR(10) check (Side in ('Buy','Sell')),  Quantity INTEGER check Quantity > 0 , State VARCHAR(20) check (State in ('New', 'Processing', 'Settled', 'Cancelled')), CorrelationID VARCHAR(50)) ;  
 
 Alter Table Trades Add Foreign Key (AccountID) references Accounts(ID); 
+
+-- MiFID II Art. 16(6) / RTS 27-28 best-execution record. Append-only: written once by
+-- trade-service for every submission, accepted or rejected, and never updated or deleted.
+-- Deliberately has no foreign key to Accounts, because a rejected order may name an account
+-- that does not exist - that rejection still has to be reconstructable.
+--
+-- Note the absence of a DROP above, and IF NOT EXISTS below: this script re-runs on every
+-- database start, and every other table here is rebuilt from seed data. This one accumulates.
+-- A retained record that a restart erases is not a retained record. Note the limit of that
+-- claim in the demo stack: the H2 files live inside the container, so records survive a
+-- database restart but not a rebuild. Durable retention is an infrastructure follow-up.
+CREATE TABLE IF NOT EXISTS OrderDecisionAudit (
+  ID VARCHAR(50) PRIMARY KEY,
+  CorrelationID VARCHAR(50) NOT NULL,
+  OrderID VARCHAR(50),
+  AccountID INTEGER,
+  Security VARCHAR(50),
+  Side VARCHAR(10),
+  Quantity INTEGER,
+  Price DECIMAL(19,4),
+  PriceSource VARCHAR(40),
+  Notional DECIMAL(23,4),
+  Decision VARCHAR(10) NOT NULL check (Decision in ('ACCEPTED','REJECTED')),
+  ReasonCode VARCHAR(40) NOT NULL,
+  LimitID VARCHAR(40),
+  LimitType VARCHAR(40),
+  LimitValue DECIMAL(23,4),
+  LimitEffectiveFrom TIMESTAMP(3) WITH TIME ZONE,
+  SubmittedBy VARCHAR(50),
+  -- WITH TIME ZONE so external readers (TRX-105, exports) see UTC rather than the
+  -- session wall clock; Hibernate maps java.time.Instant to TIMESTAMP_UTC.
+  DecisionTimestamp TIMESTAMP(3) WITH TIME ZONE NOT NULL,
+  -- Full precision write time. One order can produce two records - an acceptance and then a
+  -- failure to reach the trade feed - inside the same millisecond, and the pair is only
+  -- readable if their order is unambiguous. This is the tie-break, not a regulatory field.
+  RecordedAt TIMESTAMP(6) WITH TIME ZONE NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS IDX_OrderDecisionAudit_Correlation ON OrderDecisionAudit (CorrelationID);
+
+CREATE INDEX IF NOT EXISTS IDX_OrderDecisionAudit_Account_Time ON OrderDecisionAudit (AccountID, DecisionTimestamp);
 
 CREATE SEQUENCE ACCOUNTS_SEQ start with 65000 INCREMENT BY 1;
 
