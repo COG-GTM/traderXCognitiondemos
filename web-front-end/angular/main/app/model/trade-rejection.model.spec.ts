@@ -29,6 +29,13 @@ describe('trade rejection', () => {
         );
     });
 
+    it('should omit the excess when the attempt does not exceed the limit', () => {
+        expect(formatRejectionMessage({ ...rejectionBody, attempted: 1000000 })).toEqual(
+            'Order rejected: notional limit breach. Account limit $1,000,000.00, this order $1,000,000.00. '
+            + 'Amend the order and resubmit.'
+        );
+    });
+
     it('should humanise an unknown reason code and cope with missing amounts', () => {
         expect(formatRejectionMessage({ decision: 'REJECTED', reason: 'RESTRICTED_SECURITY' })).toEqual(
             'Order rejected: restricted security. Amend the order and resubmit.'

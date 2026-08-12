@@ -65,7 +65,7 @@ export class TradeComponent implements OnInit {
                     this.ticketRejectionMessage = formatRejectionMessage(rejection);
                     return;
                 }
-                this.createTicketResponse = error.error ?? { success: false };
+                this.createTicketResponse = { success: false, message: 'Trade could not be created. Please try again.' };
                 this.closeTicket();
             }
         });

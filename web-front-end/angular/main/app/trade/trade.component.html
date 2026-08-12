@@ -32,7 +32,7 @@
                 [dismissOnTimeout]="2000"
                 (onClosed)="onCloseAlert()"
             >
-                {{ createTicketResponse | json }}</alert
+                {{ createTicketResponse.message || (createTicketResponse | json) }}</alert
             >
         </div>
     </div>

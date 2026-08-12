@@ -21,6 +21,13 @@ test('names the limit, the attempt and the excess as currency', () => {
 	);
 });
 
+test('omits the excess when the attempt does not exceed the limit', () => {
+	expect(formatRejectionMessage({ ...rejectionBody, attempted: 1000000 })).toEqual(
+		'Order rejected: notional limit breach. Account limit $1,000,000.00, this order $1,000,000.00. '
+		+ 'Amend the order and resubmit.'
+	);
+});
+
 test('humanises an unknown reason code and copes with missing amounts', () => {
 	expect(formatRejectionMessage({ decision: 'REJECTED', reason: 'RESTRICTED_SECURITY' })).toEqual(
 		'Order rejected: restricted security. Amend the order and resubmit.'

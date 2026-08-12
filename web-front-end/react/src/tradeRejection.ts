@@ -42,6 +42,9 @@ export function formatRejectionMessage(rejection: TradeRejection): string {
 		return `${headline} Amend the order and resubmit.`;
 	}
 	const excess = rejection.attempted - rejection.limit;
-	return `${headline} Account limit ${formatNotional(rejection.limit)}, this order ${formatNotional(rejection.attempted)} — `
-		+ `over by ${formatNotional(excess)}. Amend the order and resubmit.`;
+	const detail = `${headline} Account limit ${formatNotional(rejection.limit)}, this order ${formatNotional(rejection.attempted)}`;
+	if (excess <= 0) {
+		return `${detail}. Amend the order and resubmit.`;
+	}
+	return `${detail} — over by ${formatNotional(excess)}. Amend the order and resubmit.`;
 }

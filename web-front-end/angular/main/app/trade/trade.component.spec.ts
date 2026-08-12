@@ -91,7 +91,8 @@ describe('TradeComponent', () => {
         component.createTradeTicket(ticket);
 
         expect(component.ticketRejectionMessage).toBeUndefined();
-        expect(component.createTicketResponse).toEqual('Trade not found');
+        expect(component.createTicketResponse.success).toBeFalse();
+        expect(component.createTicketResponse.message).toEqual('Trade could not be created. Please try again.');
         expect(component.closeTicket).toHaveBeenCalled();
     });
 

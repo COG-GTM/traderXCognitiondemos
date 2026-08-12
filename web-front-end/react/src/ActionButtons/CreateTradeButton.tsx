@@ -46,8 +46,12 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 	}
 	const [open, setOpen] = useState<boolean>(false);
 	const [error, setError] = useState<any>('');
-  const handleClose = () => setOpen(false);
+  const handleClose = () => {
+		setError('');
+		setOpen(false);
+	};
 	const handleOpen = async () => {
+		setError('');
 		setOpen(true);
 		try {
 			const response = await fetch(`${Environment.reference_data_url}/stocks`);
