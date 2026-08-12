@@ -35,6 +35,9 @@ export class ComplianceBlotterComponent implements OnInit, OnChanges {
     totalElements = 0;
     totalPages = 0;
 
+    /** Whether the last query narrowed the trail, so an empty result can be explained as such. */
+    filtered = false;
+
     readonly decisionOptions = [
         { value: '', label: 'All decisions' },
         { value: Decision.Rejected, label: 'Rejected only' },
@@ -64,8 +67,15 @@ export class ComplianceBlotterComponent implements OnInit, OnChanges {
 
     constructor(private auditService: AuditService) { }
 
+    /**
+     * Nothing is loaded until the account arrives if the view claims to be scoped to it. An
+     * unscoped first query would briefly show other accounts' decisions under a ticked
+     * "Selected account only", which on a compliance screen is not a cosmetic problem.
+     */
     ngOnInit() {
-        this.load();
+        if (!this.limitToAccount || this.account) {
+            this.load();
+        }
     }
 
     ngOnChanges(change: SimpleChanges) {
@@ -112,6 +122,7 @@ export class ComplianceBlotterComponent implements OnInit, OnChanges {
     }
 
     private load() {
+        this.filtered = Boolean(this.security?.trim() || this.decision || this.from || this.to);
         const query: AuditQuery = {
             accountId: this.limitToAccount ? this.account?.id : undefined,
             security: this.security?.trim() || undefined,
@@ -144,8 +155,13 @@ export class ComplianceBlotterComponent implements OnInit, OnChanges {
         });
     }
 
-    /** The datetime-local inputs are wall clock; the record is UTC, so say so explicitly. */
+    /**
+     * The datetime-local inputs are wall clock with no zone. They are read as UTC, matching the
+     * column the reviewer is reading the timestamps from: parsing them in the browser's zone
+     * would shift a quarter-boundary query by the viewer's offset and quietly drop the records
+     * at each end of the window they asked for.
+     */
     private toInstant(value: string): string | undefined {
-        return value ? new Date(value).toISOString() : undefined;
+        return value ? new Date(`${value}Z`).toISOString() : undefined;
     }
 }

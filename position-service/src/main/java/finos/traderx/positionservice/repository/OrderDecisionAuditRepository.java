@@ -30,6 +30,10 @@ import finos.traderx.positionservice.model.audit.OrderDecisionAudit;
  * from a genuine absence. The caller is expected to upper-case the parameter; the {@code upper()}
  * on the column costs {@code IDX_OrderDecisionAudit_Security_Time} on that predicate, which is
  * the right trade for a filter whose wrong answer is silent.
+ *
+ * The range parameters are named {@code fromTs}/{@code toTs} rather than {@code from}/{@code to},
+ * which are HQL keywords: Hibernate 6 accepts them in the identifier position, but the spelling
+ * has broken across parser versions before. The HTTP parameter names are unchanged.
  */
 public interface OrderDecisionAuditRepository extends Repository<OrderDecisionAudit, String> {
 
@@ -38,8 +42,8 @@ public interface OrderDecisionAuditRepository extends Repository<OrderDecisionAu
             where (:accountId is null or a.accountId = :accountId)
               and (:security is null or upper(a.security) = :security)
               and (:decision is null or a.decision = :decision)
-              and (:from is null or a.decisionTimestamp >= :from)
-              and (:to is null or a.decisionTimestamp < :to)
+              and (:fromTs is null or a.decisionTimestamp >= :fromTs)
+              and (:toTs is null or a.decisionTimestamp < :toTs)
             """;
 
     @Query(value = "select a " + FILTER + " order by a.decisionTimestamp desc, a.id desc",
@@ -47,7 +51,7 @@ public interface OrderDecisionAuditRepository extends Repository<OrderDecisionAu
     Page<OrderDecisionAudit> search(@Param("accountId") Integer accountId,
             @Param("security") String security,
             @Param("decision") DecisionOutcome decision,
-            @Param("from") Instant from,
-            @Param("to") Instant to,
+            @Param("fromTs") Instant from,
+            @Param("toTs") Instant to,
             Pageable pageable);
 }

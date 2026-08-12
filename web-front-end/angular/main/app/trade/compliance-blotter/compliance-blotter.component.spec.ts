@@ -100,6 +100,33 @@ describe('ComplianceBlotterComponent', () => {
         expect(auditService.lastQuery?.page).toEqual(0);
     });
 
+    it('should not query across every account while the view claims to be scoped to one', () => {
+        expect(auditService.lastQuery).toBeUndefined();
+
+        component.account = dummyAccounts[0];
+        component.ngOnChanges({ account: { currentValue: dummyAccounts[0], previousValue: undefined } } as any);
+        expect(auditService.lastQuery?.accountId).toEqual(dummyAccounts[0].id);
+    });
+
+    it('should read the date filters as UTC, matching the timestamps it displays', () => {
+        component.from = '2026-01-01T10:00';
+        component.to = '2026-04-01T00:00';
+        component.applyFilters();
+
+        expect(auditService.lastQuery?.from).toEqual('2026-01-01T10:00:00.000Z');
+        expect(auditService.lastQuery?.to).toEqual('2026-04-01T00:00:00.000Z');
+    });
+
+    it('should say a filter matched nothing rather than that nothing was recorded', () => {
+        component.security = 'MSFT';
+        component.applyFilters();
+        fixture.detectChanges();
+
+        expect(component.isEmpty).toBeTrue();
+        expect(fixture.nativeElement.textContent).toContain('No order decisions match these filters');
+        expect(fixture.nativeElement.textContent).not.toContain('No order decisions recorded yet');
+    });
+
     it('should report the feature being switched off rather than an error', () => {
         spyOn(auditService, 'getDecisions').and.returnValue(throwError(() => ({ status: 503 })));
         component.applyFilters();
