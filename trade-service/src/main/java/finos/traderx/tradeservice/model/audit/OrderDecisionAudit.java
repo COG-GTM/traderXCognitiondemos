@@ -94,13 +94,21 @@ public class OrderDecisionAudit implements Persistable<String>, Serializable {
     @Column(name = "DECISIONTIMESTAMP", updatable = false, nullable = false)
     private Instant decisionTimestamp;
 
+    /**
+     * The decision timestamp is the regulatory field and is deliberately truncated to
+     * milliseconds, which means two records for one order can share it. This is the full
+     * precision write time, kept solely so the pair has a deterministic order.
+     */
+    @Column(name = "RECORDEDAT", updatable = false, nullable = false)
+    private Instant recordedAt;
+
     protected OrderDecisionAudit() {
     }
 
     public OrderDecisionAudit(String id, String correlationId, String orderId, Integer accountId, String security,
             String side, Integer quantity, BigDecimal price, String priceSource, BigDecimal notional,
             DecisionOutcome decision, DecisionReason reasonCode, EvaluatedLimit limit, String submittedBy,
-            Instant decisionTimestamp) {
+            Instant decisionTimestamp, Instant recordedAt) {
         this.id = id;
         this.correlationId = correlationId;
         this.orderId = orderId;
@@ -121,6 +129,7 @@ public class OrderDecisionAudit implements Persistable<String>, Serializable {
         }
         this.submittedBy = submittedBy;
         this.decisionTimestamp = decisionTimestamp;
+        this.recordedAt = recordedAt;
     }
 
     @Override
@@ -203,6 +212,10 @@ public class OrderDecisionAudit implements Persistable<String>, Serializable {
 
     public Instant getDecisionTimestamp() {
         return decisionTimestamp;
+    }
+
+    public Instant getRecordedAt() {
+        return recordedAt;
     }
 
     @Override

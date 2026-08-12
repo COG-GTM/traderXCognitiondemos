@@ -5,6 +5,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +40,7 @@ public class OrderDecisionAuditService {
     private final OrderDecisionAuditRepository repository;
     private final BestExecutionAuditProperties properties;
     private final Clock clock;
+    private final AtomicReference<Instant> lastRecordedAt = new AtomicReference<>();
 
     public OrderDecisionAuditService(OrderDecisionAuditRepository repository,
             BestExecutionAuditProperties properties, Clock clock) {
@@ -79,11 +81,25 @@ public class OrderDecisionAuditService {
                 reason,
                 limit,
                 fitToColumn(submittedBy, SUBMITTED_BY_MAX_LENGTH),
-                Instant.now(clock).truncatedTo(ChronoUnit.MILLIS));
+                Instant.now(clock).truncatedTo(ChronoUnit.MILLIS),
+                nextRecordedAt());
 
         OrderDecisionAudit saved = repository.save(auditRecord);
         log.info("Best-execution audit record written: {}", saved);
         return saved;
+    }
+
+    /**
+     * The regulatory timestamp is truncated to milliseconds, so an accepted order and the
+     * dispatch failure that follows it can share one. This is the ordering key: strictly
+     * increasing within the process that wrote the pair, at the microsecond resolution the
+     * column stores, so the sequence of records under one correlation id is unambiguous.
+     */
+    private Instant nextRecordedAt() {
+        return lastRecordedAt.updateAndGet(previous -> {
+            Instant now = Instant.now(clock).truncatedTo(ChronoUnit.MICROS);
+            return previous == null || now.isAfter(previous) ? now : previous.plus(1, ChronoUnit.MICROS);
+        });
     }
 
     /**

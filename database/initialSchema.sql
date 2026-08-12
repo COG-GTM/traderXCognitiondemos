@@ -52,7 +52,11 @@ CREATE TABLE IF NOT EXISTS OrderDecisionAudit (
   SubmittedBy VARCHAR(50),
   -- WITH TIME ZONE so external readers (TRX-105, exports) see UTC rather than the
   -- session wall clock; Hibernate maps java.time.Instant to TIMESTAMP_UTC.
-  DecisionTimestamp TIMESTAMP(3) WITH TIME ZONE NOT NULL
+  DecisionTimestamp TIMESTAMP(3) WITH TIME ZONE NOT NULL,
+  -- Full precision write time. One order can produce two records - an acceptance and then a
+  -- failure to reach the trade feed - inside the same millisecond, and the pair is only
+  -- readable if their order is unambiguous. This is the tie-break, not a regulatory field.
+  RecordedAt TIMESTAMP(6) WITH TIME ZONE NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS IDX_OrderDecisionAudit_Correlation ON OrderDecisionAudit (CorrelationID);

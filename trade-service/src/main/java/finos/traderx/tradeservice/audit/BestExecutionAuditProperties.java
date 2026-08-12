@@ -62,16 +62,21 @@ public class BestExecutionAuditProperties {
                 PRICE_PRECISION);
         // The stored notional is price x quantity, so the price has to fit the notional column
         // at the largest quantity the order model can carry, not merely fit its own column.
+        BigDecimal price = requireSet("audit.best-execution.pricing.reference-price", pricing.getReferencePrice());
         requireStorable("audit.best-execution.pricing.reference-price (x max quantity)",
-                pricing.getReferencePrice().multiply(BigDecimal.valueOf(Integer.MAX_VALUE)),
+                price.multiply(BigDecimal.valueOf(Integer.MAX_VALUE)),
                 NOTIONAL_PRECISION);
     }
 
-    private static void requireStorable(String property, BigDecimal value, int precision) {
+    private static BigDecimal requireSet(String property, BigDecimal value) {
         if (value == null) {
             throw new IllegalStateException(property + " must be set for the best-execution audit trail.");
         }
-        BigDecimal scaled = value.setScale(COLUMN_SCALE, RoundingMode.HALF_UP);
+        return value;
+    }
+
+    private static void requireStorable(String property, BigDecimal value, int precision) {
+        BigDecimal scaled = requireSet(property, value).setScale(COLUMN_SCALE, RoundingMode.HALF_UP);
         if (scaled.precision() - scaled.scale() > precision - COLUMN_SCALE) {
             throw new IllegalStateException(property + " does not fit the audit column DECIMAL(" + precision + ","
                     + COLUMN_SCALE + "): " + value);

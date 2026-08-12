@@ -92,6 +92,19 @@ class OrderDecisionAuditServiceTest {
     }
 
     @Test
+    void twoRecordsForOneOrderGetADistinctOrderingKeyEvenOnTheSameClockTick() {
+        TradeOrder order = new TradeOrder("ORDER-3", 22214, "IBM", TradeSide.Buy, 10);
+
+        OrderDecisionAudit accepted = service.recordDecision(order, "CORR-3", DecisionOutcome.ACCEPTED,
+                DecisionReason.VALIDATED, "user04");
+        OrderDecisionAudit dispatchFailed = service.recordDecision(order, "CORR-3", DecisionOutcome.REJECTED,
+                DecisionReason.DISPATCH_FAILED, "user04");
+
+        assertEquals(accepted.getDecisionTimestamp(), dispatchFailed.getDecisionTimestamp());
+        assertTrue(dispatchFailed.getRecordedAt().isAfter(accepted.getRecordedAt()));
+    }
+
+    @Test
     void fitsOverlongValuesToTheirColumnsRatherThanFailingTheInsert() {
         TradeOrder order = new TradeOrder("O".repeat(80), 22214, "S".repeat(80), TradeSide.Buy, 1);
 
