@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Locale;
 
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -68,6 +69,16 @@ public class AuditController {
             throw new IllegalArgumentException(
                     "Unknown decision '" + decision + "'. Expected one of " + Arrays.toString(DecisionOutcome.values()));
         }
+    }
+
+    /**
+     * A filter the caller mistyped is a bad request, not an outage. Without this the controller's
+     * catch-all would turn Spring's binding failure into a 500 and the Compliance tab would
+     * report the audit trail as unavailable.
+     */
+    @ExceptionHandler(TypeMismatchException.class)
+    public ResponseEntity<String> typeMismatch(TypeMismatchException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

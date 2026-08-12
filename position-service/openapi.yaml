@@ -97,8 +97,10 @@ paths:
         - name: security
           in: query
           required: false
+          description: Ticker, matched case-insensitively and trimmed.
           schema:
             type: string
+            example: 'AAPL'
         - name: decision
           in: query
           required: false

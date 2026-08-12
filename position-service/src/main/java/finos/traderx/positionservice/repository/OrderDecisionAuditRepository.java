@@ -24,13 +24,19 @@ import finos.traderx.positionservice.model.audit.OrderDecisionAudit;
  * The ordering is {@code decisionTimestamp desc, id desc} rather than timestamp alone: two
  * decisions can land inside the same millisecond, and a page boundary that falls between them
  * must not be able to drop or duplicate a record.
+ *
+ * The security filter is compared case-insensitively. A reviewer who types a ticker in the wrong
+ * case must not be told there are no decisions for it, and an empty page is indistinguishable
+ * from a genuine absence. The caller is expected to upper-case the parameter; the {@code upper()}
+ * on the column costs {@code IDX_OrderDecisionAudit_Security_Time} on that predicate, which is
+ * the right trade for a filter whose wrong answer is silent.
  */
 public interface OrderDecisionAuditRepository extends Repository<OrderDecisionAudit, String> {
 
     String FILTER = """
             from OrderDecisionAudit a
             where (:accountId is null or a.accountId = :accountId)
-              and (:security is null or a.security = :security)
+              and (:security is null or upper(a.security) = :security)
               and (:decision is null or a.decision = :decision)
               and (:from is null or a.decisionTimestamp >= :from)
               and (:to is null or a.decisionTimestamp < :to)

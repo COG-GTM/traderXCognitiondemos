@@ -67,6 +67,12 @@ class AuditQueryServiceTest {
     }
 
     @Test
+    void findsATickerRegardlessOfTheCaseOrSpacingItWasTypedIn() {
+        assertEquals(List.of("a4", "a3", "a1"), ids(service.search(null, "aapl", null, null, null, null, null)));
+        assertEquals(List.of("a4", "a3", "a1"), ids(service.search(null, " AaPl ", null, null, null, null, null)));
+    }
+
+    @Test
     void timeRangeIsInclusiveOfFromAndExclusiveOfTo() {
         AuditPage page = service.search(null, null, null, T0.plusSeconds(60), T0.plusSeconds(180), null, null);
         assertEquals(List.of("a3", "a2"), ids(page));

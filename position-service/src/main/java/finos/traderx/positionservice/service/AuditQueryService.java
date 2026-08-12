@@ -1,6 +1,7 @@
 package finos.traderx.positionservice.service;
 
 import java.time.Instant;
+import java.util.Locale;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -44,8 +45,8 @@ public class AuditQueryService {
             throw new IllegalArgumentException("'to' must not be before 'from'");
         }
         Pageable pageable = pageRequest(page, size);
-        Page<OrderDecisionAudit> results = auditRepository.search(accountId, blankToNull(security), decision, from, to,
-                pageable);
+        Page<OrderDecisionAudit> results = auditRepository.search(accountId, normaliseSecurity(security), decision, from,
+                to, pageable);
         return AuditPage.of(results);
     }
 
@@ -65,7 +66,11 @@ public class AuditQueryService {
         return PageRequest.of(requestedPage, Math.min(requestedSize, properties.getMaxPageSize()));
     }
 
-    private String blankToNull(String value) {
-        return value == null || value.isBlank() ? null : value;
+    /**
+     * Trimmed and upper-cased to match the case-insensitive comparison in the query. A ticker
+     * typed in the wrong case must not come back as "no decisions recorded".
+     */
+    private String normaliseSecurity(String value) {
+        return value == null || value.isBlank() ? null : value.trim().toUpperCase(Locale.ROOT);
     }
 }

@@ -83,6 +83,14 @@ class AuditControllerTest {
     }
 
     @Test
+    void reportsAnUnparseableFilterAsABadRequestRatherThanAnOutage() throws Exception {
+        mockMvc.perform(get("/audit/decisions").param("from", "last Tuesday")).andExpect(status().isBadRequest());
+        mockMvc.perform(get("/audit/decisions").param("accountId", "all")).andExpect(status().isBadRequest());
+
+        verify(auditQueryService, never()).search(any(), any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
     void returnsServiceUnavailableAndQueriesNothingWhenTheFeatureIsOff() throws Exception {
         when(auditQueryService.isEnabled()).thenReturn(false);
 
