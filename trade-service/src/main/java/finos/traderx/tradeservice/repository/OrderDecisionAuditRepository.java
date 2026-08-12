@@ -25,10 +25,13 @@ public interface OrderDecisionAuditRepository extends Repository<OrderDecisionAu
      * Ordered, because one correlation id can carry more than one record: an accepted order
      * that then failed to reach the trade feed is two rows, and the sequence is what makes the
      * pair readable. An unordered list would let a caller read the accept and miss the failure.
-     * The secondary key breaks the tie when both rows fall in the same millisecond, which for
-     * a synchronous publish failure is the normal case rather than the rare one.
+     *
+     * Ordered by the append key alone rather than by decision time: the two rows are written
+     * in one request and usually share a millisecond, and the wall clock they come from can
+     * step backwards under an NTP correction, which would invert the pair. RecordedAt cannot.
      */
-    List<OrderDecisionAudit> findByCorrelationIdOrderByDecisionTimestampAscRecordedAtAsc(String correlationId);
+    List<OrderDecisionAudit> findByCorrelationIdOrderByRecordedAtAsc(String correlationId);
 
+    /** By decision time, which is the question an account-level enquiry asks, then by append order. */
     List<OrderDecisionAudit> findByAccountIdOrderByDecisionTimestampAscRecordedAtAsc(Integer accountId);
 }

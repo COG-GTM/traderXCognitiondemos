@@ -82,15 +82,16 @@ public class TradeOrderController {
 
 		// Checked before any lookup, so a submission missing a security or an account is filed
 		// as the submitter's error rather than being classified by whatever status a downstream
-		// service happens to return for an empty path segment. Quantity is checked here too: the
-		// Trades table refuses a non-positive quantity, so such an order cannot book, and without
-		// this it would be recorded as accepted and then quietly fail in trade-processor.
+		// service happens to return for an empty path segment. Quantity and side are checked here
+		// too: a non-positive quantity cannot book, and a missing side books as a sale, since
+		// trade-processor treats anything that is not Buy as a Sell and a CHECK constraint passes
+		// on NULL. Either would be recorded as accepted while the trade did something else.
 		if (tradeOrder.getSecurity() == null || tradeOrder.getSecurity().isBlank() || tradeOrder.getAccountId() == null
-				|| tradeOrder.getQuantity() == null || tradeOrder.getQuantity() <= 0)
+				|| tradeOrder.getSide() == null || tradeOrder.getQuantity() == null || tradeOrder.getQuantity() <= 0)
 		{
 			orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.REJECTED,
 					DecisionReason.SUBMISSION_INVALID, submittedBy);
-			throw new InvalidSubmissionException("A trade order must carry a security, an account id and a positive quantity.");
+			throw new InvalidSubmissionException("A trade order must carry a security, an account id, a side and a positive quantity.");
 		}
 
 		LookupResult tickerLookup = validateTicker(tradeOrder.getSecurity());
