@@ -53,6 +53,7 @@ export class TradeComponent implements OnInit {
     createTradeTicket(ticket: TradeTicket) {
         console.log('createTradeTicket', ticket);
         this.ticketRejectionMessage = undefined;
+        this.createTicketResponse = undefined;
         this.symbolService.createTicket(ticket).subscribe({
             next: (response) => {
                 console.log(response);
