@@ -11,5 +11,10 @@ public enum DecisionReason {
     /** A downstream check could not be performed, so the order was refused without being validated. */
     VALIDATION_UNAVAILABLE,
     /** A downstream check rejected the request itself, so the submission was malformed. */
-    SUBMISSION_INVALID
+    SUBMISSION_INVALID,
+    /**
+     * The order was validated, but could not be handed to the trade feed. Appended after the
+     * ACCEPTED record under the same correlation id, since neither record can be amended.
+     */
+    DISPATCH_FAILED
 }

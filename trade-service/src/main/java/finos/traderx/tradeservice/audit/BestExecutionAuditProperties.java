@@ -1,9 +1,12 @@
 package finos.traderx.tradeservice.audit;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import jakarta.annotation.PostConstruct;
 
 /**
  * Externalised configuration for the best-execution audit trail. Nothing here is hard-coded
@@ -11,6 +14,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @ConfigurationProperties(prefix = "audit.best-execution")
 public class BestExecutionAuditProperties {
+
+    private static final int COLUMN_SCALE = 4;
+    private static final int NOTIONAL_PRECISION = 23;
+    private static final int PRICE_PRECISION = 19;
 
     /** Kill switch for the whole feature. Defaults to on in dev. */
     private boolean enabled = true;
@@ -33,6 +40,29 @@ public class BestExecutionAuditProperties {
 
     public Pricing getPricing() {
         return pricing;
+    }
+
+    /**
+     * Unlike the string values, an over-large number cannot be fitted to its column without
+     * changing what the record says, so a misconfiguration is refused at startup rather than
+     * discovered when the first order fails to be recorded.
+     */
+    @PostConstruct
+    void validate() {
+        requireStorable("audit.best-execution.limit.value", limit.getValue(), NOTIONAL_PRECISION);
+        requireStorable("audit.best-execution.pricing.reference-price", pricing.getReferencePrice(),
+                PRICE_PRECISION);
+    }
+
+    private static void requireStorable(String property, BigDecimal value, int precision) {
+        if (value == null) {
+            throw new IllegalStateException(property + " must be set for the best-execution audit trail.");
+        }
+        BigDecimal scaled = value.setScale(COLUMN_SCALE, RoundingMode.HALF_UP);
+        if (scaled.precision() - scaled.scale() > precision - COLUMN_SCALE) {
+            throw new IllegalStateException(property + " does not fit the audit column DECIMAL(" + precision + ","
+                    + COLUMN_SCALE + "): " + value);
+        }
     }
 
     /**

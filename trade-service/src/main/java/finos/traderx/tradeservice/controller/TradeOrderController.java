@@ -138,6 +138,12 @@ public class TradeOrderController {
 				tradePublisher.publish("/trades",tradeOrder);
 				return  ResponseEntity.ok(tradeOrder);
 			}  catch (PubSubException e){
+				// The accepted record has already committed and cannot be amended, so the fact that
+				// the order never reached the feed is appended as a second record under the same
+				// correlation id. Without it the trail would show an accepted order that the trader
+				// saw fail and that was never booked.
+				orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.REJECTED,
+						DecisionReason.DISPATCH_FAILED, submittedBy);
 				throw new RuntimeException("Failed to publish trade order", e);
 			}
 		}

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -22,6 +23,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
+import finos.traderx.messaging.PubSubException;
 import finos.traderx.messaging.Publisher;
 import finos.traderx.tradeservice.audit.OrderDecisionAuditService;
 import finos.traderx.tradeservice.exceptions.InvalidSubmissionException;
@@ -82,6 +84,20 @@ class TradeOrderControllerAuditTest {
         assertNotNull(submitted.getCorrelationId());
         assertEquals(DecisionReason.VALIDATED, capturedReason(DecisionOutcome.ACCEPTED));
         verify(publisher).publish(eq("/trades"), any(TradeOrder.class));
+    }
+
+    @Test
+    void anOrderThatCannotBeHandedToTheFeedGetsASecondRecordSayingSo() throws Exception {
+        downstream.expect(requestTo(REFERENCE_DATA_URL + "/stocks/IBM"))
+                .andRespond(withSuccess("{\"ticker\":\"IBM\",\"companyName\":\"IBM\"}", MediaType.APPLICATION_JSON));
+        downstream.expect(requestTo(ACCOUNT_URL + "/account/22214"))
+                .andRespond(withSuccess("{\"id\":22214,\"displayName\":\"Test\"}", MediaType.APPLICATION_JSON));
+        doThrow(new PubSubException("feed down")).when(publisher).publish(eq("/trades"), any(TradeOrder.class));
+
+        assertThrows(RuntimeException.class, () -> controller.createTradeOrder(order(), "user01"));
+
+        assertEquals(DecisionReason.VALIDATED, capturedReason(DecisionOutcome.ACCEPTED));
+        assertEquals(DecisionReason.DISPATCH_FAILED, capturedReason(DecisionOutcome.REJECTED));
     }
 
     @Test
