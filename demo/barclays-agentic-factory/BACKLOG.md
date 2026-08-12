@@ -29,14 +29,23 @@ The epic is deliberately shaped so that it:
 ## Dependency shape
 
 ```
-TRX-102 (limits data) ──┐
-                        ├──> TRX-101 (enforcement) ──> TRX-103 (UI reason)
-                        │
-TRX-104 (audit record) ─┴──> TRX-105 (audit API + tab)
+TRX-102 (limits data) ····> TRX-101 (enforcement) ····> TRX-103 (UI reason)
+
+TRX-104 (audit record) ───> TRX-105 (audit API + tab)
+
+···· soft: can be built in parallel against a stubbed interface
+───  hard: needs the upstream ticket's schema to exist first
 ```
 
-101, 102, 103 and 104 are independent enough to run as **four concurrent sessions**; 105 is
-queued behind 104 on purpose, so the fleet view shows both parallelism *and* sequencing.
+Only one of these is a hard dependency. TRX-105 genuinely cannot be built before TRX-104,
+because it queries 104's table — so it is **queued**.
+
+The others are soft. TRX-101 reads limits from configuration until TRX-102's endpoint exists,
+and TRX-103 codes against the 422 response shape written down in TRX-101 rather than waiting
+for the endpoint to be live. So 101, 102, 103 and 104 run as **four concurrent sessions**.
+
+That contrast is deliberate: the fleet view should show parallelism *and* sequencing, and the
+reason a ticket is queued should be a real schema dependency rather than caution.
 
 ## Acceptance criteria that apply to every ticket
 

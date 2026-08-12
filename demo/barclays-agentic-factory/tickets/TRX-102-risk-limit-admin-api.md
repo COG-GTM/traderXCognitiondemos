@@ -8,9 +8,12 @@ a function independent of the trading desk.
 ## Context an agent needs
 
 `account-service` already owns accounts and is already the service `trade-service` calls to
-validate an account exists. The H2 schema lives under `database/`. Adding limits here keeps
-the enforcement point (trade-service) separate from the authority that sets the limit, which
-is the whole compliance argument.
+validate an account exists. Adding limits here keeps the enforcement point (trade-service)
+separate from the authority that sets the limit, which is the whole compliance argument.
+
+The H2 schema is a single plain SQL file, `database/initialSchema.sql` — there is no Liquibase
+or Flyway in this repo. Extend that file additively. Do **not** introduce a migration framework
+for this ticket; that would trip epic acceptance criterion 3.
 
 ## What we want
 
@@ -32,7 +35,7 @@ is the whole compliance argument.
 
 ## Definition of done
 
-* Liquibase/SQL change is additive — existing data and flows are untouched.
+* The change to `database/initialSchema.sql` is additive — existing data and flows are untouched.
 * Unit tests cover get, put, amend-history, and missing-limit behaviour.
 * `./gradlew :account-service:build` passes.
 
