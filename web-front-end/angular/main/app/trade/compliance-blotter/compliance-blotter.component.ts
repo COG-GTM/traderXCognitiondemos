@@ -1,4 +1,5 @@
 import { ColDef, GridApi, GridReadyEvent, RowClassParams } from 'ag-grid-community';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { Account } from 'main/app/model/account.model';
 import { AuditQuery, Decision, OrderDecision } from 'main/app/model/audit.model';
@@ -140,9 +141,10 @@ export class ComplianceBlotterComponent implements OnInit, OnChanges {
         }
 
         this.requested = true;
-        this.filtered = Boolean(this.security?.trim() || this.decision || this.from || this.to);
+        const accountId = this.limitToAccount ? this.account?.id : undefined;
+        this.filtered = Boolean(accountId || this.security?.trim() || this.decision || this.from || this.to);
         const query: AuditQuery = {
-            accountId: this.limitToAccount ? this.account?.id : undefined,
+            accountId,
             security: this.security?.trim() || undefined,
             decision: this.decision || undefined,
             from: this.toInstant(this.from),
@@ -163,16 +165,30 @@ export class ComplianceBlotterComponent implements OnInit, OnChanges {
                 this.loading = false;
                 this.loaded = true;
             },
-            error: (response) => {
+            error: (response: HttpErrorResponse) => {
                 this.decisions = [];
                 this.totalElements = 0;
                 this.totalPages = 0;
                 this.unavailable = response?.status === 503;
-                this.error = this.unavailable ? '' : 'Could not load the audit trail.';
+                this.error = this.errorFor(response);
                 this.loading = false;
                 this.loaded = false;
             }
         });
+    }
+
+    /**
+     * A 400 is the caller's own filter coming back at them - the range the wrong way round, say -
+     * so it says what to change rather than implying the trail is unreachable.
+     */
+    private errorFor(response: HttpErrorResponse): string {
+        if (response?.status === 503) {
+            return '';
+        }
+        if (response?.status === 400 && response.error?.message) {
+            return response.error.message;
+        }
+        return 'Could not load the audit trail.';
     }
 
     /**

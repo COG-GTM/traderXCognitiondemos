@@ -142,6 +142,27 @@ describe('ComplianceBlotterComponent', () => {
         expect(auditService.lastQuery?.to).toEqual('2026-04-01T00:00:00.000Z');
     });
 
+    it('should not call the whole trail empty when only the selected account has no decisions', () => {
+        component.account = dummyAccounts[0];
+        component.applyFilters();
+        fixture.detectChanges();
+
+        expect(component.isEmpty).toBeTrue();
+        expect(fixture.nativeElement.textContent).toContain('No order decisions match these filters');
+        expect(fixture.nativeElement.textContent).not.toContain('No order decisions recorded yet');
+    });
+
+    it('should say what is wrong with a rejected filter rather than report an outage', () => {
+        component.account = dummyAccounts[0];
+        spyOn(auditService, 'getDecisions').and.returnValue(
+            throwError(() => ({ status: 400, error: { message: "'to' must not be before 'from'" } })));
+
+        component.applyFilters();
+
+        expect(component.error).toEqual("'to' must not be before 'from'");
+        expect(component.unavailable).toBeFalse();
+    });
+
     it('should say a filter matched nothing rather than that nothing was recorded', () => {
         component.account = dummyAccounts[0];
         component.security = 'MSFT';

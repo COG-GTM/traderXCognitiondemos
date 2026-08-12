@@ -42,7 +42,7 @@ public class AuditQueryService {
     public AuditPage search(Integer accountId, String security, DecisionOutcome decision, Instant from, Instant to,
             Integer page, Integer size) {
         if (from != null && to != null && to.isBefore(from)) {
-            throw new IllegalArgumentException("'to' must not be before 'from'");
+            throw new InvalidAuditQueryException("'to' must not be before 'from'");
         }
         Pageable pageable = pageRequest(page, size);
         Page<OrderDecisionAudit> results = auditRepository.search(accountId, normaliseSecurity(security), decision, from,
@@ -57,11 +57,11 @@ public class AuditQueryService {
     private Pageable pageRequest(Integer page, Integer size) {
         int requestedPage = page == null ? 0 : page;
         if (requestedPage < 0) {
-            throw new IllegalArgumentException("'page' must not be negative");
+            throw new InvalidAuditQueryException("'page' must not be negative");
         }
         int requestedSize = size == null ? properties.getDefaultPageSize() : size;
         if (requestedSize < 1) {
-            throw new IllegalArgumentException("'size' must be at least 1");
+            throw new InvalidAuditQueryException("'size' must be at least 1");
         }
         return PageRequest.of(requestedPage, Math.min(requestedSize, properties.getMaxPageSize()));
     }

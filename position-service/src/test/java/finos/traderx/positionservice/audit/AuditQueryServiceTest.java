@@ -22,6 +22,7 @@ import finos.traderx.positionservice.model.audit.DecisionOutcome;
 import finos.traderx.positionservice.model.audit.OrderDecisionView;
 import finos.traderx.positionservice.repository.OrderDecisionAuditRepository;
 import finos.traderx.positionservice.service.AuditQueryService;
+import finos.traderx.positionservice.service.InvalidAuditQueryException;
 
 @DataJpaTest
 @TestPropertySource(properties = { "spring.jpa.hibernate.ddl-auto=create-drop" })
@@ -101,10 +102,10 @@ class AuditQueryServiceTest {
 
     @Test
     void rejectsNonsensicalPagingAndRanges() {
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(InvalidAuditQueryException.class,
                 () -> service.search(null, null, null, T0.plusSeconds(180), T0, null, null));
-        assertThrows(IllegalArgumentException.class, () -> service.search(null, null, null, null, null, -1, null));
-        assertThrows(IllegalArgumentException.class, () -> service.search(null, null, null, null, null, 0, 0));
+        assertThrows(InvalidAuditQueryException.class, () -> service.search(null, null, null, null, null, -1, null));
+        assertThrows(InvalidAuditQueryException.class, () -> service.search(null, null, null, null, null, 0, 0));
     }
 
     @Test

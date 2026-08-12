@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import finos.traderx.positionservice.model.audit.AuditPage;
 import finos.traderx.positionservice.model.audit.DecisionOutcome;
 import finos.traderx.positionservice.service.AuditQueryService;
+import finos.traderx.positionservice.service.InvalidAuditQueryException;
 
 /**
  * Read-only query API over the best-execution audit trail written by trade-service (TRX-104),
@@ -70,7 +71,7 @@ public class AuditController {
         try {
             return DecisionOutcome.valueOf(decision.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(
+            throw new InvalidAuditQueryException(
                     "Unknown 'decision' filter. Expected one of " + Arrays.toString(DecisionOutcome.values()));
         }
     }
@@ -86,8 +87,13 @@ public class AuditController {
         return badRequest("Could not read the '" + e.getPropertyName() + "' filter.");
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiError> badRequest(IllegalArgumentException e) {
+    /**
+     * Only this type is answered with its own message. An {@code IllegalArgumentException} from
+     * below the service belongs to the caller-facing catch-all: its message carries query and
+     * mapping detail, and it is a fault here rather than a bad request.
+     */
+    @ExceptionHandler(InvalidAuditQueryException.class)
+    public ResponseEntity<ApiError> invalidQuery(InvalidAuditQueryException e) {
         return badRequest(e.getMessage());
     }
 

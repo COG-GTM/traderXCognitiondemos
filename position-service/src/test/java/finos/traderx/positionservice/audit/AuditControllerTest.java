@@ -102,6 +102,17 @@ class AuditControllerTest {
     }
 
     @Test
+    void keepsAFailureFromBelowTheServiceOutOfTheResponse() throws Exception {
+        when(auditQueryService.isEnabled()).thenReturn(true);
+        when(auditQueryService.search(any(), any(), any(), any(), any(), any(), any()))
+                .thenThrow(new IllegalArgumentException("Parameter value [x] did not match expected type in ORDERDECISIONAUDIT"));
+
+        mockMvc.perform(get("/audit/decisions"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message").value("Could not query the audit trail."));
+    }
+
+    @Test
     void reportsAnUnparseableFilterAsABadRequestRatherThanAnOutage() throws Exception {
         mockMvc.perform(get("/audit/decisions").param("from", "last Tuesday")).andExpect(status().isBadRequest());
         mockMvc.perform(get("/audit/decisions").param("accountId", "all")).andExpect(status().isBadRequest());
