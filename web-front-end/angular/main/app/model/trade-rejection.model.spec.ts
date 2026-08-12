@@ -36,6 +36,17 @@ describe('trade rejection', () => {
         );
     });
 
+    it('should parse a 422 whose body arrived as an unparsed JSON string', () => {
+        expect(parseTradeRejection(422, JSON.stringify(rejectionBody))).toEqual(rejectionBody);
+        expect(parseTradeRejection(422, 'Trade rejected')).toBeUndefined();
+    });
+
+    it('should not treat an inherited object property as a known reason', () => {
+        expect(formatRejectionMessage({ decision: 'REJECTED', reason: 'constructor' })).toEqual(
+            'Order rejected: a pre-trade risk check. Amend the order and resubmit.'
+        );
+    });
+
     it('should not echo a free-text reason back to the trader', () => {
         expect(formatRejectionMessage({ decision: 'REJECTED', reason: 'x'.repeat(500) })).toEqual(
             'Order rejected: a pre-trade risk check. Amend the order and resubmit.'

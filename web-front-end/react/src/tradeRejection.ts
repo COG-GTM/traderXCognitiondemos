@@ -12,11 +12,26 @@ const REASON_LABELS: { [reason: string]: string } = {
 	UNPRICEABLE_SECURITY: 'no price available for this security'
 };
 
+function asObject(body: unknown): object | undefined {
+	if (typeof body === 'string') {
+		try {
+			const parsed = JSON.parse(body);
+			return parsed && typeof parsed === 'object' ? parsed : undefined;
+		} catch {
+			return undefined;
+		}
+	}
+	return body && typeof body === 'object' ? body : undefined;
+}
+
 export function parseTradeRejection(status: number, body: unknown): TradeRejection | undefined {
-	if (status !== REJECTION_STATUS || !body || typeof body !== 'object') {
+	if (status !== REJECTION_STATUS) {
 		return undefined;
 	}
-	const candidate = body as Partial<TradeRejection>;
+	const candidate = asObject(body) as Partial<TradeRejection> | undefined;
+	if (!candidate) {
+		return undefined;
+	}
 	if (typeof candidate.decision !== 'string' || typeof candidate.reason !== 'string') {
 		return undefined;
 	}
@@ -35,7 +50,7 @@ export function formatNotional(value: number): string {
 const REASON_CODE_PATTERN = /^[A-Z0-9_]{1,64}$/;
 
 export function describeReason(reason: string): string {
-	if (REASON_LABELS[reason]) {
+	if (Object.prototype.hasOwnProperty.call(REASON_LABELS, reason)) {
 		return REASON_LABELS[reason];
 	}
 	if (!REASON_CODE_PATTERN.test(reason)) {

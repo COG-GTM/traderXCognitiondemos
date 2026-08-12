@@ -28,6 +28,17 @@ test('omits the excess when the attempt does not exceed the limit', () => {
 	);
 });
 
+test('parses a 422 whose body arrived as an unparsed JSON string', () => {
+	expect(parseTradeRejection(422, JSON.stringify(rejectionBody))).toEqual(rejectionBody);
+	expect(parseTradeRejection(422, 'Trade rejected')).toBeUndefined();
+});
+
+test('does not treat an inherited object property as a known reason', () => {
+	expect(formatRejectionMessage({ decision: 'REJECTED', reason: 'constructor' })).toEqual(
+		'Order rejected: a pre-trade risk check. Amend the order and resubmit.'
+	);
+});
+
 test('does not echo a free-text reason back to the trader', () => {
 	expect(formatRejectionMessage({ decision: 'REJECTED', reason: 'x'.repeat(500) })).toEqual(
 		'Order rejected: a pre-trade risk check. Amend the order and resubmit.'

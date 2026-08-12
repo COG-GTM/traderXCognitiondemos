@@ -38,6 +38,7 @@ export class TradeComponent implements OnInit {
 
     onAccountChange(account: Account) {
         console.log('onAccountChange', arguments);
+        this.ticketRejectionMessage = undefined;
         account && this.setAccount(account);
     }
 
