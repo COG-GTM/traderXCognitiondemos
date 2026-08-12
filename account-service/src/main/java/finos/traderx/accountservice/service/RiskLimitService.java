@@ -91,7 +91,7 @@ public class RiskLimitService {
 
 		RiskLimit limit = existing.orElseGet(RiskLimit::new);
 		limit.setAccountId(accountId);
-		limit.setMaxOrderNotional(request.getMaxOrderNotional().stripTrailingZeros().setScale(2, RoundingMode.UNNECESSARY));
+		limit.setMaxOrderNotional(storedNotional(request.getMaxOrderNotional()));
 		limit.setCurrency(request.getCurrency().toUpperCase(Locale.ROOT));
 		limit.setEffectiveFrom(request.getEffectiveFrom() == null ? now : request.getEffectiveFrom());
 		limit.setSetBy(request.getSetBy());
@@ -124,8 +124,11 @@ public class RiskLimitService {
 		if (request.getMaxOrderNotional() == null || request.getMaxOrderNotional().compareTo(BigDecimal.ZERO) < 0) {
 			throw new IllegalArgumentException("maxOrderNotional must be present and not negative");
 		}
-		if (request.getMaxOrderNotional().stripTrailingZeros().scale() > 2
-				|| request.getMaxOrderNotional().precision() - request.getMaxOrderNotional().scale() > 17) {
+		try {
+			if (storedNotional(request.getMaxOrderNotional()).precision() > 19) {
+				throw new ArithmeticException("too many digits");
+			}
+		} catch (ArithmeticException e) {
 			throw new IllegalArgumentException("maxOrderNotional must fit DECIMAL(19,2); it is stored and enforced to 2 decimal places");
 		}
 		if (request.getCurrency() == null || !isIsoCurrency(request.getCurrency())) {
@@ -140,6 +143,11 @@ public class RiskLimitService {
 		if (request.getEffectiveFrom() != null && request.getEffectiveFrom().after(new Date())) {
 			throw new IllegalArgumentException("effectiveFrom cannot be in the future; a stored limit is always the limit in force");
 		}
+	}
+
+	/** The exact value the RiskLimits.MaxOrderNotional column holds, so validation and storage cannot drift. */
+	private BigDecimal storedNotional(BigDecimal requested) {
+		return requested.stripTrailingZeros().setScale(2, RoundingMode.UNNECESSARY);
 	}
 
 	private boolean isIsoCurrency(String code) {
