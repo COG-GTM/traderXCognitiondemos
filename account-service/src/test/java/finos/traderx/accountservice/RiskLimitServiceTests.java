@@ -119,6 +119,12 @@ class RiskLimitServiceTests {
         badCurrency.setCurrency("DOLLARS");
         assertThrows(IllegalArgumentException.class, () -> riskLimitService.setRiskLimit(accountId, badCurrency));
 
+        RiskLimitRequest tooPrecise = request("100.999", "risk.control@traderx", null);
+        assertThrows(IllegalArgumentException.class, () -> riskLimitService.setRiskLimit(accountId, tooPrecise));
+
+        RiskLimitRequest longOwner = request("1000.00", "x".repeat(51), null);
+        assertThrows(IllegalArgumentException.class, () -> riskLimitService.setRiskLimit(accountId, longOwner));
+
         RiskLimitRequest notACurrency = request("1000.00", "risk.control@traderx", null);
         notACurrency.setCurrency("XQZ");
         assertThrows(IllegalArgumentException.class, () -> riskLimitService.setRiskLimit(accountId, notACurrency));

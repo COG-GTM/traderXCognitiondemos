@@ -209,7 +209,10 @@ paths:
       tags:
         - risk-limit-controller
       operationId: getRiskLimitHistory
-      description: "Append-only trail of every limit value that has been in force, most recent first"
+      description: >-
+        Append-only trail of every limit value that has been in force, most recent first.
+        Returns an empty list when risk limits are switched off
+        (traderx.risk-limit.enabled=false), matching the read path's fail-open behaviour.
       parameters:
         - name: id
           in: path

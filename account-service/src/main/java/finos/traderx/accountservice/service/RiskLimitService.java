@@ -90,7 +90,7 @@ public class RiskLimitService {
 
 		RiskLimit limit = existing.orElseGet(RiskLimit::new);
 		limit.setAccountId(accountId);
-		limit.setMaxOrderNotional(request.getMaxOrderNotional());
+		limit.setMaxOrderNotional(request.getMaxOrderNotional().stripTrailingZeros().setScale(2));
 		limit.setCurrency(request.getCurrency().toUpperCase(Locale.ROOT));
 		limit.setEffectiveFrom(request.getEffectiveFrom() == null ? now : request.getEffectiveFrom());
 		limit.setSetBy(request.getSetBy());
@@ -123,11 +123,18 @@ public class RiskLimitService {
 		if (request.getMaxOrderNotional() == null || request.getMaxOrderNotional().compareTo(BigDecimal.ZERO) < 0) {
 			throw new IllegalArgumentException("maxOrderNotional must be present and not negative");
 		}
+		if (request.getMaxOrderNotional().stripTrailingZeros().scale() > 2
+				|| request.getMaxOrderNotional().precision() - request.getMaxOrderNotional().scale() > 17) {
+			throw new IllegalArgumentException("maxOrderNotional must fit DECIMAL(19,2); it is stored and enforced to 2 decimal places");
+		}
 		if (request.getCurrency() == null || !isIsoCurrency(request.getCurrency())) {
 			throw new IllegalArgumentException("currency must be a 3 letter ISO 4217 code");
 		}
-		if (request.getSetBy() == null || request.getSetBy().isBlank()) {
-			throw new IllegalArgumentException("setBy must identify who set the limit");
+		if (request.getSetBy() == null || request.getSetBy().isBlank() || request.getSetBy().length() > 50) {
+			throw new IllegalArgumentException("setBy must identify who set the limit and be at most 50 characters");
+		}
+		if (request.getReason() != null && request.getReason().length() > 255) {
+			throw new IllegalArgumentException("reason must be at most 255 characters");
 		}
 		if (request.getEffectiveFrom() != null && request.getEffectiveFrom().after(new Date())) {
 			throw new IllegalArgumentException("effectiveFrom cannot be in the future; a stored limit is always the limit in force");
