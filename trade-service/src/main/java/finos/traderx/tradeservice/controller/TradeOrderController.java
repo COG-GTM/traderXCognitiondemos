@@ -137,11 +137,12 @@ public class TradeOrderController {
 				log.info("Trade is valid. Submitting {}", tradeOrder);
 				tradePublisher.publish("/trades",tradeOrder);
 				return  ResponseEntity.ok(tradeOrder);
-			}  catch (PubSubException e){
+			}  catch (PubSubException | RuntimeException e){
 				// The accepted record has already committed and cannot be amended, so the fact that
 				// the order never reached the feed is appended as a second record under the same
 				// correlation id. Without it the trail would show an accepted order that the trader
-				// saw fail and that was never booked.
+				// saw fail and that was never booked. Any runtime failure is caught, not only
+				// PubSubException, so the guarantee holds whichever publisher is wired in.
 				orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.REJECTED,
 						DecisionReason.DISPATCH_FAILED, submittedBy);
 				throw new RuntimeException("Failed to publish trade order", e);

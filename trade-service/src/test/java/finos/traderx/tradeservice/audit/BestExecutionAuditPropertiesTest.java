@@ -27,6 +27,14 @@ class BestExecutionAuditPropertiesTest {
     }
 
     @Test
+    void refusesAPriceThatFitsItsOwnColumnButOverflowsNotionalAtMaxQuantity() {
+        BestExecutionAuditProperties properties = new BestExecutionAuditProperties();
+        properties.getPricing().setReferencePrice(new BigDecimal("1".repeat(15)));
+
+        assertThrows(IllegalStateException.class, properties::validate);
+    }
+
+    @Test
     void refusesAReferencePriceTooLargeForTheAuditColumn() {
         BestExecutionAuditProperties properties = new BestExecutionAuditProperties();
         properties.getPricing().setReferencePrice(new BigDecimal("1".repeat(16)));
