@@ -54,6 +54,9 @@ public class BestExecutionAuditProperties {
         if (pricing.getReferencePrice() != null) {
             pricing.setReferencePrice(pricing.getReferencePrice().setScale(COLUMN_SCALE, RoundingMode.HALF_UP));
         }
+        if (limit.getValue() != null) {
+            limit.setValue(limit.getValue().setScale(COLUMN_SCALE, RoundingMode.HALF_UP));
+        }
         requireStorable("audit.best-execution.limit.value", limit.getValue(), NOTIONAL_PRECISION);
         requireStorable("audit.best-execution.pricing.reference-price", pricing.getReferencePrice(),
                 PRICE_PRECISION);

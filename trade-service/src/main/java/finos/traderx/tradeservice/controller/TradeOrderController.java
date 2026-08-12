@@ -169,6 +169,15 @@ public class TradeOrderController {
 		};
 	}
 
+	/**
+	 * The operational log is part of how a decision is reconstructed, so a client string must
+	 * not be able to introduce line breaks and forge entries in it.
+	 */
+	private String forLogging(String value)
+	{
+		return value == null ? null : value.replaceAll("[\\r\\n]", "_");
+	}
+
 	private String submittedBy(String submittingUser)
 	{
 		if (submittingUser == null || submittingUser.isBlank()) {
@@ -192,7 +201,7 @@ public class TradeOrderController {
 			if (response.getBody() == null) {
 				// A 2xx with nothing in it does not confirm the security exists, and an order
 				// that was never confirmed must not be recorded as validated.
-				log.error("Reference data service returned an empty body for " + ticker);
+				log.error("Reference data service returned an empty body for {}", forLogging(ticker));
 				return LookupResult.UNAVAILABLE;
 			}
 			log.info("Validate ticker " + response.getBody());
@@ -200,14 +209,14 @@ public class TradeOrderController {
 		}
 		catch (HttpClientErrorException ex) {
 			if (ex.getStatusCode().value() == 404) {
-				log.info(ticker + " not found in reference data service.");
+				log.info("{} not found in reference data service.", forLogging(ticker));
 				return LookupResult.NOT_FOUND;
 			}
 			log.error(ex.getMessage());
 			return classify(ex);
 		}
 		catch (RestClientException ex) {
-			log.error("Reference data service unavailable while validating " + ticker, ex);
+			log.error("Reference data service unavailable while validating {}", forLogging(ticker), ex);
 			return LookupResult.UNAVAILABLE;
 		}
 	}		

@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
 
+import org.hibernate.annotations.Check;
 import org.hibernate.annotations.Immutable;
 import org.springframework.data.domain.Persistable;
 
@@ -12,6 +13,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
 /**
@@ -23,7 +25,14 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Immutable
-@Table(name = "ORDERDECISIONAUDIT")
+// The constraint and indexes are declared here as well as in initialSchema.sql: if this service
+// ever reaches a database where the script has not run, Hibernate creates the table from this
+// mapping, and a later script run skips it. The retained table must not end up the weaker one.
+@Check(constraints = "DECISION IN ('ACCEPTED','REJECTED')")
+@Table(name = "ORDERDECISIONAUDIT", indexes = {
+        @Index(name = "IDX_OrderDecisionAudit_Correlation", columnList = "CORRELATIONID"),
+        @Index(name = "IDX_OrderDecisionAudit_Account_Time", columnList = "ACCOUNTID, DECISIONTIMESTAMP")
+})
 public class OrderDecisionAudit implements Persistable<String>, Serializable {
 
     private static final long serialVersionUID = 1L;

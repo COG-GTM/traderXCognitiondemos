@@ -30,6 +30,16 @@ class BestExecutionAuditPropertiesTest {
     }
 
     @Test
+    void normalisesTheConfiguredLimitToTheScaleItIsStoredAt() {
+        BestExecutionAuditProperties properties = new BestExecutionAuditProperties();
+        properties.getLimit().setValue(new BigDecimal("5000000.00005"));
+
+        properties.validate();
+
+        assertEquals(new BigDecimal("5000000.0001"), properties.getLimit().getValue());
+    }
+
+    @Test
     void refusesALimitTooLargeForTheAuditColumn() {
         BestExecutionAuditProperties properties = new BestExecutionAuditProperties();
         properties.getLimit().setValue(new BigDecimal("1".repeat(20)));

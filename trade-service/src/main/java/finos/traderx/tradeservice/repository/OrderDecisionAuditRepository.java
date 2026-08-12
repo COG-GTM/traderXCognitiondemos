@@ -21,7 +21,12 @@ public interface OrderDecisionAuditRepository extends Repository<OrderDecisionAu
 
     Optional<OrderDecisionAudit> findById(String id);
 
-    List<OrderDecisionAudit> findByCorrelationId(String correlationId);
+    /**
+     * Ordered, because one correlation id can carry more than one record: an accepted order
+     * that then failed to reach the trade feed is two rows, and the sequence is what makes the
+     * pair readable. An unordered list would let a caller read the accept and miss the failure.
+     */
+    List<OrderDecisionAudit> findByCorrelationIdOrderByDecisionTimestampAsc(String correlationId);
 
-    List<OrderDecisionAudit> findByAccountId(Integer accountId);
+    List<OrderDecisionAudit> findByAccountIdOrderByDecisionTimestampAsc(Integer accountId);
 }

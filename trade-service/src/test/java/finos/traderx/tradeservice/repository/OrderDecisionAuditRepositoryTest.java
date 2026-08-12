@@ -42,7 +42,7 @@ class OrderDecisionAuditRepositoryTest {
         entityManager.flush();
         entityManager.clear();
 
-        List<OrderDecisionAudit> found = repository.findByCorrelationId("CORR-A");
+        List<OrderDecisionAudit> found = repository.findByCorrelationIdOrderByDecisionTimestampAsc("CORR-A");
 
         assertEquals(1, found.size());
         assertEquals(DecisionOutcome.REJECTED, found.get(0).getDecision());
