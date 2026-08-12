@@ -144,8 +144,164 @@ paths:
             "application/json":
               schema:
                 $ref: "#/components/schemas/Account"
+  /account/{id}/risk-limit:
+    get:
+      tags:
+        - risk-limit-controller
+      operationId: getRiskLimit
+      description: >-
+        Gets the pre-trade risk limit in force for an account. Returns 200 with
+        limitPresent=false when the account has no limit on file; callers must then honour
+        missingLimitPolicy.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/RiskLimitView"
+        "404":
+          description: Unknown account
+    put:
+      tags:
+        - risk-limit-controller
+      operationId: setRiskLimit
+      description: >-
+        Sets or amends the risk limit for an account. Used by the risk function, which under
+        MiFID II RTS 6 Art. 15 must be independent of the trading desk. Every accepted change
+        appends a row to the limit history.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskLimitRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/RiskLimitView"
+        "400":
+          description: Invalid limit payload
+        "404":
+          description: Unknown account
+        "503":
+          description: Risk limits are switched off (traderx.risk-limit.enabled=false)
+  /account/{id}/risk-limit/history:
+    get:
+      tags:
+        - risk-limit-controller
+      operationId: getRiskLimitHistory
+      description: "Append-only trail of every limit value that has been in force, most recent first"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RiskLimitHistory"
 components:
   schemas:
+    RiskLimitRequest:
+      type: object
+      properties:
+        maxOrderNotional:
+          type: number
+          example: 50000.00
+        currency:
+          type: string
+          example: USD
+        effectiveFrom:
+          type: string
+          format: date-time
+        setBy:
+          type: string
+          example: risk.control@traderx
+        reason:
+          type: string
+          example: "Client uplift approved by head of risk"
+    RiskLimitView:
+      type: object
+      properties:
+        accountId:
+          type: integer
+          format: int32
+          example: 11413
+        limitPresent:
+          type: boolean
+          example: true
+        missingLimitPolicy:
+          type: string
+          enum: [UNLIMITED, REJECT]
+          example: UNLIMITED
+        maxOrderNotional:
+          type: number
+          example: 50000.00
+        currency:
+          type: string
+          example: USD
+        effectiveFrom:
+          type: string
+          format: date-time
+        setBy:
+          type: string
+          example: risk.control@traderx
+        updated:
+          type: string
+          format: date-time
+    RiskLimitHistory:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        accountId:
+          type: integer
+          format: int32
+        maxOrderNotional:
+          type: number
+        currency:
+          type: string
+        effectiveFrom:
+          type: string
+          format: date-time
+        setBy:
+          type: string
+        changeType:
+          type: string
+          enum: [CREATE, AMEND]
+        changedBy:
+          type: string
+        changedAt:
+          type: string
+          format: date-time
+        reason:
+          type: string
     AccountList:
       type: array
       items:
