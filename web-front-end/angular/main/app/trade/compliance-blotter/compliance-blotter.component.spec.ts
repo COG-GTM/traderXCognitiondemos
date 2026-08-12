@@ -79,6 +79,21 @@ describe('ComplianceBlotterComponent', () => {
         expect(auditService.lastQuery?.accountId).toBeUndefined();
     });
 
+    it('should page the result set that was applied, not whatever is typed in the boxes', () => {
+        component.account = dummyAccounts[0];
+        component.security = 'AAPL';
+        component.applyFilters();
+        component.totalPages = 3;
+
+        component.security = 'MSFT';
+        component.limitToAccount = false;
+        component.nextPage();
+
+        expect(auditService.lastQuery?.security).toEqual('AAPL');
+        expect(auditService.lastQuery?.accountId).toEqual(dummyAccounts[0].id);
+        expect(auditService.lastQuery?.page).toEqual(1);
+    });
+
     it('should mark rejected rows as distinct and accepted rows as ordinary', () => {
         expect(component.getRowClass({ data: decision('a1', Decision.Rejected) } as any))
             .toEqual('compliance-row-rejected');

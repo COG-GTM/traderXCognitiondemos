@@ -48,7 +48,7 @@
         </ng-template>
     </div>
 
-    <ag-grid-angular *ngIf="!unavailable && !error" style="width: 100%; height: 350px;" class="ag-theme-alpine"
+    <ag-grid-angular *ngIf="!unavailable && !error && !isEmpty && !awaitingAccount" style="width: 100%; height: 350px;" class="ag-theme-alpine"
         [columnDefs]="columnDefs" [defaultColDef]="defaultColDef" [rowData]="decisions" [getRowClass]="getRowClass"
         (gridReady)="onGridReady($event)">
     </ag-grid-angular>

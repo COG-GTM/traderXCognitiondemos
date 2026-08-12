@@ -5,6 +5,14 @@ import { Account } from 'main/app/model/account.model';
 import { AuditQuery, Decision, OrderDecision } from 'main/app/model/audit.model';
 import { AuditService } from 'main/app/service/audit.service';
 
+interface AppliedFilters {
+    limitToAccount: boolean;
+    security?: string;
+    decision?: Decision;
+    from?: string;
+    to?: string;
+}
+
 /**
  * Compliance view over the retained order decisions (MiFID II Art. 16(6), RTS 27/28).
  *
@@ -44,6 +52,14 @@ export class ComplianceBlotterComponent implements OnInit, OnChanges {
 
     private requested = false;
 
+    /**
+     * The filters the current page was fetched with. Paging reads these rather than the live
+     * inputs, so pressing Next after typing in a box cannot quietly return page 2 of a different
+     * result set - on an evidential screen a reviewer would have no way to tell records had been
+     * skipped. Editing a box changes nothing until Apply.
+     */
+    private applied: AppliedFilters = this.currentFilters();
+
     readonly decisionOptions = [
         { value: '', label: 'All decisions' },
         { value: Decision.Rejected, label: 'Rejected only' },
@@ -82,13 +98,14 @@ export class ComplianceBlotterComponent implements OnInit, OnChanges {
 
     ngOnChanges(change: SimpleChanges) {
         if (change.account?.currentValue && change.account.currentValue !== change.account.previousValue
-            && this.limitToAccount) {
+            && this.applied.limitToAccount) {
             this.page = 0;
             this.load();
         }
     }
 
     applyFilters() {
+        this.applied = this.currentFilters();
         this.page = 0;
         this.load();
     }
@@ -124,7 +141,7 @@ export class ComplianceBlotterComponent implements OnInit, OnChanges {
      * and querying every account under a ticked box is the wrong way to fill the gap.
      */
     get awaitingAccount(): boolean {
-        return this.limitToAccount && !this.account;
+        return this.applied.limitToAccount && !this.account;
     }
 
     get isEmpty(): boolean {
@@ -141,14 +158,15 @@ export class ComplianceBlotterComponent implements OnInit, OnChanges {
         }
 
         this.requested = true;
-        const accountId = this.limitToAccount ? this.account?.id : undefined;
-        this.filtered = Boolean(accountId || this.security?.trim() || this.decision || this.from || this.to);
+        const applied = this.applied;
+        const accountId = applied.limitToAccount ? this.account?.id : undefined;
+        this.filtered = Boolean(accountId || applied.security || applied.decision || applied.from || applied.to);
         const query: AuditQuery = {
             accountId,
-            security: this.security?.trim() || undefined,
-            decision: this.decision || undefined,
-            from: this.toInstant(this.from),
-            to: this.toInstant(this.to),
+            security: applied.security,
+            decision: applied.decision,
+            from: applied.from,
+            to: applied.to,
             page: this.page,
             size: this.pageSize
         };
@@ -199,5 +217,15 @@ export class ComplianceBlotterComponent implements OnInit, OnChanges {
      */
     private toInstant(value: string): string | undefined {
         return value ? new Date(`${value}Z`).toISOString() : undefined;
+    }
+
+    private currentFilters(): AppliedFilters {
+        return {
+            limitToAccount: this.limitToAccount,
+            security: this.security?.trim() || undefined,
+            decision: this.decision || undefined,
+            from: this.toInstant(this.from),
+            to: this.toInstant(this.to)
+        };
     }
 }
