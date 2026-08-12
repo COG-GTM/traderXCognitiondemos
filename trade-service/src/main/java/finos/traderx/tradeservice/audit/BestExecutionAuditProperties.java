@@ -18,6 +18,8 @@ public class BestExecutionAuditProperties {
     private static final int COLUMN_SCALE = 4;
     private static final int NOTIONAL_PRECISION = 23;
     private static final int PRICE_PRECISION = 19;
+    private static final int LIMIT_FIELD_MAX_LENGTH = 40;
+    private static final int PRICE_SOURCE_MAX_LENGTH = 40;
 
     /** Kill switch for the whole feature. Defaults to on in dev. */
     private boolean enabled = true;
@@ -43,9 +45,9 @@ public class BestExecutionAuditProperties {
     }
 
     /**
-     * Unlike the string values, an over-large number cannot be fitted to its column without
-     * changing what the record says, so a misconfiguration is refused at startup rather than
-     * discovered when the first order fails to be recorded.
+     * A misconfiguration is refused at startup rather than discovered when the first order is
+     * recorded. That applies to the operator-supplied strings as well: truncating a limit id
+     * would leave the record naming a limit that matches nothing in the limits store.
      */
     @PostConstruct
     void validate() {
@@ -66,6 +68,16 @@ public class BestExecutionAuditProperties {
         requireStorable("audit.best-execution.pricing.reference-price (x max quantity)",
                 price.multiply(BigDecimal.valueOf(Integer.MAX_VALUE)),
                 NOTIONAL_PRECISION);
+        requireFits("audit.best-execution.limit.id", limit.getId(), LIMIT_FIELD_MAX_LENGTH);
+        requireFits("audit.best-execution.limit.type", limit.getType(), LIMIT_FIELD_MAX_LENGTH);
+        requireFits("audit.best-execution.pricing.source", pricing.getSource(), PRICE_SOURCE_MAX_LENGTH);
+    }
+
+    private static void requireFits(String property, String value, int maxLength) {
+        if (value != null && value.length() > maxLength) {
+            throw new IllegalStateException(property + " is longer than the " + maxLength
+                    + " characters the audit column stores: " + value);
+        }
     }
 
     private static BigDecimal requireSet(String property, BigDecimal value) {

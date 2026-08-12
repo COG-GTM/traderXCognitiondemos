@@ -40,6 +40,14 @@ class BestExecutionAuditPropertiesTest {
     }
 
     @Test
+    void refusesALimitIdTooLongForTheAuditColumnRatherThanRecordingATruncatedOne() {
+        BestExecutionAuditProperties properties = new BestExecutionAuditProperties();
+        properties.getLimit().setId("L".repeat(41));
+
+        assertThrows(IllegalStateException.class, properties::validate);
+    }
+
+    @Test
     void refusesALimitTooLargeForTheAuditColumn() {
         BestExecutionAuditProperties properties = new BestExecutionAuditProperties();
         properties.getLimit().setValue(new BigDecimal("1".repeat(20)));

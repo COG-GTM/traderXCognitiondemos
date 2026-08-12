@@ -1,5 +1,7 @@
 package finos.traderx.tradeservice.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 public class TradeOrder {
 
     public String id;
@@ -8,6 +10,8 @@ public class TradeOrder {
     private Integer quantity;
     private Integer accountId;
     private TradeSide side;
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY,
+            description = "Assigned by trade-service and ties the order to its audit record; any value sent by a client is replaced.")
     private String correlationId;
 
     public TradeOrder(){}

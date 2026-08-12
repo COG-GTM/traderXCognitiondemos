@@ -82,12 +82,15 @@ public class TradeOrderController {
 
 		// Checked before any lookup, so a submission missing a security or an account is filed
 		// as the submitter's error rather than being classified by whatever status a downstream
-		// service happens to return for an empty path segment.
-		if (tradeOrder.getSecurity() == null || tradeOrder.getSecurity().isBlank() || tradeOrder.getAccountId() == null)
+		// service happens to return for an empty path segment. Quantity is checked here too: the
+		// Trades table refuses a non-positive quantity, so such an order cannot book, and without
+		// this it would be recorded as accepted and then quietly fail in trade-processor.
+		if (tradeOrder.getSecurity() == null || tradeOrder.getSecurity().isBlank() || tradeOrder.getAccountId() == null
+				|| tradeOrder.getQuantity() == null || tradeOrder.getQuantity() <= 0)
 		{
 			orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.REJECTED,
 					DecisionReason.SUBMISSION_INVALID, submittedBy);
-			throw new InvalidSubmissionException("A trade order must carry both a security and an account id.");
+			throw new InvalidSubmissionException("A trade order must carry a security, an account id and a positive quantity.");
 		}
 
 		LookupResult tickerLookup = validateTicker(tradeOrder.getSecurity());
@@ -95,13 +98,15 @@ public class TradeOrderController {
 		{
 			orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.REJECTED,
 					DecisionReason.VALIDATION_UNAVAILABLE, submittedBy);
-			throw new ValidationUnavailableException("Could not validate " + tradeOrder.getSecurity() + " against Reference data service.");
+			// The submitted values are in the audit record under this correlation id rather than
+			// reflected back in the response body.
+			throw new ValidationUnavailableException("Could not validate the security against Reference data service. Correlation id " + correlationId + ".");
 		}
 		else if (tickerLookup == LookupResult.INVALID_SUBMISSION)
 		{
 			orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.REJECTED,
 					DecisionReason.SUBMISSION_INVALID, submittedBy);
-			throw new InvalidSubmissionException("Reference data service rejected the lookup for " + tradeOrder.getSecurity() + ".");
+			throw new InvalidSubmissionException("Reference data service rejected the security lookup. Correlation id " + correlationId + ".");
 		}
 		else if (tickerLookup == LookupResult.NOT_FOUND) 
 		{
@@ -115,13 +120,13 @@ public class TradeOrderController {
 		{
 			orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.REJECTED,
 					DecisionReason.VALIDATION_UNAVAILABLE, submittedBy);
-			throw new ValidationUnavailableException("Could not validate account " + tradeOrder.getAccountId() + " against Account service.");
+			throw new ValidationUnavailableException("Could not validate the account against Account service. Correlation id " + correlationId + ".");
 		}
 		else if (accountLookup == LookupResult.INVALID_SUBMISSION)
 		{
 			orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.REJECTED,
 					DecisionReason.SUBMISSION_INVALID, submittedBy);
-			throw new InvalidSubmissionException("Account service rejected the lookup for account " + tradeOrder.getAccountId() + ".");
+			throw new InvalidSubmissionException("Account service rejected the account lookup. Correlation id " + correlationId + ".");
 		}
 		else if(accountLookup == LookupResult.NOT_FOUND)
 		{

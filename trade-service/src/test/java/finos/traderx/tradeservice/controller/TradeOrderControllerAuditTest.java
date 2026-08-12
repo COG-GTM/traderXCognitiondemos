@@ -122,6 +122,16 @@ class TradeOrderControllerAuditTest {
     }
 
     @Test
+    void anOrderWithANonPositiveQuantityIsAuditedAsInvalidRatherThanAcceptedAndLeftUnbooked() {
+        TradeOrder zeroQuantity = new TradeOrder("ORDER-1", 22214, "IBM", TradeSide.Buy, 0);
+
+        assertThrows(InvalidSubmissionException.class, () -> controller.createTradeOrder(zeroQuantity, "user01"));
+
+        assertEquals(DecisionReason.SUBMISSION_INVALID, capturedReason(DecisionOutcome.REJECTED));
+        downstream.verify();
+    }
+
+    @Test
     void anUnknownSecurityIsAuditedAsRejected() {
         downstream.expect(requestTo(REFERENCE_DATA_URL + "/stocks/IBM"))
                 .andRespond(withStatus(HttpStatus.NOT_FOUND));
