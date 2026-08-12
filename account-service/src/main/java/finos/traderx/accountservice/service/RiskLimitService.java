@@ -1,6 +1,7 @@
 package finos.traderx.accountservice.service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Currency;
 import java.util.Date;
 import java.util.List;
@@ -90,7 +91,7 @@ public class RiskLimitService {
 
 		RiskLimit limit = existing.orElseGet(RiskLimit::new);
 		limit.setAccountId(accountId);
-		limit.setMaxOrderNotional(request.getMaxOrderNotional().stripTrailingZeros().setScale(2));
+		limit.setMaxOrderNotional(request.getMaxOrderNotional().stripTrailingZeros().setScale(2, RoundingMode.UNNECESSARY));
 		limit.setCurrency(request.getCurrency().toUpperCase(Locale.ROOT));
 		limit.setEffectiveFrom(request.getEffectiveFrom() == null ? now : request.getEffectiveFrom());
 		limit.setSetBy(request.getSetBy());

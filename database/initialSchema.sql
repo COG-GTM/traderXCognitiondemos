@@ -46,6 +46,8 @@ CREATE TABLE RiskLimitHistory ( ID BIGINT PRIMARY KEY, AccountID INTEGER NOT NUL
 
 Alter Table RiskLimitHistory Add Foreign Key (AccountID) references Accounts(ID);
 
+CREATE INDEX IDX_RISKLIMITHISTORY_ACCOUNT ON RiskLimitHistory (AccountID, ChangedAt);
+
 CREATE SEQUENCE RISKLIMITHISTORY_SEQ start with 1000 INCREMENT BY 1;
 
 --- SAMPLE DATA ---
