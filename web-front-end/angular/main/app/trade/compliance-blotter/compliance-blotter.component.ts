@@ -153,7 +153,10 @@ export class ComplianceBlotterComponent implements OnInit, OnChanges {
             this.decisions = [];
             this.totalElements = 0;
             this.totalPages = 0;
+            this.page = 0;
             this.loaded = false;
+            this.error = '';
+            this.unavailable = false;
             return;
         }
 
@@ -187,6 +190,7 @@ export class ComplianceBlotterComponent implements OnInit, OnChanges {
                 this.decisions = [];
                 this.totalElements = 0;
                 this.totalPages = 0;
+                this.page = 0;
                 this.unavailable = response?.status === 503;
                 this.error = this.errorFor(response);
                 this.loading = false;

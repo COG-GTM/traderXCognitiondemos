@@ -94,6 +94,22 @@ describe('ComplianceBlotterComponent', () => {
         expect(auditService.lastQuery?.page).toEqual(1);
     });
 
+    it('should drop a stale failure when it goes back to asking for an account', () => {
+        component.limitToAccount = false;
+        spyOn(auditService, 'getDecisions').and.returnValue(throwError(() => ({ status: 503 })));
+        component.applyFilters();
+        expect(component.unavailable).toBeTrue();
+
+        component.limitToAccount = true;
+        component.applyFilters();
+        fixture.detectChanges();
+
+        expect(component.unavailable).toBeFalse();
+        expect(component.error).toEqual('');
+        expect(fixture.nativeElement.textContent).toContain('Select an account');
+        expect(fixture.nativeElement.textContent).not.toContain('decision(s)');
+    });
+
     it('should mark rejected rows as distinct and accepted rows as ordinary', () => {
         expect(component.getRowClass({ data: decision('a1', Decision.Rejected) } as any))
             .toEqual('compliance-row-rejected');

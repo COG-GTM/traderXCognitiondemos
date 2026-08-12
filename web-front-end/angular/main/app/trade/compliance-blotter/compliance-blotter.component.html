@@ -53,7 +53,7 @@
         (gridReady)="onGridReady($event)">
     </ag-grid-angular>
 
-    <div class="compliance-paging" *ngIf="!unavailable && !error">
+    <div class="compliance-paging" *ngIf="!unavailable && !error && !awaitingAccount">
         <button type="button" class="btn btn-sm btn-outline-secondary" (click)="previousPage()"
             [disabled]="page === 0">Previous</button>
         <span class="compliance-paging-label">
