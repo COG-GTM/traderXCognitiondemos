@@ -2,6 +2,8 @@ package finos.traderx.tradeservice.model;
 
 import java.math.BigDecimal;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * Outcome of the pre-trade risk evaluation of a single order. Serialised as the
  * response body when an order is rejected.
@@ -12,6 +14,7 @@ public class RiskDecision {
     public static final String REASON_CHECKS_DISABLED = "PRE_TRADE_CHECKS_DISABLED";
     public static final String REASON_NOTIONAL_LIMIT_BREACH = "NOTIONAL_LIMIT_BREACH";
     public static final String REASON_PRICE_UNAVAILABLE = "PRICE_UNAVAILABLE";
+    public static final String REASON_INVALID_QUANTITY = "INVALID_QUANTITY";
 
     private final String decision;
     private final String reason;
@@ -49,6 +52,7 @@ public class RiskDecision {
         return attempted;
     }
 
+    @JsonIgnore
     public boolean isRejected() {
         return "REJECTED".equals(decision);
     }

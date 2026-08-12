@@ -112,6 +112,17 @@ class RiskLimitServiceTest {
 	}
 
 	@Test
+	void rejectsOrderWithoutQuantity() {
+		TradeOrder order = new TradeOrder();
+
+		RiskDecision decision = service.evaluate(order, priced("100"));
+
+		assertTrue(decision.isRejected());
+		assertEquals(RiskDecision.REASON_INVALID_QUANTITY, decision.getReason());
+		assertNull(decision.getAttempted());
+	}
+
+	@Test
 	void acceptsEverythingWhenFlagDisabled() {
 		properties.getPreTradeChecks().setEnabled(false);
 

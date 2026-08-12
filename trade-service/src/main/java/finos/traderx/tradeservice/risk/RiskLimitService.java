@@ -33,6 +33,12 @@ public class RiskLimitService {
 		}
 
 		BigDecimal limit = properties.getNotionalLimit().limitFor(tradeOrder.getAccountId());
+
+		if (tradeOrder.getQuantity() == null || tradeOrder.getQuantity() == 0) {
+			log.info("Order {} has no usable quantity; cannot evaluate notional.", tradeOrder.getId());
+			return RiskDecision.rejected(RiskDecision.REASON_INVALID_QUANTITY, limit, null);
+		}
+
 		Optional<BigDecimal> price = lastPriceFor(security, tradeOrder.getSecurity());
 
 		if (price.isEmpty()) {
