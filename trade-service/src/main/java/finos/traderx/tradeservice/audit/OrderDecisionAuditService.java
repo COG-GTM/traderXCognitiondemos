@@ -36,6 +36,7 @@ public class OrderDecisionAuditService {
     private static final int LIMIT_FIELD_MAX_LENGTH = 40;
     private static final int PRICE_SOURCE_MAX_LENGTH = 40;
     private static final int SUBMITTED_BY_MAX_LENGTH = 50;
+    private static final int LOG_EXCERPT_LENGTH = 100;
 
     private final OrderDecisionAuditRepository repository;
     private final BestExecutionAuditProperties properties;
@@ -59,8 +60,8 @@ public class OrderDecisionAuditService {
 
         BigDecimal price = properties.getPricing().getReferencePrice();
         BigDecimal notional = notionalOf(order, price);
-        // Configured values are fitted too: a misconfigured limit name must not be able to fail
-        // the insert, because that would fail every order submission rather than one record.
+        // Configured values go through fitToColumn as a last resort only; an over-long one is
+        // refused at startup, because a truncated limit id names a limit that matches nothing.
         EvaluatedLimit limit = new EvaluatedLimit(
                 fitToColumn(properties.getLimit().getId(), LIMIT_FIELD_MAX_LENGTH),
                 fitToColumn(properties.getLimit().getType(), LIMIT_FIELD_MAX_LENGTH),
@@ -105,14 +106,18 @@ public class OrderDecisionAuditService {
     /**
      * Client supplied values are recorded as far as the column allows rather than being
      * allowed to fail the insert: a refusal to store the record is the one outcome the
-     * regulatory trail cannot have.
+     * regulatory trail cannot have. Configured values pass through here too, but cannot
+     * reach it overlong - {@link BestExecutionAuditProperties} refuses those at startup,
+     * where the operator can still act on them.
      */
     private String fitToColumn(String value, int maxLength) {
         if (value == null || value.length() <= maxLength) {
             return value;
         }
-        log.warn("Truncating value to {} characters for the audit record; original was [{}]", maxLength,
-                forLogging(value));
+        // Only an excerpt: the value can be a client header of unbounded length, and a single
+        // log line long enough to be a problem in itself helps no one reconstruct anything.
+        log.warn("Truncating a {} character value to {} for the audit record; it began [{}]", value.length(),
+                maxLength, forLogging(value.substring(0, Math.min(value.length(), LOG_EXCERPT_LENGTH))));
         return value.substring(0, maxLength);
     }
 
