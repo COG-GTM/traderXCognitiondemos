@@ -41,6 +41,7 @@ public class TradeService {
 		t.setId(UUID.randomUUID().toString());
 
 
+        t.setCorrelationId(order.getCorrelationId());
         t.setCreated(new Date());
         t.setUpdated(new Date());
         t.setSecurity(order.getSecurity());

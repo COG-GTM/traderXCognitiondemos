@@ -1,0 +1,105 @@
+package finos.traderx.tradeservice.audit;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+/**
+ * Externalised configuration for the best-execution audit trail. Nothing here is hard-coded
+ * in the decision path; see application.properties for the dev defaults.
+ */
+@ConfigurationProperties(prefix = "audit.best-execution")
+public class BestExecutionAuditProperties {
+
+    /** Kill switch for the whole feature. Defaults to on in dev. */
+    private boolean enabled = true;
+
+    private final Limit limit = new Limit();
+
+    private final Pricing pricing = new Pricing();
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public Limit getLimit() {
+        return limit;
+    }
+
+    public Pricing getPricing() {
+        return pricing;
+    }
+
+    /**
+     * The limit snapshot recorded against each decision until TRX-102 provides a real
+     * limits store to read from.
+     */
+    public static class Limit {
+        private String id = "DEFAULT-ACCOUNT-NOTIONAL";
+        private String type = "ACCOUNT_NOTIONAL";
+        private BigDecimal value = new BigDecimal("5000000.0000");
+        private Instant effectiveFrom = Instant.parse("2024-01-01T00:00:00Z");
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+
+        public BigDecimal getValue() {
+            return value;
+        }
+
+        public void setValue(BigDecimal value) {
+            this.value = value;
+        }
+
+        public Instant getEffectiveFrom() {
+            return effectiveFrom;
+        }
+
+        public void setEffectiveFrom(Instant effectiveFrom) {
+            this.effectiveFrom = effectiveFrom;
+        }
+    }
+
+    /**
+     * TraderX has no market data service, so the price used to compute notional comes from
+     * configuration and is labelled as such in every record.
+     */
+    public static class Pricing {
+        private BigDecimal referencePrice = new BigDecimal("100.0000");
+        private String source = "CONFIGURED_STATIC_REFERENCE_PRICE";
+
+        public BigDecimal getReferencePrice() {
+            return referencePrice;
+        }
+
+        public void setReferencePrice(BigDecimal referencePrice) {
+            this.referencePrice = referencePrice;
+        }
+
+        public String getSource() {
+            return source;
+        }
+
+        public void setSource(String source) {
+            this.source = source;
+        }
+    }
+}

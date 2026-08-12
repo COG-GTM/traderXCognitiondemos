@@ -1,5 +1,7 @@
 package finos.traderx.tradeservice.controller;
 
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
@@ -18,7 +21,10 @@ import finos.traderx.messaging.Publisher;
 import finos.traderx.tradeservice.exceptions.ResourceNotFoundException;
 import finos.traderx.tradeservice.model.Account;
 import finos.traderx.tradeservice.model.Security;
+import finos.traderx.tradeservice.audit.OrderDecisionAuditService;
 import finos.traderx.tradeservice.model.TradeOrder;
+import finos.traderx.tradeservice.model.audit.DecisionOutcome;
+import finos.traderx.tradeservice.model.audit.DecisionReason;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 
@@ -29,8 +35,14 @@ public class TradeOrderController {
 
 	private static final Logger log = LoggerFactory.getLogger(TradeOrderController.class);
 
+	private static final String SUBMITTING_USER_HEADER = "X-TraderX-User";
+	private static final String UNKNOWN_USER = "UNKNOWN";
+
 	@Autowired
 	private Publisher<TradeOrder> tradePublisher;
+
+	@Autowired
+	private OrderDecisionAuditService orderDecisionAuditService;
 	
 	private RestTemplate restTemplate = new RestTemplate();
 
@@ -42,19 +54,30 @@ public class TradeOrderController {
 
 	@Operation(description = "Submit a new trade order")
 	@PostMapping("/")
-	public ResponseEntity<TradeOrder> createTradeOrder(@Parameter(description = "the intendeded trade order") @RequestBody TradeOrder tradeOrder) {
+	public ResponseEntity<TradeOrder> createTradeOrder(@Parameter(description = "the intendeded trade order") @RequestBody TradeOrder tradeOrder,
+			@Parameter(description = "user submitting the order, recorded in the audit trail") @RequestHeader(value = SUBMITTING_USER_HEADER, required = false) String submittingUser) {
 		log.info("Called createTradeOrder");
-		
+
+		String correlationId = UUID.randomUUID().toString();
+		tradeOrder.setCorrelationId(correlationId);
+		String submittedBy = (submittingUser == null || submittingUser.isBlank()) ? UNKNOWN_USER : submittingUser;
+
 		if (!validateTicker(tradeOrder.getSecurity())) 
 		{
+			orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.REJECTED,
+					DecisionReason.SECURITY_NOT_FOUND, submittedBy);
 			throw new ResourceNotFoundException(tradeOrder.getSecurity() + " not found in Reference data service.");
 		}
 		else if(!validateAccount(tradeOrder.getAccountId()))
 		{
+			orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.REJECTED,
+					DecisionReason.ACCOUNT_NOT_FOUND, submittedBy);
 			throw new ResourceNotFoundException(tradeOrder.getAccountId() + " not found in Account service.");
 		}
 		else
 		{
+			orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.ACCEPTED,
+					DecisionReason.VALIDATED, submittedBy);
 			try{
 				log.info("Trade is valid. Submitting {}", tradeOrder);
 				tradePublisher.publish("/trades",tradeOrder);

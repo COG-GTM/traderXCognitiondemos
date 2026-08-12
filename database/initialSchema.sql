@@ -1,3 +1,5 @@
+Drop Table OrderDecisionAudit IF EXISTS;
+
 Drop Table Trades IF EXISTS;
 
 Drop Table AccountUsers IF EXISTS; 
@@ -18,9 +20,38 @@ CREATE TABLE Positions ( AccountID INTEGER , Security VARCHAR(15) , Updated TIME
 
 Alter Table Positions ADD FOREIGN KEY (AccountID) References Accounts(ID) ; 
 
-CREATE TABLE Trades ( ID Varchar (50) Primary Key, AccountID INTEGER, Created TIMESTAMP, Updated TIMESTAMP, Security VARCHAR (15) ,  Side VARCHAR(10) check (Side in ('Buy','Sell')),  Quantity INTEGER check Quantity > 0 , State VARCHAR(20) check (State in ('New', 'Processing', 'Settled', 'Cancelled'))) ;  
+CREATE TABLE Trades ( ID Varchar (50) Primary Key, AccountID INTEGER, Created TIMESTAMP, Updated TIMESTAMP, Security VARCHAR (15) ,  Side VARCHAR(10) check (Side in ('Buy','Sell')),  Quantity INTEGER check Quantity > 0 , State VARCHAR(20) check (State in ('New', 'Processing', 'Settled', 'Cancelled')), CorrelationID VARCHAR(50)) ;  
 
 Alter Table Trades Add Foreign Key (AccountID) references Accounts(ID); 
+
+-- MiFID II Art. 16(6) / RTS 27-28 best-execution record. Append-only: written once by
+-- trade-service for every submission, accepted or rejected, and never updated or deleted.
+-- Deliberately has no foreign key to Accounts, because a rejected order may name an account
+-- that does not exist - that rejection still has to be reconstructable.
+CREATE TABLE OrderDecisionAudit (
+  ID VARCHAR(50) PRIMARY KEY,
+  CorrelationID VARCHAR(50) NOT NULL,
+  OrderID VARCHAR(50),
+  AccountID INTEGER,
+  Security VARCHAR(50),
+  Side VARCHAR(10),
+  Quantity INTEGER,
+  Price DECIMAL(19,4),
+  PriceSource VARCHAR(40),
+  Notional DECIMAL(23,4),
+  Decision VARCHAR(10) NOT NULL check (Decision in ('ACCEPTED','REJECTED')),
+  ReasonCode VARCHAR(40) NOT NULL,
+  LimitID VARCHAR(40),
+  LimitType VARCHAR(40),
+  LimitValue DECIMAL(23,4),
+  LimitEffectiveFrom TIMESTAMP(3),
+  SubmittedBy VARCHAR(50),
+  DecisionTimestamp TIMESTAMP(3) NOT NULL
+);
+
+CREATE INDEX IDX_OrderDecisionAudit_Correlation ON OrderDecisionAudit (CorrelationID);
+
+CREATE INDEX IDX_OrderDecisionAudit_Account_Time ON OrderDecisionAudit (AccountID, DecisionTimestamp);
 
 CREATE SEQUENCE ACCOUNTS_SEQ start with 65000 INCREMENT BY 1;
 
