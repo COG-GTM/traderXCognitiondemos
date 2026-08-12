@@ -101,6 +101,22 @@ class AuditControllerTest {
                 .andExpect(jsonPath("$.message").value(not(containsString("java."))));
     }
 
+
+    @Test
+    void acceptsAnInstantWithAnyOffsetAndRejectsOneWithout() throws Exception {
+        when(auditQueryService.isEnabled()).thenReturn(true);
+        when(auditQueryService.search(any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(new AuditPage(List.of(), 0, 50, 0L, 0));
+
+        mockMvc.perform(get("/audit/decisions").param("from", "2026-01-01T01:00:00+01:00"))
+                .andExpect(status().isOk());
+        verify(auditQueryService).search(isNull(), isNull(), isNull(), eq(Instant.parse("2026-01-01T00:00:00Z")),
+                isNull(), isNull(), isNull());
+
+        mockMvc.perform(get("/audit/decisions").param("from", "2026-01-01T00:00:00"))
+                .andExpect(status().isBadRequest());
+    }
+
     @Test
     void keepsAFailureFromBelowTheServiceOutOfTheResponse() throws Exception {
         when(auditQueryService.isEnabled()).thenReturn(true);

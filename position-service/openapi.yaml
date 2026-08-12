@@ -109,14 +109,18 @@ paths:
             enum: [ACCEPTED, REJECTED]
         - name: from
           in: query
-          description: Inclusive lower bound on decisionTimestamp, ISO-8601 instant.
+          description: >-
+            Inclusive lower bound on decisionTimestamp. An offset is required,
+            e.g. 2026-01-01T00:00:00Z; a zone-less value is answered with 400.
           required: false
           schema:
             type: string
             format: date-time
         - name: to
           in: query
-          description: Exclusive upper bound on decisionTimestamp, ISO-8601 instant.
+          description: >-
+            Exclusive upper bound on decisionTimestamp. An offset is required,
+            e.g. 2026-04-01T00:00:00Z; a zone-less value is answered with 400.
           required: false
           schema:
             type: string

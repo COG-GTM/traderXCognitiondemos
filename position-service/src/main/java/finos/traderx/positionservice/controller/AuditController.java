@@ -7,7 +7,6 @@ import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeMismatchException;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -42,13 +41,19 @@ public class AuditController {
         this.auditQueryService = auditQueryService;
     }
 
+    /**
+     * {@code from} and {@code to} are parsed by Spring's instant converter, which requires an
+     * offset ({@code 2026-01-01T00:00:00Z}). A {@code @DateTimeFormat} annotation would not change
+     * that - the JSR-310 formatter factory does not cover {@code Instant} - so the requirement is
+     * documented in openapi.yaml instead of being annotated inertly.
+     */
     @GetMapping("/decisions")
     public ResponseEntity<AuditPage> getDecisions(
             @RequestParam(required = false) Integer accountId,
             @RequestParam(required = false) String security,
             @RequestParam(required = false) String decision,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to,
+            @RequestParam(required = false) Instant from,
+            @RequestParam(required = false) Instant to,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) {
 
