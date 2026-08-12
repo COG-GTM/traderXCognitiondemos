@@ -33,6 +33,11 @@ test('parses a 422 whose body arrived as an unparsed JSON string', () => {
 	expect(parseTradeRejection(422, 'Trade rejected')).toBeUndefined();
 });
 
+test('unwraps a body that carries the raw response under text', () => {
+	expect(parseTradeRejection(422, { error: new SyntaxError('Unexpected token'), text: JSON.stringify(rejectionBody) }))
+		.toEqual(rejectionBody);
+});
+
 test('does not treat an inherited object property as a known reason', () => {
 	expect(formatRejectionMessage({ decision: 'REJECTED', reason: 'constructor' })).toEqual(
 		'Order rejected: a pre-trade risk check. Amend the order and resubmit.'

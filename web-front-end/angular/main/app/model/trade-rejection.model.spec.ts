@@ -41,6 +41,11 @@ describe('trade rejection', () => {
         expect(parseTradeRejection(422, 'Trade rejected')).toBeUndefined();
     });
 
+    it('should unwrap the body Angular hands back when it could not parse the response', () => {
+        expect(parseTradeRejection(422, { error: new SyntaxError('Unexpected token'), text: JSON.stringify(rejectionBody) }))
+            .toEqual(rejectionBody);
+    });
+
     it('should not treat an inherited object property as a known reason', () => {
         expect(formatRejectionMessage({ decision: 'REJECTED', reason: 'constructor' })).toEqual(
             'Order rejected: a pre-trade risk check. Amend the order and resubmit.'
