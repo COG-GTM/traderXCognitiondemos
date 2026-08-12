@@ -1,6 +1,7 @@
 package finos.traderx.tradeservice.audit;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
@@ -16,6 +17,16 @@ class BestExecutionAuditPropertiesTest {
     @Test
     void acceptsTheConfiguredDevDefaults() {
         assertDoesNotThrow(new BestExecutionAuditProperties()::validate);
+    }
+
+    @Test
+    void normalisesTheConfiguredPriceToTheScaleItIsStoredAt() {
+        BestExecutionAuditProperties properties = new BestExecutionAuditProperties();
+        properties.getPricing().setReferencePrice(new BigDecimal("100.00005"));
+
+        properties.validate();
+
+        assertEquals(new BigDecimal("100.0001"), properties.getPricing().getReferencePrice());
     }
 
     @Test

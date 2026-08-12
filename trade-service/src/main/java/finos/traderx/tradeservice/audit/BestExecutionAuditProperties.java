@@ -49,6 +49,11 @@ public class BestExecutionAuditProperties {
      */
     @PostConstruct
     void validate() {
+        // Normalised to the stored scale first, so the recorded notional is exactly the
+        // recorded price times quantity rather than the rounding of an unrecorded price.
+        if (pricing.getReferencePrice() != null) {
+            pricing.setReferencePrice(pricing.getReferencePrice().setScale(COLUMN_SCALE, RoundingMode.HALF_UP));
+        }
         requireStorable("audit.best-execution.limit.value", limit.getValue(), NOTIONAL_PRECISION);
         requireStorable("audit.best-execution.pricing.reference-price", pricing.getReferencePrice(),
                 PRICE_PRECISION);

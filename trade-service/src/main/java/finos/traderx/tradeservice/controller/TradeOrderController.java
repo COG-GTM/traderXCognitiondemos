@@ -143,8 +143,14 @@ public class TradeOrderController {
 				// correlation id. Without it the trail would show an accepted order that the trader
 				// saw fail and that was never booked. Any runtime failure is caught, not only
 				// PubSubException, so the guarantee holds whichever publisher is wired in.
-				orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.REJECTED,
-						DecisionReason.DISPATCH_FAILED, submittedBy);
+				try {
+					orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.REJECTED,
+							DecisionReason.DISPATCH_FAILED, submittedBy);
+				} catch (RuntimeException auditFailure) {
+					// Losing the record is bad; losing the reason the order never went out is worse,
+					// so the original publish failure is still what propagates.
+					log.error("Could not record the dispatch failure for correlation id {}", correlationId, auditFailure);
+				}
 				throw new RuntimeException("Failed to publish trade order", e);
 			}
 		}

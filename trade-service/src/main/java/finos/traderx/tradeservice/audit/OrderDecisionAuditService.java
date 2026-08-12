@@ -66,7 +66,7 @@ public class OrderDecisionAuditService {
 
         OrderDecisionAudit auditRecord = new OrderDecisionAudit(
                 UUID.randomUUID().toString(),
-                correlationId,
+                fitToColumn(correlationId, ID_MAX_LENGTH),
                 fitToColumn(order.getId(), ID_MAX_LENGTH),
                 order.getAccountId(),
                 fitToColumn(order.getSecurity(), SECURITY_MAX_LENGTH),
