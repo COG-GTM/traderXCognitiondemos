@@ -14,11 +14,14 @@ like a 404 "not found", which is useless to a trader and worse to a compliance o
 
 ## What we want
 
-Reject an order **before** it is published when its notional value would breach the limit
-configured for that account, and reject it in a way that says *why*.
+Reject an order **before** it is published when it would breach the limit configured for that
+account, and reject it in a way that says *why*.
 
-* Notional = `quantity × last price` for the security. Reference data is the price source;
-  if no price is available the order is rejected as un-priceable rather than waved through.
+* The limit is expressed as a **maximum order notional**. Notional = `quantity × price`.
+* **TraderX has no price data anywhere** — `reference-data` serves `{ ticker, companyName }`
+  off a flat file and nothing else, and there is no price column in `database/initialSchema.sql`.
+  So the price source is a genuine gap that has to be solved, not looked up. See the
+  ambiguities below; this is the single most important thing for the plan to surface.
 * Limits come from `account-service` (see TRX-102). Until that lands, read them from
   configuration with a sane default.
 * A breach returns **422 Unprocessable Entity** with a structured body:
@@ -33,6 +36,13 @@ configured for that account, and reject it in a way that says *why*.
 These are in the ticket on purpose. A good plan asks about them; a bad agent picks one and
 ships. This is the moment the room sees the difference.
 
+* **Where does the price come from?** There is no price source in this estate. Options: a
+  configured price map in `trade-service` (cheap, honest, obviously a stand-in); adding a price
+  field to `reference-data`'s flat file (touches another service); or a quantity-based limit
+  instead of a notional one (satisfies RTS 6 volume controls but not value controls). Each is
+  defensible; picking one silently is not. If it lands as a configured stub, that stub must be
+  visibly a stub — not something that reads like real market data.
+
 * What happens to an order that breaches the limit *because* of an in-flight order that has
   not yet been processed?
 * Is the limit per-order or per-day cumulative?
@@ -45,7 +55,7 @@ ships. This is the moment the room sees the difference.
 * `RiskLimitService` (or equivalent) is a separate, injectable, mockable class — the existing
   inline validation style is explicitly *not* the pattern to copy. The current code even
   carries a `// Move whole method to a separate class ...` comment; honour it.
-* Unit tests cover: within limit, exactly at limit, over limit, missing price, flag disabled.
+* Unit tests cover: within limit, exactly at limit, over limit, unpriceable security, flag disabled.
 * `./gradlew :trade-service:build` passes.
 
 ## Paste-ready prompts

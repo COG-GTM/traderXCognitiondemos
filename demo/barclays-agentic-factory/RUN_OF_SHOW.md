@@ -36,9 +36,14 @@ it, and what it learns persists."* Tie back to your day-1/day-30 framing from th
 > from me before you'd be willing to build it.
 
 While it works, narrate what a BA does with this: they are no longer writing the spec, they
-are **interrogating** one. Point at the impact map — five services, and the fact that
-`trade-service` returns 404 for every kind of rejection today, which nobody had written down
-anywhere.
+are **interrogating** one. Two things to point at when it comes back:
+
+* `trade-service` returns a 404 for every kind of rejection today — bad ticker, unknown
+  account, all of it. Nobody had written that down anywhere.
+* **There is no price data in TraderX at all.** "Stop traders breaching limits" implies a
+  notional, a notional implies a price, and this estate has none. That is the kind of thing a
+  BA usually finds out three weeks into the sprint. Here it surfaces before the ticket is
+  agreed — and it is the single best moment in the demo, so leave room for it.
 
 **Beat 3 — the pushback (5 min).** Paste TRX-106 (Kafka/event-sourcing) into plan mode. Read
 the refusal out loud. Land the principle: *ambiguity escalates to humans; scope is bounded
@@ -146,7 +151,7 @@ approvals conversation on the GitLab side.
 ## Pre-flight checklist
 
 * [ ] Repo indexed and up to date; architecture diagrams render.
-* [ ] TraderX running locally (`docker-compose up`) with a browser tab already on the blotter —
+* [ ] TraderX running locally (`docker compose up`, as per the repo README) with a browser tab already on the blotter —
       do not let the room watch a Gradle build.
 * [ ] An account seeded with a limit tight enough that a plausible order breaches it.
 * [ ] The four pre-run PRs open, plus the Devin Review comments already on them.
