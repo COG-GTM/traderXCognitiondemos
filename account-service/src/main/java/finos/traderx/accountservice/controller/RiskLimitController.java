@@ -11,6 +11,7 @@ import finos.traderx.accountservice.service.RiskLimitService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -55,6 +56,12 @@ public class RiskLimitController {
 	@ExceptionHandler(IllegalArgumentException.class)
 	public ResponseEntity<String> badRequest(IllegalArgumentException e) {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+	}
+
+	/** An unparseable body is a bad limit payload, not a service failure. */
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<String> unreadableBody(HttpMessageNotReadableException e) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Risk limit payload could not be read: " + e.getMessage());
 	}
 
 	@ExceptionHandler(RiskLimitsDisabledException.class)

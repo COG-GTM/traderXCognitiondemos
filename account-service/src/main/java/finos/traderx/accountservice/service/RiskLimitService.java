@@ -19,6 +19,10 @@ import finos.traderx.accountservice.model.RiskLimitView;
 import finos.traderx.accountservice.repository.RiskLimitHistoryRepository;
 import finos.traderx.accountservice.repository.RiskLimitRepository;
 
+import jakarta.annotation.PostConstruct;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class RiskLimitService {
+
+	private static final Logger log = LoggerFactory.getLogger(RiskLimitService.class);
 
 	/** Absorbs client clock drift so a caller stamping "now" is not rejected as future-dated. */
 	private static final long CLOCK_SKEW_TOLERANCE_MS = 60_000L;
@@ -45,6 +51,19 @@ public class RiskLimitService {
 
 	@Autowired
 	RiskLimitProperties riskLimitProperties;
+
+	/**
+	 * The kill switch is fail-open by construction: with limits off the service behaves as it did
+	 * before TRX-102. That deliberately overrides a configured REJECT, so say so loudly at startup.
+	 */
+	@PostConstruct
+	void warnIfKillSwitchOverridesRejectPolicy() {
+		if (!this.riskLimitProperties.isEnabled()
+				&& this.riskLimitProperties.getMissingLimitPolicy() == MissingLimitPolicy.REJECT) {
+			log.warn("traderx.risk-limit.enabled=false overrides missing-limit-policy=REJECT: "
+					+ "every account is now reported as UNLIMITED and no limit can be administered");
+		}
+	}
 
 	/**
 	 * Reads the limit in force for an account. Throws if the account itself is unknown;
@@ -129,10 +148,10 @@ public class RiskLimitService {
 		}
 		try {
 			if (storedNotional(request.getMaxOrderNotional()).precision() > 19) {
-				throw new ArithmeticException("too many digits");
+				throw new IllegalArgumentException("maxOrderNotional must fit DECIMAL(19,2); it is limited to 17 digits before the decimal point");
 			}
 		} catch (ArithmeticException e) {
-			throw new IllegalArgumentException("maxOrderNotional must fit DECIMAL(19,2); it is stored and enforced to 2 decimal places");
+			throw new IllegalArgumentException("maxOrderNotional is stored and enforced to 2 decimal places");
 		}
 		if (request.getCurrency() == null || !isIsoCurrency(request.getCurrency())) {
 			throw new IllegalArgumentException("currency must be a 3 letter ISO 4217 code");
