@@ -140,13 +140,26 @@ approvals conversation on the GitLab side.
 
 ## Fallback links
 
+All five were pre-run from exactly the prompts in `tickets/`, so if the live fan-out stalls you
+can show these and keep the narration identical.
+
 | Ticket | Pre-run PR |
 | :--- | :--- |
-| TRX-101 | *(fill in once the pre-run sessions land)* |
-| TRX-102 | *(fill in)* |
-| TRX-103 | *(fill in)* |
-| TRX-104 | *(fill in)* |
-| TRX-105 | *(fill in)* |
+| TRX-101 | [#97 — Pre-trade notional limit check](https://github.com/COG-GTM/traderXCognitiondemos/pull/97) |
+| TRX-102 | [#98 — Risk limit storage and admin API](https://github.com/COG-GTM/traderXCognitiondemos/pull/98) |
+| TRX-103 | [#100 — Surface the rejection reason in the trade ticket](https://github.com/COG-GTM/traderXCognitiondemos/pull/100) |
+| TRX-104 | [#99 — Immutable best-execution audit record](https://github.com/COG-GTM/traderXCognitiondemos/pull/99) |
+| TRX-105 | [session](https://app.devin.ai/sessions/76a0a2788b644b68b553c9b0068b33b1) — queued behind #99, as designed |
+
+The demo pack itself is [#96](https://github.com/COG-GTM/traderXCognitiondemos/pull/96).
+
+**Worth showing on stage:** each of these PRs has a "Decisions and open questions" section
+listing the ambiguities the ticket planted and what the agent did with them. That is the
+cleanest evidence for the *ambiguity escalates to humans* principle — better than saying it.
+
+Reusable playbook for this workflow: **TraderX — Feature Delivery Workflow**
+(`playbook-47eea92ae5fa40e2b455ba37a6d883c7`, macro `!traderx_feature`). Worth opening during
+the team-lead beat as the artefact that encodes the standards.
 
 ## Pre-flight checklist
 
