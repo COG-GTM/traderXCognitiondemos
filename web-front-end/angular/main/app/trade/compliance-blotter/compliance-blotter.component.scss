@@ -1,0 +1,69 @@
+.compliance-blotter {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    .compliance-header {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+
+        h5 {
+            margin: 0;
+        }
+    }
+
+    .compliance-retention {
+        font-size: 12px;
+        opacity: 0.7;
+    }
+
+    .compliance-filters {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 10px;
+
+        .filter {
+            display: flex;
+            flex-direction: column;
+            font-size: 12px;
+
+            &-check {
+                flex-direction: row;
+                align-items: center;
+                gap: 6px;
+            }
+        }
+    }
+
+    .compliance-state {
+        padding: 10px;
+        border: 1px dashed #adb5bd;
+        border-radius: 4px;
+        font-size: 14px;
+
+        &-error {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+    }
+
+    .compliance-paging {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+    }
+}
+
+// ag-grid renders rows outside this component's view encapsulation.
+::ng-deep .ag-theme-alpine .compliance-row-rejected {
+    background-color: rgba(220, 53, 69, 0.12);
+    border-left: 3px solid #dc3545;
+}
+
+::ng-deep .ag-theme-alpine .compliance-cell-rejected {
+    color: #b02a37;
+    font-weight: 600;
+}

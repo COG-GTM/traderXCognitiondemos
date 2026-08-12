@@ -8,6 +8,7 @@ public class TradeOrder {
     private Integer quantity;
     private Integer accountId;
     private TradeSide side;
+    private String correlationId;
 
     public TradeOrder(){}
     
@@ -41,5 +42,13 @@ public class TradeOrder {
 
     public TradeSide getSide() {
         return side;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public void setCorrelationId(String correlationId) {
+        this.correlationId = correlationId;
     }
 }

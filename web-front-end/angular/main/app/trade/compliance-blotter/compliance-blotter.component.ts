@@ -1,0 +1,235 @@
+import { ColDef, GridApi, GridReadyEvent, RowClassParams } from 'ag-grid-community';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Account } from 'main/app/model/account.model';
+import { AuditQuery, Decision, OrderDecision } from 'main/app/model/audit.model';
+import { AuditService } from 'main/app/service/audit.service';
+
+interface AppliedFilters {
+    limitToAccount: boolean;
+    security?: string;
+    decision?: Decision;
+    from?: string;
+    to?: string;
+}
+
+/**
+ * Compliance view over the retained order decisions (MiFID II Art. 16(6), RTS 27/28).
+ *
+ * Read-only by construction: no row is editable, and there is no action on this view that can
+ * change or remove a record.
+ */
+@Component({
+    selector: 'app-compliance-blotter',
+    templateUrl: './compliance-blotter.component.html',
+    styleUrls: ['./compliance-blotter.component.scss']
+})
+export class ComplianceBlotterComponent implements OnInit, OnChanges {
+    @Input() account?: Account;
+
+    decisions: OrderDecision[] = [];
+    gridApi: GridApi;
+    loading = false;
+    unavailable = false;
+    error = '';
+
+    limitToAccount = true;
+    security = '';
+    decision: Decision | '' = '';
+    from = '';
+    to = '';
+
+    page = 0;
+    pageSize = 25;
+    totalElements = 0;
+    totalPages = 0;
+
+    /** Whether the last query narrowed the trail, so an empty result can be explained as such. */
+    filtered = false;
+
+    /** No claim is made about the trail until a query has actually answered. */
+    loaded = false;
+
+    private requested = false;
+
+    /**
+     * The filters the current page was fetched with. Paging reads these rather than the live
+     * inputs, so pressing Next after typing in a box cannot quietly return page 2 of a different
+     * result set - on an evidential screen a reviewer would have no way to tell records had been
+     * skipped. Editing a box changes nothing until Apply.
+     */
+    private applied: AppliedFilters = this.currentFilters();
+
+    readonly decisionOptions = [
+        { value: '', label: 'All decisions' },
+        { value: Decision.Rejected, label: 'Rejected only' },
+        { value: Decision.Accepted, label: 'Accepted only' }
+    ];
+
+    columnDefs: ColDef[] = [
+        {
+            headerName: 'DECISION',
+            field: 'decision',
+            width: 120,
+            cellClass: (params) => params.value === Decision.Rejected ? 'compliance-cell-rejected' : ''
+        },
+        { headerName: 'REASON', field: 'reasonCode', width: 200 },
+        { headerName: 'TIMESTAMP (UTC)', field: 'decisionTimestamp', width: 200 },
+        { headerName: 'ACCOUNT', field: 'accountId', width: 110 },
+        { headerName: 'SECURITY', field: 'security', width: 110 },
+        { headerName: 'SIDE', field: 'side', width: 90 },
+        { headerName: 'QUANTITY', field: 'quantity', width: 110 },
+        { headerName: 'NOTIONAL', field: 'notional', width: 130 },
+        { headerName: 'LIMIT APPLIED', field: 'limitValue', width: 140 },
+        { headerName: 'SUBMITTED BY', field: 'submittedBy', width: 140 },
+        { headerName: 'CORRELATION ID', field: 'correlationId', width: 300 }
+    ];
+
+    defaultColDef: ColDef = { sortable: false, resizable: true };
+
+    constructor(private auditService: AuditService) { }
+
+    /** ngOnChanges runs first when the account is already bound, and has already loaded by then. */
+    ngOnInit() {
+        if (!this.requested) {
+            this.load();
+        }
+    }
+
+    ngOnChanges(change: SimpleChanges) {
+        if (change.account?.currentValue && change.account.currentValue !== change.account.previousValue
+            && this.applied.limitToAccount) {
+            this.page = 0;
+            this.load();
+        }
+    }
+
+    applyFilters() {
+        this.applied = this.currentFilters();
+        this.page = 0;
+        this.load();
+    }
+
+    nextPage() {
+        if (this.page + 1 < this.totalPages) {
+            this.page += 1;
+            this.load();
+        }
+    }
+
+    previousPage() {
+        if (this.page > 0) {
+            this.page -= 1;
+            this.load();
+        }
+    }
+
+    onGridReady(params: GridReadyEvent) {
+        this.gridApi = params.api;
+    }
+
+    /**
+     * Rejections are the records a regulator asks about first, so they are the ones the eye
+     * should land on.
+     */
+    getRowClass(params: RowClassParams): string {
+        return params.data?.decision === Decision.Rejected ? 'compliance-row-rejected' : '';
+    }
+
+    /**
+     * The view cannot honestly answer "scoped to the selected account" before an account exists,
+     * and querying every account under a ticked box is the wrong way to fill the gap.
+     */
+    get awaitingAccount(): boolean {
+        return this.applied.limitToAccount && !this.account;
+    }
+
+    get isEmpty(): boolean {
+        return this.loaded && !this.loading && !this.unavailable && !this.error && this.decisions.length === 0;
+    }
+
+    private load() {
+        if (this.awaitingAccount) {
+            this.decisions = [];
+            this.totalElements = 0;
+            this.totalPages = 0;
+            this.page = 0;
+            this.loaded = false;
+            this.error = '';
+            this.unavailable = false;
+            return;
+        }
+
+        this.requested = true;
+        const applied = this.applied;
+        const accountId = applied.limitToAccount ? this.account?.id : undefined;
+        this.filtered = Boolean(accountId || applied.security || applied.decision || applied.from || applied.to);
+        const query: AuditQuery = {
+            accountId,
+            security: applied.security,
+            decision: applied.decision,
+            from: applied.from,
+            to: applied.to,
+            page: this.page,
+            size: this.pageSize
+        };
+
+        this.loading = true;
+        this.error = '';
+        this.auditService.getDecisions(query).subscribe({
+            next: (result) => {
+                this.decisions = result.content;
+                this.page = result.page;
+                this.totalElements = result.totalElements;
+                this.totalPages = result.totalPages;
+                this.unavailable = false;
+                this.loading = false;
+                this.loaded = true;
+            },
+            error: (response: HttpErrorResponse) => {
+                this.decisions = [];
+                this.totalElements = 0;
+                this.totalPages = 0;
+                this.page = 0;
+                this.unavailable = response?.status === 503;
+                this.error = this.errorFor(response);
+                this.loading = false;
+                this.loaded = false;
+            }
+        });
+    }
+
+    /**
+     * A 400 is the caller's own filter coming back at them - the range the wrong way round, say -
+     * so it says what to change rather than implying the trail is unreachable.
+     */
+    private errorFor(response: HttpErrorResponse): string {
+        if (response?.status === 503) {
+            return '';
+        }
+        if (response?.status === 400 && response.error?.message) {
+            return response.error.message;
+        }
+        return 'Could not load the audit trail.';
+    }
+
+    /**
+     * The datetime-local inputs are wall clock with no zone. They are read as UTC, matching the
+     * column the reviewer is reading the timestamps from: parsing them in the browser's zone
+     * would shift a quarter-boundary query by the viewer's offset and quietly drop the records
+     * at each end of the window they asked for.
+     */
+    private toInstant(value: string): string | undefined {
+        return value ? new Date(`${value}Z`).toISOString() : undefined;
+    }
+
+    private currentFilters(): AppliedFilters {
+        return {
+            limitToAccount: this.limitToAccount,
+            security: this.security?.trim() || undefined,
+            decision: this.decision || undefined,
+            from: this.toInstant(this.from),
+            to: this.toInstant(this.to)
+        };
+    }
+}

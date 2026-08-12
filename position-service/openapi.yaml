@@ -77,8 +77,98 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Position'
+  /audit/decisions:
+    get:
+      tags:
+        - audit-controller
+      summary: Query the best-execution audit trail
+      description: >-
+        Read-only, paged query over the immutable order decision records retained under
+        MiFID II Art. 16(6) and RTS 27/28. Newest decision first. There is no mutation
+        endpoint on this resource by design.
+      operationId: getDecisions
+      parameters:
+        - name: accountId
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: security
+          in: query
+          required: false
+          description: Ticker, matched case-insensitively and trimmed.
+          schema:
+            type: string
+            example: 'AAPL'
+        - name: decision
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ACCEPTED, REJECTED]
+        - name: from
+          in: query
+          description: >-
+            Inclusive lower bound on decisionTimestamp. An offset is required,
+            e.g. 2026-01-01T00:00:00Z; a zone-less value is answered with 400.
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          description: >-
+            Exclusive upper bound on decisionTimestamp. An offset is required,
+            e.g. 2026-04-01T00:00:00Z; a zone-less value is answered with 400.
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+        - name: size
+          in: query
+          description: Clamped to audit.query.max-page-size.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 50
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditPage'
+        '400':
+          description: Unknown decision value, unreadable filter, negative page, or 'to' before 'from'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Query failed; detail is logged, not returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Audit query API disabled by configuration
 components:
   schemas:
+    ApiError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Unknown 'decision' filter. Expected one of [ACCEPTED, REJECTED]"
     Trade:
       type: object
       properties:
@@ -126,3 +216,70 @@ components:
           type: string
           format: date-time
           example: '2020-01-01T00:00:00.000Z'
+    AuditPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderDecision'
+        page:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+    OrderDecision:
+      type: object
+      properties:
+        id:
+          type: string
+        correlationId:
+          type: string
+        orderId:
+          type: string
+        accountId:
+          type: integer
+          format: int32
+          example: 22214
+        security:
+          type: string
+          example: 'ADBE'
+        side:
+          type: string
+          example: 'Buy'
+        quantity:
+          type: integer
+          format: int32
+        price:
+          type: number
+        priceSource:
+          type: string
+        notional:
+          type: number
+        decision:
+          type: string
+          enum: [ACCEPTED, REJECTED]
+        reasonCode:
+          type: string
+          example: 'ACCOUNT_LIMIT_BREACHED'
+        limitId:
+          type: string
+        limitType:
+          type: string
+        limitValue:
+          type: number
+        limitEffectiveFrom:
+          type: string
+          format: date-time
+        submittedBy:
+          type: string
+        decisionTimestamp:
+          type: string
+          format: date-time

@@ -1,0 +1,65 @@
+<div class="compliance-blotter">
+    <div class="compliance-header">
+        <h5>Order decisions</h5>
+        <span class="compliance-retention">Read-only. Retained under MiFID II Art. 16(6) / RTS 27-28.</span>
+    </div>
+
+    <form class="compliance-filters" (ngSubmit)="applyFilters()">
+        <label class="filter">
+            <span>Security</span>
+            <input type="text" class="form-control form-control-sm" name="security" [(ngModel)]="security"
+                placeholder="e.g. AAPL" />
+        </label>
+        <label class="filter">
+            <span>Decision</span>
+            <select class="form-select form-select-sm" name="decision" [(ngModel)]="decision">
+                <option *ngFor="let option of decisionOptions" [value]="option.value">{{ option.label }}</option>
+            </select>
+        </label>
+        <label class="filter">
+            <span>From (UTC)</span>
+            <input type="datetime-local" class="form-control form-control-sm" name="from" [(ngModel)]="from" />
+        </label>
+        <label class="filter">
+            <span>To (UTC)</span>
+            <input type="datetime-local" class="form-control form-control-sm" name="to" [(ngModel)]="to" />
+        </label>
+        <label class="filter filter-check">
+            <input type="checkbox" class="form-check-input" name="limitToAccount" [(ngModel)]="limitToAccount" />
+            <span>Selected account only</span>
+        </label>
+        <button type="submit" class="btn btn-sm btn-primary" id="applyComplianceFilters">Apply</button>
+    </form>
+
+    <div class="compliance-state" *ngIf="awaitingAccount && !unavailable">
+        Select an account to see its order decisions, or untick "Selected account only" to search the whole trail.
+    </div>
+
+    <div class="compliance-state" *ngIf="unavailable">
+        The compliance audit query is switched off in this environment.
+    </div>
+    <div class="compliance-state compliance-state-error" *ngIf="error">{{ error }}</div>
+    <div class="compliance-state" *ngIf="isEmpty">
+        <ng-container *ngIf="filtered; else nothingRecorded">
+            No order decisions match these filters. Widen the range or clear a filter &mdash; nothing has been removed.
+        </ng-container>
+        <ng-template #nothingRecorded>
+            No order decisions recorded yet. Every submitted order, accepted or rejected, will appear here.
+        </ng-template>
+    </div>
+
+    <ag-grid-angular *ngIf="!unavailable && !error && !isEmpty && !awaitingAccount" style="width: 100%; height: 350px;" class="ag-theme-alpine"
+        [columnDefs]="columnDefs" [defaultColDef]="defaultColDef" [rowData]="decisions" [getRowClass]="getRowClass"
+        (gridReady)="onGridReady($event)">
+    </ag-grid-angular>
+
+    <div class="compliance-paging" *ngIf="!unavailable && !error && !awaitingAccount">
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="previousPage()"
+            [disabled]="page === 0">Previous</button>
+        <span class="compliance-paging-label">
+            Page {{ totalPages === 0 ? 0 : page + 1 }} of {{ totalPages }} &mdash; {{ totalElements }} decision(s)
+        </span>
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="nextPage()"
+            [disabled]="page + 1 >= totalPages">Next</button>
+    </div>
+</div>

@@ -12,9 +12,11 @@ import { DropdownModule } from '../dropdown/dropdown.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
+import { TabsModule } from 'ngx-bootstrap/tabs';
+import { ComplianceBlotterComponent } from './compliance-blotter/compliance-blotter.component';
 
 @NgModule({
-  declarations: [TradeComponent, TradeTicketComponent, TradeBlotterComponent, PositionBlotterComponent],
+  declarations: [TradeComponent, TradeTicketComponent, TradeBlotterComponent, PositionBlotterComponent, ComplianceBlotterComponent],
   imports: [
     CommonModule,
     AgGridModule,
@@ -22,9 +24,10 @@ import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
     TypeaheadModule.forRoot(),
     ModalModule.forRoot(),
     AlertModule.forRoot(),
+    TabsModule.forRoot(),
     FormsModule,
     DropdownModule
   ],
-  exports: [TradeComponent, TradeTicketComponent, TradeBlotterComponent]
+  exports: [TradeComponent, TradeTicketComponent, TradeBlotterComponent, ComplianceBlotterComponent]
 })
 export class TradeModule { }
