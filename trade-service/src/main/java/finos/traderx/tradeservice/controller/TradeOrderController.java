@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import finos.traderx.messaging.PubSubException;
@@ -38,13 +39,29 @@ public class TradeOrderController {
 	private static final String SUBMITTING_USER_HEADER = "X-TraderX-User";
 	private static final String UNKNOWN_USER = "UNKNOWN";
 
-	@Autowired
-	private Publisher<TradeOrder> tradePublisher;
+	/** Length of the SUBMITTEDBY column; an over-long header must not fail the audit insert. */
+	private static final int SUBMITTED_BY_MAX_LENGTH = 50;
+
+	private final Publisher<TradeOrder> tradePublisher;
+
+	private final OrderDecisionAuditService orderDecisionAuditService;
+
+	private final RestTemplate restTemplate;
 
 	@Autowired
-	private OrderDecisionAuditService orderDecisionAuditService;
-	
-	private RestTemplate restTemplate = new RestTemplate();
+	public TradeOrderController(Publisher<TradeOrder> tradePublisher,
+			OrderDecisionAuditService orderDecisionAuditService, RestTemplate restTemplate) {
+		this.tradePublisher = tradePublisher;
+		this.orderDecisionAuditService = orderDecisionAuditService;
+		this.restTemplate = restTemplate;
+	}
+
+	/** Outcome of a downstream existence check. "Not found" and "could not ask" are different facts. */
+	enum LookupResult {
+		FOUND,
+		NOT_FOUND,
+		UNAVAILABLE
+	}
 
 	@Value("${reference.data.service.url}")
 	private String referenceDataServiceAddress;
@@ -60,15 +77,30 @@ public class TradeOrderController {
 
 		String correlationId = UUID.randomUUID().toString();
 		tradeOrder.setCorrelationId(correlationId);
-		String submittedBy = (submittingUser == null || submittingUser.isBlank()) ? UNKNOWN_USER : submittingUser;
+		String submittedBy = submittedBy(submittingUser);
 
-		if (!validateTicker(tradeOrder.getSecurity())) 
+		LookupResult tickerLookup = validateTicker(tradeOrder.getSecurity());
+		if (tickerLookup == LookupResult.UNAVAILABLE)
+		{
+			orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.REJECTED,
+					DecisionReason.VALIDATION_UNAVAILABLE, submittedBy);
+			throw new RuntimeException("Could not validate " + tradeOrder.getSecurity() + " against Reference data service.");
+		}
+		else if (tickerLookup == LookupResult.NOT_FOUND) 
 		{
 			orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.REJECTED,
 					DecisionReason.SECURITY_NOT_FOUND, submittedBy);
 			throw new ResourceNotFoundException(tradeOrder.getSecurity() + " not found in Reference data service.");
 		}
-		else if(!validateAccount(tradeOrder.getAccountId()))
+
+		LookupResult accountLookup = validateAccount(tradeOrder.getAccountId());
+		if (accountLookup == LookupResult.UNAVAILABLE)
+		{
+			orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.REJECTED,
+					DecisionReason.VALIDATION_UNAVAILABLE, submittedBy);
+			throw new RuntimeException("Could not validate account " + tradeOrder.getAccountId() + " against Account service.");
+		}
+		else if(accountLookup == LookupResult.NOT_FOUND)
 		{
 			orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.REJECTED,
 					DecisionReason.ACCOUNT_NOT_FOUND, submittedBy);
@@ -88,7 +120,16 @@ public class TradeOrderController {
 		}
 	}
 
-	private boolean validateTicker(String ticker)
+	private String submittedBy(String submittingUser)
+	{
+		if (submittingUser == null || submittingUser.isBlank()) {
+			return UNKNOWN_USER;
+		}
+		String trimmed = submittingUser.trim();
+		return trimmed.length() > SUBMITTED_BY_MAX_LENGTH ? trimmed.substring(0, SUBMITTED_BY_MAX_LENGTH) : trimmed;
+	}
+
+	private LookupResult validateTicker(String ticker)
 	{
 		// Move whole method to a sperate class that handles all reference data 
 		// so we can mock it and run without this service up.
@@ -98,20 +139,23 @@ public class TradeOrderController {
 		try {
 			response = this.restTemplate.getForEntity(url, Security.class);
 			log.info("Validate ticker " + response.getBody().toString());
-			return true;
+			return LookupResult.FOUND;
 		}
 		catch (HttpClientErrorException ex) {
-			if (ex.getRawStatusCode() == 404) {
+			if (ex.getStatusCode().value() == 404) {
 				log.info(ticker + " not found in reference data service.");
+				return LookupResult.NOT_FOUND;
 			}
-			else {
-				log.error(ex.getMessage());
-			}
-			return false;
+			log.error(ex.getMessage());
+			return LookupResult.UNAVAILABLE;
+		}
+		catch (RestClientException ex) {
+			log.error("Reference data service unavailable while validating " + ticker, ex);
+			return LookupResult.UNAVAILABLE;
 		}
 	}		
 	
-	private boolean validateAccount(Integer id)
+	private LookupResult validateAccount(Integer id)
 	{
 		// Move whole method to a sperate class that handles all accounts 
 		// so we can mock it and run without this service up.
@@ -123,16 +167,19 @@ public class TradeOrderController {
 		{
 				response = this.restTemplate.getForEntity(url, Account.class);
 				log.info("Validate account " + response.getBody().toString());
-				return true;
+				return LookupResult.FOUND;
 		}
 		catch (HttpClientErrorException ex) {
-			if (ex.getRawStatusCode() == 404) {
+			if (ex.getStatusCode().value() == 404) {
 				log.info("Account" + id + " not found in account service.");				
+				return LookupResult.NOT_FOUND;
 			}
-			else {
-				log.error(ex.getMessage());
-			}
-			return false;
+			log.error(ex.getMessage());
+			return LookupResult.UNAVAILABLE;
+		}
+		catch (RestClientException ex) {
+			log.error("Account service unavailable while validating account " + id, ex);
+			return LookupResult.UNAVAILABLE;
 		}
 	}
 }

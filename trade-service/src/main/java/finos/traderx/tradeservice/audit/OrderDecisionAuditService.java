@@ -45,7 +45,7 @@ public class OrderDecisionAuditService {
     public OrderDecisionAudit recordDecision(TradeOrder order, String correlationId, DecisionOutcome decision,
             DecisionReason reason, String submittedBy) {
         if (!properties.isEnabled()) {
-            log.warn("Best-execution audit disabled; no record written for correlation id {}", correlationId);
+            log.debug("Best-execution audit disabled; no record written for correlation id {}", correlationId);
             return null;
         }
 

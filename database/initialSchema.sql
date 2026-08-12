@@ -44,9 +44,11 @@ CREATE TABLE OrderDecisionAudit (
   LimitID VARCHAR(40),
   LimitType VARCHAR(40),
   LimitValue DECIMAL(23,4),
-  LimitEffectiveFrom TIMESTAMP(3),
+  LimitEffectiveFrom TIMESTAMP(3) WITH TIME ZONE,
   SubmittedBy VARCHAR(50),
-  DecisionTimestamp TIMESTAMP(3) NOT NULL
+  -- WITH TIME ZONE so external readers (TRX-105, exports) see UTC rather than the
+  -- session wall clock; Hibernate maps java.time.Instant to TIMESTAMP_UTC.
+  DecisionTimestamp TIMESTAMP(3) WITH TIME ZONE NOT NULL
 );
 
 CREATE INDEX IDX_OrderDecisionAudit_Correlation ON OrderDecisionAudit (CorrelationID);
