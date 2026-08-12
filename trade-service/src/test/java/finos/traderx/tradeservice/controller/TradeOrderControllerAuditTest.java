@@ -24,6 +24,7 @@ import org.springframework.web.client.RestTemplate;
 
 import finos.traderx.messaging.Publisher;
 import finos.traderx.tradeservice.audit.OrderDecisionAuditService;
+import finos.traderx.tradeservice.exceptions.InvalidSubmissionException;
 import finos.traderx.tradeservice.exceptions.ResourceNotFoundException;
 import finos.traderx.tradeservice.exceptions.ValidationUnavailableException;
 import finos.traderx.tradeservice.model.TradeOrder;
@@ -126,6 +127,16 @@ class TradeOrderControllerAuditTest {
         verify(auditService).recordDecision(any(TradeOrder.class), anyString(), any(DecisionOutcome.class),
                 any(DecisionReason.class), submittedBy.capture());
         assertEquals(50, submittedBy.getValue().length());
+    }
+
+    @Test
+    void aLookupServiceRejectingTheRequestIsAuditedAsABadSubmissionNotAnOutage() {
+        downstream.expect(requestTo(REFERENCE_DATA_URL + "/stocks/IBM"))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST));
+
+        assertThrows(InvalidSubmissionException.class, () -> controller.createTradeOrder(order(), "user01"));
+
+        assertEquals(DecisionReason.SUBMISSION_INVALID, capturedReason(DecisionOutcome.REJECTED));
     }
 
     @Test

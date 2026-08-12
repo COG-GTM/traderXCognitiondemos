@@ -20,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import finos.traderx.messaging.PubSubException;
 import finos.traderx.messaging.Publisher;
 import finos.traderx.tradeservice.exceptions.ResourceNotFoundException;
+import finos.traderx.tradeservice.exceptions.InvalidSubmissionException;
 import finos.traderx.tradeservice.exceptions.ValidationUnavailableException;
 import finos.traderx.tradeservice.model.Account;
 import finos.traderx.tradeservice.model.Security;
@@ -61,6 +62,8 @@ public class TradeOrderController {
 	enum LookupResult {
 		FOUND,
 		NOT_FOUND,
+		/** The lookup service refused the question — the submission itself is malformed. */
+		INVALID_SUBMISSION,
 		UNAVAILABLE
 	}
 
@@ -87,6 +90,12 @@ public class TradeOrderController {
 					DecisionReason.VALIDATION_UNAVAILABLE, submittedBy);
 			throw new ValidationUnavailableException("Could not validate " + tradeOrder.getSecurity() + " against Reference data service.");
 		}
+		else if (tickerLookup == LookupResult.INVALID_SUBMISSION)
+		{
+			orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.REJECTED,
+					DecisionReason.SUBMISSION_INVALID, submittedBy);
+			throw new InvalidSubmissionException("Reference data service rejected the lookup for " + tradeOrder.getSecurity() + ".");
+		}
 		else if (tickerLookup == LookupResult.NOT_FOUND) 
 		{
 			orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.REJECTED,
@@ -100,6 +109,12 @@ public class TradeOrderController {
 			orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.REJECTED,
 					DecisionReason.VALIDATION_UNAVAILABLE, submittedBy);
 			throw new ValidationUnavailableException("Could not validate account " + tradeOrder.getAccountId() + " against Account service.");
+		}
+		else if (accountLookup == LookupResult.INVALID_SUBMISSION)
+		{
+			orderDecisionAuditService.recordDecision(tradeOrder, correlationId, DecisionOutcome.REJECTED,
+					DecisionReason.SUBMISSION_INVALID, submittedBy);
+			throw new InvalidSubmissionException("Account service rejected the lookup for account " + tradeOrder.getAccountId() + ".");
 		}
 		else if(accountLookup == LookupResult.NOT_FOUND)
 		{
@@ -147,8 +162,10 @@ public class TradeOrderController {
 				log.info(ticker + " not found in reference data service.");
 				return LookupResult.NOT_FOUND;
 			}
+			// A 4xx that is not a 404 means the service understood us and objected: that is a
+			// bad submission, not an outage, and the audit record has to say so.
 			log.error(ex.getMessage());
-			return LookupResult.UNAVAILABLE;
+			return LookupResult.INVALID_SUBMISSION;
 		}
 		catch (RestClientException ex) {
 			log.error("Reference data service unavailable while validating " + ticker, ex);
@@ -176,7 +193,7 @@ public class TradeOrderController {
 				return LookupResult.NOT_FOUND;
 			}
 			log.error(ex.getMessage());
-			return LookupResult.UNAVAILABLE;
+			return LookupResult.INVALID_SUBMISSION;
 		}
 		catch (RestClientException ex) {
 			log.error("Account service unavailable while validating account " + id, ex);

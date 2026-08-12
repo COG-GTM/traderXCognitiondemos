@@ -9,5 +9,7 @@ public enum DecisionReason {
     SECURITY_NOT_FOUND,
     ACCOUNT_NOT_FOUND,
     /** A downstream check could not be performed, so the order was refused without being validated. */
-    VALIDATION_UNAVAILABLE
+    VALIDATION_UNAVAILABLE,
+    /** A downstream check rejected the request itself, so the submission was malformed. */
+    SUBMISSION_INVALID
 }
