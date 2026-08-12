@@ -3,6 +3,7 @@ import { ChangeEvent, MouseEvent, useCallback, useState } from "react";
 import { style } from "../style";
 import { ActionButtonsProps, Side } from "./types";
 import { Environment } from '../env';
+import { formatRejectionMessage, parseTradeRejection } from '../tradeRejection';
 
 export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 	const [refData, setRefData] = useState<any>([]);
@@ -13,6 +14,7 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 	);
 	
 	const handleSubmit = async () => {
+		setError('');
 		try {
 			const response = await fetch(`${Environment.trade_service_url}/trade/`, {
 				method: 'POST',
@@ -33,6 +35,9 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 				console.log('success');
 				return;
 			}
+			const body = await response.json().catch(() => undefined);
+			const rejection = parseTradeRejection(response.status, body);
+			setError(rejection ? formatRejectionMessage(rejection) : 'Trade could not be created. Please try again.');
 		} catch (error) {
 			console.log(error);
 			setError(error);
@@ -125,7 +130,15 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 							<Button variant="contained" color="success" onClick={handleSubmit}>Submit</Button>
 						</div>}
 						{tradeSuccess && <div style={{backgroundColor: "greenyellow", width: "5em"}}> Trade Created!</div>}
-						<span style={{color: "red", width: "5em"}}>{error}</span>
+						{error && (
+							<div
+								role="alert"
+								className="trade-rejection"
+								style={{color: "#b3261e", flexBasis: "100%", fontSize: "0.875rem"}}
+							>
+								{String(error)}
+							</div>
+						)}
 					</div>
 				</Box>
 				</Modal>

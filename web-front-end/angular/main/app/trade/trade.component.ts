@@ -1,6 +1,8 @@
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Subject } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 import { TradeTicket } from '../model/trade.model';
+import { formatRejectionMessage, parseTradeRejection } from '../model/trade-rejection.model';
 import { Account } from '../model/account.model';
 import { AccountService } from '../service/account.service';
 import { Stock } from '../model/symbol.model';
@@ -18,6 +20,7 @@ export class TradeComponent implements OnInit {
     stocks: Stock[] = [];
     modalRef?: BsModalRef;
     createTicketResponse: any;
+    ticketRejectionMessage?: string;
     private account = new Subject<Account>();
 
     constructor(private accountService: AccountService,
@@ -43,19 +46,33 @@ export class TradeComponent implements OnInit {
     }
 
     openTicket(template: TemplateRef<any>) {
+        this.ticketRejectionMessage = undefined;
         this.modalRef = this.modalService.show(template);
     }
 
     createTradeTicket(ticket: TradeTicket) {
         console.log('createTradeTicket', ticket);
-        this.symbolService.createTicket(ticket).subscribe((response) => {
-            console.log(response);
-            this.createTicketResponse = response;
+        this.ticketRejectionMessage = undefined;
+        this.symbolService.createTicket(ticket).subscribe({
+            next: (response) => {
+                console.log(response);
+                this.createTicketResponse = response;
+                this.closeTicket();
+            },
+            error: (error: HttpErrorResponse) => {
+                const rejection = parseTradeRejection(error.status, error.error);
+                if (rejection) {
+                    this.ticketRejectionMessage = formatRejectionMessage(rejection);
+                    return;
+                }
+                this.createTicketResponse = error.error ?? { success: false };
+                this.closeTicket();
+            }
         });
-        this.closeTicket();
     }
 
     closeTicket() {
+        this.ticketRejectionMessage = undefined;
         this.modalRef?.hide();
     }
 

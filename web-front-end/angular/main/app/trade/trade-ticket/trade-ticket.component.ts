@@ -13,6 +13,7 @@ export class TradeTicketComponent implements OnInit {
 
   @Input() stocks: Stock[];
   @Input() account: Account | undefined;
+  @Input() rejectionMessage: string | undefined;
 
   @Output() create = new EventEmitter<TradeTicket>();
   @Output() cancel = new EventEmitter();
