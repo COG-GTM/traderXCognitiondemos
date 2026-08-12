@@ -36,6 +36,12 @@ describe('trade rejection', () => {
         );
     });
 
+    it('should not echo a free-text reason back to the trader', () => {
+        expect(formatRejectionMessage({ decision: 'REJECTED', reason: 'x'.repeat(500) })).toEqual(
+            'Order rejected: a pre-trade risk check. Amend the order and resubmit.'
+        );
+    });
+
     it('should humanise an unknown reason code and cope with missing amounts', () => {
         expect(formatRejectionMessage({ decision: 'REJECTED', reason: 'RESTRICTED_SECURITY' })).toEqual(
             'Order rejected: restricted security. Amend the order and resubmit.'

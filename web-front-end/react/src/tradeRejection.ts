@@ -32,8 +32,16 @@ export function formatNotional(value: number): string {
 	return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 }
 
+const REASON_CODE_PATTERN = /^[A-Z0-9_]{1,64}$/;
+
 export function describeReason(reason: string): string {
-	return REASON_LABELS[reason] || reason.toLowerCase().replace(/_/g, ' ');
+	if (REASON_LABELS[reason]) {
+		return REASON_LABELS[reason];
+	}
+	if (!REASON_CODE_PATTERN.test(reason)) {
+		return 'a pre-trade risk check';
+	}
+	return reason.toLowerCase().replace(/_/g, ' ');
 }
 
 export function formatRejectionMessage(rejection: TradeRejection): string {

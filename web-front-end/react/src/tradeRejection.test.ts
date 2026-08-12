@@ -28,6 +28,12 @@ test('omits the excess when the attempt does not exceed the limit', () => {
 	);
 });
 
+test('does not echo a free-text reason back to the trader', () => {
+	expect(formatRejectionMessage({ decision: 'REJECTED', reason: 'x'.repeat(500) })).toEqual(
+		'Order rejected: a pre-trade risk check. Amend the order and resubmit.'
+	);
+});
+
 test('humanises an unknown reason code and copes with missing amounts', () => {
 	expect(formatRejectionMessage({ decision: 'REJECTED', reason: 'RESTRICTED_SECURITY' })).toEqual(
 		'Order rejected: restricted security. Amend the order and resubmit.'
