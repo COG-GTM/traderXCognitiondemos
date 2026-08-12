@@ -3,6 +3,7 @@ package finos.traderx.accountservice;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 
@@ -23,7 +24,7 @@ import org.springframework.test.context.TestPropertySource;
  * With the feature switched off the service must look exactly as it did before TRX-102:
  * no limit is ever reported, and nothing can be written.
  */
-@SpringBootTest(properties = "traderx.risk-limit.enabled=false")
+@SpringBootTest(properties = { "traderx.risk-limit.enabled=false", "spring.datasource.url=jdbc:h2:mem:test-flag-off" })
 @TestPropertySource(locations = "/test-application.properties")
 class RiskLimitDisabledTests {
 
@@ -42,6 +43,7 @@ class RiskLimitDisabledTests {
         RiskLimitView view = riskLimitService.getRiskLimit(accountId);
         assertFalse(view.isLimitPresent());
         assertEquals(MissingLimitPolicy.UNLIMITED, view.getMissingLimitPolicy());
+        assertTrue(riskLimitService.getRiskLimitHistory(accountId).isEmpty());
 
         RiskLimitRequest request = new RiskLimitRequest();
         request.setMaxOrderNotional(new BigDecimal("1000.00"));

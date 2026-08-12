@@ -38,9 +38,9 @@ CREATE TABLE RiskLimits ( AccountID INTEGER PRIMARY KEY, MaxOrderNotional DECIMA
 
 Alter Table RiskLimits Add Foreign Key (AccountID) references Accounts(ID);
 
---- Append-only trail of every limit value that has ever been in force. Rows are never
---- updated or deleted; an amendment writes the superseded value here before RiskLimits
---- is overwritten.
+--- Append-only trail of every limit value that has ever been in force. Each change appends
+--- one row holding the newly effective value plus who changed it and why; the superseded
+--- value survives as the preceding row. Rows are never updated or deleted.
 
 CREATE TABLE RiskLimitHistory ( ID BIGINT PRIMARY KEY, AccountID INTEGER NOT NULL, MaxOrderNotional DECIMAL(19,2) NOT NULL, Currency VARCHAR(3) NOT NULL, EffectiveFrom TIMESTAMP NOT NULL, SetBy VARCHAR(50) NOT NULL, ChangeType VARCHAR(10) NOT NULL check (ChangeType in ('CREATE','AMEND')), ChangedBy VARCHAR(50) NOT NULL, ChangedAt TIMESTAMP NOT NULL, Reason VARCHAR(255) );
 

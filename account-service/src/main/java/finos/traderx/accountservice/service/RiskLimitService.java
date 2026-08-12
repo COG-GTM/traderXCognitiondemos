@@ -1,8 +1,10 @@
 package finos.traderx.accountservice.service;
 
 import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import finos.traderx.accountservice.config.RiskLimitProperties;
@@ -59,12 +61,18 @@ public class RiskLimitService {
 
 	public List<RiskLimitHistory> getRiskLimitHistory(int accountId) {
 		this.accountService.getAccountById(accountId);
+
+		if (!this.riskLimitProperties.isEnabled()) {
+			return List.of();
+		}
+
 		return this.riskLimitHistoryRepository.findByAccountIdOrderByChangedAtDescIdDesc(accountId);
 	}
 
 	/**
 	 * Sets or amends the limit for an account. Every accepted change appends a history row
-	 * before the current value is replaced, so the value in force at any past point in time
+	 * holding the newly effective value together with who changed it and why; the superseded
+	 * value survives as the preceding row, so the limit in force at any past point in time
 	 * remains reconstructible.
 	 */
 	@Transactional
@@ -83,7 +91,7 @@ public class RiskLimitService {
 		RiskLimit limit = existing.orElseGet(RiskLimit::new);
 		limit.setAccountId(accountId);
 		limit.setMaxOrderNotional(request.getMaxOrderNotional());
-		limit.setCurrency(request.getCurrency().toUpperCase());
+		limit.setCurrency(request.getCurrency().toUpperCase(Locale.ROOT));
 		limit.setEffectiveFrom(request.getEffectiveFrom() == null ? now : request.getEffectiveFrom());
 		limit.setSetBy(request.getSetBy());
 		limit.setUpdated(now);
@@ -115,11 +123,23 @@ public class RiskLimitService {
 		if (request.getMaxOrderNotional() == null || request.getMaxOrderNotional().compareTo(BigDecimal.ZERO) < 0) {
 			throw new IllegalArgumentException("maxOrderNotional must be present and not negative");
 		}
-		if (request.getCurrency() == null || request.getCurrency().length() != 3) {
+		if (request.getCurrency() == null || !isIsoCurrency(request.getCurrency())) {
 			throw new IllegalArgumentException("currency must be a 3 letter ISO 4217 code");
 		}
 		if (request.getSetBy() == null || request.getSetBy().isBlank()) {
 			throw new IllegalArgumentException("setBy must identify who set the limit");
+		}
+		if (request.getEffectiveFrom() != null && request.getEffectiveFrom().after(new Date())) {
+			throw new IllegalArgumentException("effectiveFrom cannot be in the future; a stored limit is always the limit in force");
+		}
+	}
+
+	private boolean isIsoCurrency(String code) {
+		try {
+			Currency.getInstance(code.toUpperCase(Locale.ROOT));
+			return true;
+		} catch (IllegalArgumentException e) {
+			return false;
 		}
 	}
 }

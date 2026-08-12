@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 import finos.traderx.accountservice.exceptions.ResourceNotFoundException;
@@ -117,6 +118,14 @@ class RiskLimitServiceTests {
         RiskLimitRequest badCurrency = request("1000.00", "risk.control@traderx", null);
         badCurrency.setCurrency("DOLLARS");
         assertThrows(IllegalArgumentException.class, () -> riskLimitService.setRiskLimit(accountId, badCurrency));
+
+        RiskLimitRequest notACurrency = request("1000.00", "risk.control@traderx", null);
+        notACurrency.setCurrency("XQZ");
+        assertThrows(IllegalArgumentException.class, () -> riskLimitService.setRiskLimit(accountId, notACurrency));
+
+        RiskLimitRequest futureDated = request("1000.00", "risk.control@traderx", null);
+        futureDated.setEffectiveFrom(new Date(System.currentTimeMillis() + 86400000L));
+        assertThrows(IllegalArgumentException.class, () -> riskLimitService.setRiskLimit(accountId, futureDated));
 
         assertFalse(riskLimitService.getRiskLimit(accountId).isLimitPresent());
     }

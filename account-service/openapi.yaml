@@ -176,7 +176,8 @@ paths:
       description: >-
         Sets or amends the risk limit for an account. Used by the risk function, which under
         MiFID II RTS 6 Art. 15 must be independent of the trading desk. Every accepted change
-        appends a row to the limit history.
+        appends a row to the limit history. effectiveFrom may not be in the future - a stored
+        limit is always the limit in force.
       parameters:
         - name: id
           in: path
