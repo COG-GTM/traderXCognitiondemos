@@ -24,8 +24,11 @@ function asObject(body: unknown): object | undefined {
     if (!body || typeof body !== 'object') {
         return undefined;
     }
-    const unparsed = (body as { text?: unknown }).text;
-    return typeof unparsed === 'string' ? asObject(unparsed) : body;
+    const candidate = body as { decision?: unknown; reason?: unknown; text?: unknown };
+    if (typeof candidate.decision === 'string' && typeof candidate.reason === 'string') {
+        return body;
+    }
+    return typeof candidate.text === 'string' ? asObject(candidate.text) : body;
 }
 
 export function parseTradeRejection(status: number, body: unknown): TradeRejection | undefined {

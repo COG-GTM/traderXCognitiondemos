@@ -46,6 +46,10 @@ describe('trade rejection', () => {
             .toEqual(rejectionBody);
     });
 
+    it('should keep a rejection body that carries its own text field', () => {
+        expect(parseTradeRejection(422, { ...rejectionBody, text: 'over limit' })).toEqual(rejectionBody);
+    });
+
     it('should recognise a known reason code whatever its case', () => {
         expect(describeReason('notional_limit_breach')).toEqual('notional limit breach');
         expect(describeReason('Restricted_Security')).toEqual('restricted security');

@@ -38,6 +38,10 @@ test('unwraps a body that carries the raw response under text', () => {
 		.toEqual(rejectionBody);
 });
 
+test('keeps a rejection body that carries its own text field', () => {
+	expect(parseTradeRejection(422, { ...rejectionBody, text: 'over limit' })).toEqual(rejectionBody);
+});
+
 test('recognises a known reason code whatever its case', () => {
 	expect(describeReason('notional_limit_breach')).toEqual('notional limit breach');
 	expect(describeReason('Restricted_Security')).toEqual('restricted security');
