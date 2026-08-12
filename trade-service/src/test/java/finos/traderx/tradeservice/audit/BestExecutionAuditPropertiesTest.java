@@ -40,6 +40,15 @@ class BestExecutionAuditPropertiesTest {
     }
 
     @Test
+    void doesNotBlockStartupOnABadSettingOnceTheFeatureIsSwitchedOff() {
+        BestExecutionAuditProperties properties = new BestExecutionAuditProperties();
+        properties.setEnabled(false);
+        properties.getPricing().setReferencePrice(null);
+
+        assertDoesNotThrow(properties::validate);
+    }
+
+    @Test
     void refusesALimitIdTooLongForTheAuditColumnRatherThanRecordingATruncatedOne() {
         BestExecutionAuditProperties properties = new BestExecutionAuditProperties();
         properties.getLimit().setId("L".repeat(41));

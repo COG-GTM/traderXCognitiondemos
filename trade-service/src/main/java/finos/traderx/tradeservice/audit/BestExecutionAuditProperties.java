@@ -48,9 +48,16 @@ public class BestExecutionAuditProperties {
      * A misconfiguration is refused at startup rather than discovered when the first order is
      * recorded. That applies to the operator-supplied strings as well: truncating a limit id
      * would leave the record naming a limit that matches nothing in the limits store.
+     *
+     * Skipped when the feature is off, so the flag remains a way out of a bad deployment: none
+     * of these values is read once the audit write is disabled, and refusing to boot on them
+     * would leave an operator unable to submit orders at all.
      */
     @PostConstruct
     void validate() {
+        if (!enabled) {
+            return;
+        }
         // Normalised to the stored scale first, so the recorded notional is exactly the
         // recorded price times quantity rather than the rounding of an unrecorded price.
         if (pricing.getReferencePrice() != null) {
