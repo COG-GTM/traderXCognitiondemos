@@ -31,6 +31,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class RiskLimitService {
 
+	/** Absorbs client clock drift so a caller stamping "now" is not rejected as future-dated. */
+	private static final long CLOCK_SKEW_TOLERANCE_MS = 60_000L;
+
 	@Autowired
 	RiskLimitRepository riskLimitRepository;
 
@@ -140,7 +143,8 @@ public class RiskLimitService {
 		if (request.getReason() != null && request.getReason().length() > 255) {
 			throw new IllegalArgumentException("reason must be at most 255 characters");
 		}
-		if (request.getEffectiveFrom() != null && request.getEffectiveFrom().after(new Date())) {
+		if (request.getEffectiveFrom() != null
+				&& request.getEffectiveFrom().getTime() > System.currentTimeMillis() + CLOCK_SKEW_TOLERANCE_MS) {
 			throw new IllegalArgumentException("effectiveFrom cannot be in the future; a stored limit is always the limit in force");
 		}
 	}

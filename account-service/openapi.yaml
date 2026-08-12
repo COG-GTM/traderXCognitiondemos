@@ -229,6 +229,8 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/RiskLimitHistory"
+        "404":
+          description: Unknown account
 components:
   schemas:
     RiskLimitRequest:
