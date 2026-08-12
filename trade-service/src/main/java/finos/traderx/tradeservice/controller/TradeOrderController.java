@@ -41,9 +41,6 @@ public class TradeOrderController {
 	private static final String SUBMITTING_USER_HEADER = "X-TraderX-User";
 	private static final String UNKNOWN_USER = "UNKNOWN";
 
-	/** Length of the SUBMITTEDBY column; an over-long header must not fail the audit insert. */
-	private static final int SUBMITTED_BY_MAX_LENGTH = 50;
-
 	private final Publisher<TradeOrder> tradePublisher;
 
 	private final OrderDecisionAuditService orderDecisionAuditService;
@@ -164,8 +161,8 @@ public class TradeOrderController {
 		if (submittingUser == null || submittingUser.isBlank()) {
 			return UNKNOWN_USER;
 		}
-		String trimmed = submittingUser.trim();
-		return trimmed.length() > SUBMITTED_BY_MAX_LENGTH ? trimmed.substring(0, SUBMITTED_BY_MAX_LENGTH) : trimmed;
+		// Length is bounded by the audit service, alongside every other value it stores.
+		return submittingUser.trim();
 	}
 
 	private LookupResult validateTicker(String ticker)
@@ -179,7 +176,13 @@ public class TradeOrderController {
 
 		try {
 			response = this.restTemplate.getForEntity(url, Security.class, ticker);
-			log.info("Validate ticker " + String.valueOf(response.getBody()));
+			if (response.getBody() == null) {
+				// A 2xx with nothing in it does not confirm the security exists, and an order
+				// that was never confirmed must not be recorded as validated.
+				log.error("Reference data service returned an empty body for " + ticker);
+				return LookupResult.UNAVAILABLE;
+			}
+			log.info("Validate ticker " + response.getBody());
 			return LookupResult.FOUND;
 		}
 		catch (HttpClientErrorException ex) {
@@ -207,7 +210,11 @@ public class TradeOrderController {
 		try 
 		{
 				response = this.restTemplate.getForEntity(url, Account.class, id);
-				log.info("Validate account " + String.valueOf(response.getBody()));
+				if (response.getBody() == null) {
+					log.error("Account service returned an empty body for account " + id);
+					return LookupResult.UNAVAILABLE;
+				}
+				log.info("Validate account " + response.getBody());
 				return LookupResult.FOUND;
 		}
 		catch (HttpClientErrorException ex) {

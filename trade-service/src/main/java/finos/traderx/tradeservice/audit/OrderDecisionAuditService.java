@@ -34,6 +34,7 @@ public class OrderDecisionAuditService {
     private static final int SECURITY_MAX_LENGTH = 50;
     private static final int LIMIT_FIELD_MAX_LENGTH = 40;
     private static final int PRICE_SOURCE_MAX_LENGTH = 40;
+    private static final int SUBMITTED_BY_MAX_LENGTH = 50;
 
     private final OrderDecisionAuditRepository repository;
     private final BestExecutionAuditProperties properties;
@@ -77,7 +78,7 @@ public class OrderDecisionAuditService {
                 decision,
                 reason,
                 limit,
-                submittedBy,
+                fitToColumn(submittedBy, SUBMITTED_BY_MAX_LENGTH),
                 Instant.now(clock).truncatedTo(ChronoUnit.MILLIS));
 
         OrderDecisionAudit saved = repository.save(auditRecord);

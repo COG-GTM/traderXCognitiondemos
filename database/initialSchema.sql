@@ -29,7 +29,9 @@ Alter Table Trades Add Foreign Key (AccountID) references Accounts(ID);
 --
 -- Note the absence of a DROP above, and IF NOT EXISTS below: this script re-runs on every
 -- database start, and every other table here is rebuilt from seed data. This one accumulates.
--- A retained record that a restart erases is not a retained record.
+-- A retained record that a restart erases is not a retained record. Note the limit of that
+-- claim in the demo stack: the H2 files live inside the container, so records survive a
+-- database restart but not a rebuild. Durable retention is an infrastructure follow-up.
 CREATE TABLE IF NOT EXISTS OrderDecisionAudit (
   ID VARCHAR(50) PRIMARY KEY,
   CorrelationID VARCHAR(50) NOT NULL,

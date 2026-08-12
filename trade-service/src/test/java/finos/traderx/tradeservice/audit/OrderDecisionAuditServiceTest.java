@@ -92,6 +92,18 @@ class OrderDecisionAuditServiceTest {
     }
 
     @Test
+    void fitsOverlongValuesToTheirColumnsRatherThanFailingTheInsert() {
+        TradeOrder order = new TradeOrder("O".repeat(80), 22214, "S".repeat(80), TradeSide.Buy, 1);
+
+        OrderDecisionAudit record = service.recordDecision(order, "CORR-4", DecisionOutcome.REJECTED,
+                DecisionReason.SUBMISSION_INVALID, "u".repeat(200));
+
+        assertEquals(50, record.getOrderId().length());
+        assertEquals(50, record.getSecurity().length());
+        assertEquals(50, record.getSubmittedBy().length());
+    }
+
+    @Test
     void writesNothingWhenTheFeatureFlagIsOff() {
         properties.setEnabled(false);
 

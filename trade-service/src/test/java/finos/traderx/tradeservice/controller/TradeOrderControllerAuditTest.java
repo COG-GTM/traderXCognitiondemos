@@ -137,17 +137,13 @@ class TradeOrderControllerAuditTest {
     }
 
     @Test
-    void anOverlongSubmittingUserIsTruncatedToTheAuditColumnWidth() {
+    void anEmptyBodyFromALookupServiceIsNotTreatedAsAValidatedSecurity() {
         downstream.expect(requestTo(REFERENCE_DATA_URL + "/stocks/IBM"))
-                .andRespond(withStatus(HttpStatus.NOT_FOUND));
+                .andRespond(withSuccess());
 
-        assertThrows(ResourceNotFoundException.class,
-                () -> controller.createTradeOrder(order(), "u".repeat(200)));
+        assertThrows(ValidationUnavailableException.class, () -> controller.createTradeOrder(order(), "user01"));
 
-        ArgumentCaptor<String> submittedBy = ArgumentCaptor.forClass(String.class);
-        verify(auditService).recordDecision(any(TradeOrder.class), anyString(), any(DecisionOutcome.class),
-                any(DecisionReason.class), submittedBy.capture());
-        assertEquals(50, submittedBy.getValue().length());
+        assertEquals(DecisionReason.VALIDATION_UNAVAILABLE, capturedReason(DecisionOutcome.REJECTED));
     }
 
     @Test
@@ -161,15 +157,15 @@ class TradeOrderControllerAuditTest {
     }
 
     @Test
-    void anEmptyBodyFromALookupServiceDoesNotEscapeTheAuditPath() {
+    void anEmptyBodyFromTheAccountServiceIsNotTreatedAsAValidatedAccount() {
         downstream.expect(requestTo(REFERENCE_DATA_URL + "/stocks/IBM"))
-                .andRespond(withSuccess());
+                .andRespond(withSuccess("{\"ticker\":\"IBM\",\"companyName\":\"IBM\"}", MediaType.APPLICATION_JSON));
         downstream.expect(requestTo(ACCOUNT_URL + "/account/22214"))
-                .andRespond(withStatus(HttpStatus.NOT_FOUND));
+                .andRespond(withSuccess());
 
-        assertThrows(ResourceNotFoundException.class, () -> controller.createTradeOrder(order(), "user01"));
+        assertThrows(ValidationUnavailableException.class, () -> controller.createTradeOrder(order(), "user01"));
 
-        assertEquals(DecisionReason.ACCOUNT_NOT_FOUND, capturedReason(DecisionOutcome.REJECTED));
+        assertEquals(DecisionReason.VALIDATION_UNAVAILABLE, capturedReason(DecisionOutcome.REJECTED));
     }
 
     @Test
