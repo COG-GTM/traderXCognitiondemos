@@ -40,7 +40,7 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 			setError(rejection ? formatRejectionMessage(rejection) : 'Trade could not be created. Please try again.');
 		} catch (error) {
 			console.log(error);
-			setError(error);
+			setError('Trade could not be created. Please try again.');
 			return error;
 		}
 	}
