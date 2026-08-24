@@ -18,7 +18,7 @@ CREATE TABLE Positions ( AccountID INTEGER , Security VARCHAR(15) , Updated TIME
 
 Alter Table Positions ADD FOREIGN KEY (AccountID) References Accounts(ID) ; 
 
-CREATE TABLE Trades ( ID Varchar (50) Primary Key, AccountID INTEGER, Created TIMESTAMP, Updated TIMESTAMP, Security VARCHAR (15) ,  Side VARCHAR(10) check (Side in ('Buy','Sell')),  Quantity INTEGER check Quantity > 0 , State VARCHAR(20) check (State in ('New', 'Processing', 'Settled', 'Cancelled'))) ;  
+CREATE TABLE Trades ( ID Varchar (50) Primary Key, AccountID INTEGER, Created TIMESTAMP, Updated TIMESTAMP, Security VARCHAR (15) ,  Side VARCHAR(10) check (Side in ('Buy','Sell')),  Quantity INTEGER check Quantity > 0 , State VARCHAR(20) check (State in ('New', 'Processing', 'Settled', 'Cancelled')), UTI VARCHAR(52), ReportingCounterpartyLEI VARCHAR(20), ReportingRegime VARCHAR(20)) ;  
 
 Alter Table Trades Add Foreign Key (AccountID) references Accounts(ID); 
 

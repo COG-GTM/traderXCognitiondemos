@@ -41,4 +41,6 @@ dependencies {
 
 tasks.named('test') {
   useJUnitPlatform()
+  // -Dgolden.update=true rewrites the pinned regulatory rejection report after an intended rule change
+  systemProperty 'golden.update', System.getProperty('golden.update', 'false')
 }

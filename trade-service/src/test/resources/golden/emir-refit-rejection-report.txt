@@ -1,0 +1,43 @@
+case: valid_enriched_order
+  ACCEPTED
+case: valid_order_with_externally_supplied_uti
+  ACCEPTED
+case: missing_account
+  REG-001 accountId : Reporting counterparty account is mandatory on a reportable trade
+case: missing_security
+  REG-002 security : Instrument identifier is mandatory on a reportable trade
+case: missing_side
+  REG-003 side : Trade side is mandatory on a reportable trade
+case: zero_quantity
+  REG-004 quantity : Quantity is mandatory and must be greater than zero
+case: negative_quantity
+  REG-004 quantity : Quantity is mandatory and must be greater than zero
+case: missing_uti
+  REG-010 uti : A Unique Transaction Identifier must be present on every reportable trade
+case: uti_too_short
+  REG-011 uti : UTI must be exactly 52 characters
+case: uti_not_upper_case_alphanumeric
+  REG-012 uti : UTI must contain upper case alphanumeric characters only
+case: uti_prefix_is_not_the_reporting_lei
+  REG-013 uti : UTI must be prefixed with the LEI of the generating entity
+case: missing_lei
+  REG-020 reportingCounterpartyLei : An LEI must be present for the reporting counterparty
+case: lei_too_short
+  REG-013 uti : UTI must be prefixed with the LEI of the generating entity
+  REG-021 reportingCounterpartyLei : LEI must be exactly 20 characters
+case: lei_check_digits_are_not_numeric
+  REG-022 reportingCounterpartyLei : LEI must be 18 upper case alphanumeric characters followed by 2 check digits
+case: lei_fails_mod_97_checksum
+  REG-023 reportingCounterpartyLei : LEI check digits must satisfy the ISO 7064 MOD 97-10 checksum
+case: missing_reporting_regime
+  REG-030 reportingRegime : The reporting regime must be stamped on every reportable trade
+case: unsupported_reporting_regime
+  REG-031 reportingRegime : Only EMIR_REFIT reporting is supported by this service
+case: unenriched_legacy_order
+  REG-001 accountId : Reporting counterparty account is mandatory on a reportable trade
+  REG-002 security : Instrument identifier is mandatory on a reportable trade
+  REG-003 side : Trade side is mandatory on a reportable trade
+  REG-004 quantity : Quantity is mandatory and must be greater than zero
+  REG-010 uti : A Unique Transaction Identifier must be present on every reportable trade
+  REG-020 reportingCounterpartyLei : An LEI must be present for the reporting counterparty
+  REG-030 reportingRegime : The reporting regime must be stamped on every reportable trade
