@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +20,12 @@ import finos.traderx.tradeservice.exceptions.ResourceNotFoundException;
 import finos.traderx.tradeservice.model.Account;
 import finos.traderx.tradeservice.model.Security;
 import finos.traderx.tradeservice.model.TradeOrder;
+import finos.traderx.tradeservice.model.TradeRejectionResponse;
+import finos.traderx.tradeservice.regulatory.RegulatoryRuleSet;
+import finos.traderx.tradeservice.regulatory.RegulatoryValidationException;
+import finos.traderx.tradeservice.regulatory.RegulatoryValidator;
+import finos.traderx.tradeservice.regulatory.TradeReportingEnricher;
+import finos.traderx.tradeservice.regulatory.ValidationResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 
@@ -31,6 +38,12 @@ public class TradeOrderController {
 
 	@Autowired
 	private Publisher<TradeOrder> tradePublisher;
+
+	@Autowired
+	private TradeReportingEnricher reportingEnricher;
+
+	@Autowired
+	private RegulatoryValidator regulatoryValidator;
 	
 	private RestTemplate restTemplate = new RestTemplate();
 
@@ -55,6 +68,12 @@ public class TradeOrderController {
 		}
 		else
 		{
+			this.reportingEnricher.enrich(tradeOrder);
+			ValidationResult validation = this.regulatoryValidator.validate(tradeOrder);
+			if (!validation.isValid()) {
+				log.info("Trade order rejected by regulatory validation : {}", validation.getRejectionCodes());
+				throw new RegulatoryValidationException(validation.getRejections());
+			}
 			try{
 				log.info("Trade is valid. Submitting {}", tradeOrder);
 				tradePublisher.publish("/trades",tradeOrder);
@@ -63,6 +82,12 @@ public class TradeOrderController {
 				throw new RuntimeException("Failed to publish trade order", e);
 			}
 		}
+	}
+
+	@ExceptionHandler(RegulatoryValidationException.class)
+	public ResponseEntity<TradeRejectionResponse> regulatoryRejection(RegulatoryValidationException e) {
+		return ResponseEntity.unprocessableEntity()
+				.body(new TradeRejectionResponse(RegulatoryRuleSet.EMIR_REFIT, e.getRejections()));
 	}
 
 	private boolean validateTicker(String ticker)

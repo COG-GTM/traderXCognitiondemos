@@ -8,6 +8,9 @@ public class TradeOrder {
     private Integer quantity;
     private Integer accountId;
     private TradeSide side;
+    private String uti;
+    private String reportingCounterpartyLei;
+    private String reportingRegime;
 
     public TradeOrder(){}
     
@@ -41,5 +44,52 @@ public class TradeOrder {
 
     public TradeSide getSide() {
         return side;
+    }
+
+    public void setAccountId(Integer accountId) {
+        this.accountId = accountId;
+    }
+
+    public void setSecurity(String security) {
+        this.security = security;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public void setSide(TradeSide side) {
+        this.side = side;
+    }
+
+    public String getUti() {
+        return uti;
+    }
+
+    public void setUti(String uti) {
+        this.uti = uti;
+    }
+
+    public String getReportingCounterpartyLei() {
+        return reportingCounterpartyLei;
+    }
+
+    public void setReportingCounterpartyLei(String reportingCounterpartyLei) {
+        this.reportingCounterpartyLei = reportingCounterpartyLei;
+    }
+
+    public String getReportingRegime() {
+        return reportingRegime;
+    }
+
+    public void setReportingRegime(String reportingRegime) {
+        this.reportingRegime = reportingRegime;
+    }
+
+    @Override
+    public String toString() {
+        return "TradeOrder [id=" + id + ", accountId=" + accountId + ", security=" + security + ", side=" + side
+                + ", quantity=" + quantity + ", state=" + state + ", uti=" + uti + ", reportingCounterpartyLei="
+                + reportingCounterpartyLei + ", reportingRegime=" + reportingRegime + "]";
     }
 }

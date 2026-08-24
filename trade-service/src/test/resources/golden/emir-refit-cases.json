@@ -1,0 +1,222 @@
+[
+  {
+    "name": "valid_enriched_order",
+    "order": {
+      "accountId": 22214,
+      "security": "IBM",
+      "side": "Buy",
+      "quantity": 100,
+      "uti": "549300TRADERX0ACC1280F7C2C0C1B7A4C8B9E1D2F3A4B5C6D78",
+      "reportingCounterpartyLei": "549300TRADERX0ACC128",
+      "reportingRegime": "EMIR_REFIT"
+    },
+    "expectedCodes": []
+  },
+  {
+    "name": "valid_order_with_externally_supplied_uti",
+    "order": {
+      "accountId": 42422,
+      "security": "MSFT",
+      "side": "Sell",
+      "quantity": 5,
+      "uti": "7LTWFZYICNSX8D621K86EXTERNALUTI0000000000000000ABCDE",
+      "reportingCounterpartyLei": "7LTWFZYICNSX8D621K86",
+      "reportingRegime": "EMIR_REFIT"
+    },
+    "expectedCodes": []
+  },
+  {
+    "name": "missing_account",
+    "order": {
+      "security": "IBM",
+      "side": "Buy",
+      "quantity": 100,
+      "uti": "549300TRADERX0ACC1280F7C2C0C1B7A4C8B9E1D2F3A4B5C6D78",
+      "reportingCounterpartyLei": "549300TRADERX0ACC128",
+      "reportingRegime": "EMIR_REFIT"
+    },
+    "expectedCodes": ["REG-001"]
+  },
+  {
+    "name": "missing_security",
+    "order": {
+      "accountId": 22214,
+      "side": "Buy",
+      "quantity": 100,
+      "uti": "549300TRADERX0ACC1280F7C2C0C1B7A4C8B9E1D2F3A4B5C6D78",
+      "reportingCounterpartyLei": "549300TRADERX0ACC128",
+      "reportingRegime": "EMIR_REFIT"
+    },
+    "expectedCodes": ["REG-002"]
+  },
+  {
+    "name": "missing_side",
+    "order": {
+      "accountId": 22214,
+      "security": "IBM",
+      "quantity": 100,
+      "uti": "549300TRADERX0ACC1280F7C2C0C1B7A4C8B9E1D2F3A4B5C6D78",
+      "reportingCounterpartyLei": "549300TRADERX0ACC128",
+      "reportingRegime": "EMIR_REFIT"
+    },
+    "expectedCodes": ["REG-003"]
+  },
+  {
+    "name": "zero_quantity",
+    "order": {
+      "accountId": 22214,
+      "security": "IBM",
+      "side": "Buy",
+      "quantity": 0,
+      "uti": "549300TRADERX0ACC1280F7C2C0C1B7A4C8B9E1D2F3A4B5C6D78",
+      "reportingCounterpartyLei": "549300TRADERX0ACC128",
+      "reportingRegime": "EMIR_REFIT"
+    },
+    "expectedCodes": ["REG-004"]
+  },
+  {
+    "name": "negative_quantity",
+    "order": {
+      "accountId": 22214,
+      "security": "IBM",
+      "side": "Sell",
+      "quantity": -10,
+      "uti": "549300TRADERX0ACC1280F7C2C0C1B7A4C8B9E1D2F3A4B5C6D78",
+      "reportingCounterpartyLei": "549300TRADERX0ACC128",
+      "reportingRegime": "EMIR_REFIT"
+    },
+    "expectedCodes": ["REG-004"]
+  },
+  {
+    "name": "missing_uti",
+    "order": {
+      "accountId": 22214,
+      "security": "IBM",
+      "side": "Buy",
+      "quantity": 100,
+      "reportingCounterpartyLei": "549300TRADERX0ACC128",
+      "reportingRegime": "EMIR_REFIT"
+    },
+    "expectedCodes": ["REG-010"]
+  },
+  {
+    "name": "uti_too_short",
+    "order": {
+      "accountId": 22214,
+      "security": "IBM",
+      "side": "Buy",
+      "quantity": 100,
+      "uti": "549300TRADERX0ACC128",
+      "reportingCounterpartyLei": "549300TRADERX0ACC128",
+      "reportingRegime": "EMIR_REFIT"
+    },
+    "expectedCodes": ["REG-011"]
+  },
+  {
+    "name": "uti_not_upper_case_alphanumeric",
+    "order": {
+      "accountId": 22214,
+      "security": "IBM",
+      "side": "Buy",
+      "quantity": 100,
+      "uti": "549300TRADERX0ACC128-f7c2c0c1b7a4c8b9e1d2f3a4b5c6d78",
+      "reportingCounterpartyLei": "549300TRADERX0ACC128",
+      "reportingRegime": "EMIR_REFIT"
+    },
+    "expectedCodes": ["REG-012"]
+  },
+  {
+    "name": "uti_prefix_is_not_the_reporting_lei",
+    "order": {
+      "accountId": 22214,
+      "security": "IBM",
+      "side": "Buy",
+      "quantity": 100,
+      "uti": "7LTWFZYICNSX8D621K860F7C2C0C1B7A4C8B9E1D2F3A4B5C6D78",
+      "reportingCounterpartyLei": "549300TRADERX0ACC128",
+      "reportingRegime": "EMIR_REFIT"
+    },
+    "expectedCodes": ["REG-013"]
+  },
+  {
+    "name": "missing_lei",
+    "order": {
+      "accountId": 22214,
+      "security": "IBM",
+      "side": "Buy",
+      "quantity": 100,
+      "uti": "549300TRADERX0ACC1280F7C2C0C1B7A4C8B9E1D2F3A4B5C6D78",
+      "reportingRegime": "EMIR_REFIT"
+    },
+    "expectedCodes": ["REG-020"]
+  },
+  {
+    "name": "lei_too_short",
+    "order": {
+      "accountId": 22214,
+      "security": "IBM",
+      "side": "Buy",
+      "quantity": 100,
+      "uti": "549300TRADERX0ACC1280F7C2C0C1B7A4C8B9E1D2F3A4B5C6D78",
+      "reportingCounterpartyLei": "549300TRADERX0",
+      "reportingRegime": "EMIR_REFIT"
+    },
+    "expectedCodes": ["REG-013", "REG-021"]
+  },
+  {
+    "name": "lei_check_digits_are_not_numeric",
+    "order": {
+      "accountId": 22214,
+      "security": "IBM",
+      "side": "Buy",
+      "quantity": 100,
+      "uti": "549300TRADERX0ACC1AB0F7C2C0C1B7A4C8B9E1D2F3A4B5C6D78",
+      "reportingCounterpartyLei": "549300TRADERX0ACC1AB",
+      "reportingRegime": "EMIR_REFIT"
+    },
+    "expectedCodes": ["REG-022"]
+  },
+  {
+    "name": "lei_fails_mod_97_checksum",
+    "order": {
+      "accountId": 22214,
+      "security": "IBM",
+      "side": "Buy",
+      "quantity": 100,
+      "uti": "549300TRADERX0ACC1290F7C2C0C1B7A4C8B9E1D2F3A4B5C6D78",
+      "reportingCounterpartyLei": "549300TRADERX0ACC129",
+      "reportingRegime": "EMIR_REFIT"
+    },
+    "expectedCodes": ["REG-023"]
+  },
+  {
+    "name": "missing_reporting_regime",
+    "order": {
+      "accountId": 22214,
+      "security": "IBM",
+      "side": "Buy",
+      "quantity": 100,
+      "uti": "549300TRADERX0ACC1280F7C2C0C1B7A4C8B9E1D2F3A4B5C6D78",
+      "reportingCounterpartyLei": "549300TRADERX0ACC128"
+    },
+    "expectedCodes": ["REG-030"]
+  },
+  {
+    "name": "unsupported_reporting_regime",
+    "order": {
+      "accountId": 22214,
+      "security": "IBM",
+      "side": "Buy",
+      "quantity": 100,
+      "uti": "549300TRADERX0ACC1280F7C2C0C1B7A4C8B9E1D2F3A4B5C6D78",
+      "reportingCounterpartyLei": "549300TRADERX0ACC128",
+      "reportingRegime": "EMIR_PRE_REFIT"
+    },
+    "expectedCodes": ["REG-031"]
+  },
+  {
+    "name": "unenriched_legacy_order",
+    "order": {},
+    "expectedCodes": ["REG-001", "REG-002", "REG-003", "REG-004", "REG-010", "REG-020", "REG-030"]
+  }
+]

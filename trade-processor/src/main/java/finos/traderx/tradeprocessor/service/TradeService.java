@@ -14,6 +14,7 @@ import org.springframework.util.StringUtils;
 import finos.traderx.messaging.PubSubException;
 import finos.traderx.messaging.Publisher;
 import finos.traderx.tradeprocessor.model.*;
+import finos.traderx.tradeprocessor.regulatory.ReportingFieldGuard;
 import finos.traderx.tradeprocessor.repository.*;
 
 @Service
@@ -34,8 +35,12 @@ public class TradeService {
     
 	public TradeBookingResult processTrade(TradeOrder order) {
 		log.info("Trade order received : "+order);
+		ReportingFieldGuard.check(order);
         Trade t=new Trade();
         t.setAccountId(order.getAccountId());
+        t.setUti(order.getUti());
+        t.setReportingCounterpartyLei(order.getReportingCounterpartyLei());
+        t.setReportingRegime(order.getReportingRegime());
 
 		log.info("Setting a random TradeID");
 		t.setId(UUID.randomUUID().toString());

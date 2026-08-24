@@ -101,6 +101,39 @@ public class Trade implements Serializable {
 	}
 
 
+	@Column(length = 52, name = "UTI")
+	private String uti;
+
+	public String getUti() {
+		return this.uti;
+	}
+
+	public void setUti(String uti) {
+		this.uti = uti;
+	}
+
+	@Column(length = 20, name = "REPORTINGCOUNTERPARTYLEI")
+	private String reportingCounterpartyLei;
+
+	public String getReportingCounterpartyLei() {
+		return this.reportingCounterpartyLei;
+	}
+
+	public void setReportingCounterpartyLei(String reportingCounterpartyLei) {
+		this.reportingCounterpartyLei = reportingCounterpartyLei;
+	}
+
+	@Column(length = 20, name = "REPORTINGREGIME")
+	private String reportingRegime;
+
+	public String getReportingRegime() {
+		return this.reportingRegime;
+	}
+
+	public void setReportingRegime(String reportingRegime) {
+		this.reportingRegime = reportingRegime;
+	}
+
 	@Column(name = "CREATED")
 	private Date created;
 
