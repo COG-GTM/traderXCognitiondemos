@@ -1,10 +1,13 @@
 import { TestBed } from '@angular/core/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { AppComponent } from './app.component';
+import { ThemeService } from './service/theme.service';
 
-xdescribe('AppComponent', () => {
+describe('AppComponent', () => {
   beforeEach(async () => {
-    TestBed.configureTestingModule({
-      declarations: [AppComponent]
+    await TestBed.configureTestingModule({
+      declarations: [AppComponent],
+      schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
   });
 
@@ -14,16 +17,30 @@ xdescribe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have as title 'main-application'`, () => {
+  it('should expose the theme service to the template', () => {
     const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.debugElement.componentInstance;
-    expect(app.title).toEqual('main-application');
+    const app = fixture.componentInstance;
+    expect(app.themeService).toBe(TestBed.inject(ThemeService));
   });
 
-  it('should render title', () => {
+  it('should render the header and the router outlet', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
-    const compiled = fixture.debugElement.nativeElement;
-    expect(compiled.querySelector('.content span').textContent).toContain('main-application app is running!');
+    const compiled = fixture.debugElement.nativeElement as HTMLElement;
+    expect(compiled.querySelector('app-header')).not.toBeNull();
+    expect(compiled.querySelector('router-outlet')).not.toBeNull();
+  });
+
+  it('should delegate a header switchTheme event to the theme service', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const themeService = TestBed.inject(ThemeService);
+    spyOn(themeService, 'switchTheme');
+    fixture.detectChanges();
+
+    const header = fixture.debugElement.nativeElement.querySelector('app-header') as HTMLElement;
+    header.dispatchEvent(new CustomEvent('switchTheme'));
+    fixture.detectChanges();
+
+    expect(themeService.switchTheme).toHaveBeenCalled();
   });
 });

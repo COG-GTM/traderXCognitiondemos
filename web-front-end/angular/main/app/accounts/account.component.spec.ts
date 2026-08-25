@@ -66,7 +66,7 @@ describe('Account tests', () => {
     expect(comp.selectedAccount).toBeDefined();
   });
 
-  xit('should fetch account users for select account', async () => {
+  it('should fetch account users for select account', async () => {
     spyOn((<any>comp).accountService, 'getAccountUsers').and.callThrough();
     comp.ngOnInit();
     fixture.detectChanges();

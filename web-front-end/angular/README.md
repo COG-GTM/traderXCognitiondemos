@@ -27,3 +27,26 @@ To build and run this project:
 npm install
 npm run start
 ```
+
+### Testing
+
+Unit and component tests (Karma + Jasmine) run headless and are hermetic — they need no backend
+service and no network:
+
+```bash
+npm run test:ci
+```
+
+#### End-to-end tests (Playwright)
+
+The specs under `e2e/` drive the real UI in a browser and therefore need the **whole TraderX stack
+running** (from the repository root: `docker-compose up`), plus the Angular app on
+`http://localhost:18093`. Point them somewhere else with the `TRADERX_URL` environment variable.
+
+```bash
+npx playwright install chromium   # once
+npm run test:e2e                  # or: TRADERX_URL=http://host:port npm run test:e2e
+npm run test:e2e:typecheck        # typecheck only, no browser or stack required
+```
+
+These end-to-end specs are **excluded from CI** — CI only runs `npm run test:ci`.
