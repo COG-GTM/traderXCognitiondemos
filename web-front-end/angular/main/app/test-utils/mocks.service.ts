@@ -1,4 +1,5 @@
-import { Observable, of } from 'rxjs';
+import { NEVER, Observable, of, throwError } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Account } from '../model/account.model';
 import { AccountUser, User } from '../model/user.model';
 import { createAccount, createUser, createStock, createTrade, createPosition } from './utils';
@@ -34,9 +35,9 @@ export class MockAccountService {
 }
 
 export class MockUserService {
-  getUsers(searchText: string) {
+  getUsers(searchText: string): Observable<User[]> {
     const src = [{ fullName: 'Jhon mac' }, { fullName: 'Tom san' }, { fullName: 'Merry san' }] as User[];
-    return of<any>({ people: src.filter((u) => u.fullName.indexOf(searchText) !== -1) });
+    return of<User[]>(src.filter((u) => u.fullName.indexOf(searchText) !== -1));
   }
 }
 
@@ -64,12 +65,65 @@ export class MockSymbolService {
 
 }
 
+/**
+ * In-memory stand-in for the socket.io backed TradeFeedService.
+ * Records the live subscriptions so tests can emit payloads on a topic and
+ * assert that a subscription was torn down.
+ */
 export class MockTradeFeedService {
+  subscriptions = new Map<string, Function[]>();
+  unSubscribedTopics: string[] = [];
 
   subscribe(topic: string, callback: Function) {
+    const callbacks = this.subscriptions.get(topic) ?? [];
+    callbacks.push(callback);
+    this.subscriptions.set(topic, callbacks);
+    return () => this.unSubscribe(topic, callback);
   }
 
-  unSubscribe() {
+  unSubscribe(topic?: string, callback?: Function) {
+    if (!topic) {
+      return;
+    }
+    this.unSubscribedTopics.push(topic);
+    const callbacks = (this.subscriptions.get(topic) ?? []).filter((cb) => cb !== callback);
+    if (callbacks.length) {
+      this.subscriptions.set(topic, callbacks);
+    } else {
+      this.subscriptions.delete(topic);
+    }
   }
 
+  /** Push a payload to every live subscriber of a topic, like the server would. */
+  emit(topic: string, payload: any) {
+    (this.subscriptions.get(topic) ?? []).forEach((cb) => cb(payload));
+  }
+
+  isSubscribed(topic: string) {
+    return (this.subscriptions.get(topic) ?? []).length > 0;
+  }
+}
+
+/** PositionService stand-in whose calls always fail, for HTTP error path tests. */
+export class MockFailingPositionService {
+  error = new HttpErrorResponse({ status: 500, statusText: 'Internal Server Error' });
+
+  getTrades(_accountId: number): Observable<Trade[]> {
+    return throwError(() => this.error);
+  }
+
+  getPositions(_accountId: number): Observable<Position[]> {
+    return throwError(() => this.error);
+  }
+}
+
+/** PositionService stand-in whose calls never answer, for request timeout tests. */
+export class MockHangingPositionService {
+  getTrades(_accountId: number): Observable<Trade[]> {
+    return NEVER;
+  }
+
+  getPositions(_accountId: number): Observable<Position[]> {
+    return NEVER;
+  }
 }

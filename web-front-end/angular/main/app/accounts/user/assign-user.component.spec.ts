@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed, waitForAsync, tick, fakeAsync } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync, tick, fakeAsync, flush } from '@angular/core/testing';
 import { Account } from 'main/app/model/account.model';
 import { AccountService } from 'main/app/service/account.service';
 import { AssignUserToAccountComponent } from './assign-user.component';
@@ -43,14 +43,31 @@ describe('Assign user to account tests', () => {
     fixture.detectChanges();
   });
 
-  xit('should allow to search user', fakeAsync(() => {
+  it('should allow to search user', fakeAsync(() => {
     spyOn((<any>comp).userService, 'getUsers').and.callThrough();
-    const typeaheadinput = element.querySelector('#account-user') as HTMLInputElement;
-    typeaheadinput.value = 'san';
-    typeaheadinput.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
+    expect(element.querySelector('#account-user')).not.toBeNull();
+    comp.search = 'san';
+
+    let found: User[] = [];
+    comp.users$.subscribe((users) => (found = users));
     tick(100);
-    expect((<any>comp).userService.getUsers).toHaveBeenCalledWith('sa');
+
+    expect((<any>comp).userService.getUsers).toHaveBeenCalledWith('san');
+    expect(found.map((user) => user.fullName)).toEqual(['Tom san', 'Merry san']);
+    flush();
+  }));
+
+  it('should not hit the user service for a search shorter than three characters', fakeAsync(() => {
+    spyOn((<any>comp).userService, 'getUsers').and.callThrough();
+    comp.search = 'sa';
+
+    let found: User[] = [];
+    comp.users$.subscribe((users) => (found = users));
+    tick(100);
+
+    expect((<any>comp).userService.getUsers).not.toHaveBeenCalled();
+    expect(found).toEqual([]);
+    flush();
   }));
 
   it('should assign user to account', () => {
