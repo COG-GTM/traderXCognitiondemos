@@ -2,6 +2,7 @@ package finos.traderx.messaging.socketio;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -20,8 +21,9 @@ import java.net.URI;
  * 
  */
 public abstract class SocketIOJSONPublisher<T> implements Publisher<T>, InitializingBean {
-    private static ObjectMapper objectMapper = new ObjectMapper()
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    private static ObjectMapper objectMapper = JsonMapper.builder()
+            .serializationInclusion(JsonInclude.Include.NON_NULL)
+            .build();
 
     protected IO.Options getIOOptions() {
         return new IO.Options();
