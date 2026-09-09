@@ -33,3 +33,5 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+# Lockfile is required for reproducible "npm ci" builds
+!package-lock.json
