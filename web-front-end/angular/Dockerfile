@@ -1,20 +1,19 @@
-# [Choice] Node.js version (use -bullseye variants on local arm64/Apple Silicon): 18, 16, 14, 18-bullseye, 16-bullseye, 14-bullseye, 18-buster, 16-buster, 14-buster
-ARG VARIANT=16-bullseye
-FROM mcr.microsoft.com/vscode/devcontainers/javascript-node:0-${VARIANT}
+# Node 22 LTS (bookworm-slim) build + runtime for the Angular front end.
+ARG NODE_VERSION=22-bookworm-slim
 
+FROM node:${NODE_VERSION} AS build
 WORKDIR /web-front-end/angular
+ENV NG_CLI_ANALYTICS=false
+COPY package.json package-lock.jso[n] ./
+# package-lock.json is gitignored in this repo, so fall back to `npm install`
+# when no lockfile is present in the build context.
+RUN if [ -f package-lock.json ]; then npm ci --ignore-scripts; else npm install --ignore-scripts; fi
 COPY . .
+RUN npm run build
+
+FROM node:${NODE_VERSION} AS runtime
+WORKDIR /web-front-end/angular
+ENV NG_CLI_ANALYTICS=false
+COPY --from=build /web-front-end/angular /web-front-end/angular
 EXPOSE 18093
-
-# [Optional] Uncomment this section to install additional OS packages.
-# RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-#     && apt-get -y install --no-install-recommends <your-package-list-here>
-
-# [Optional] Uncomment if you want to install an additional version of node using nvm
-ARG EXTRA_NODE_VERSION=18
-RUN su node -c "source /usr/local/share/nvm/nvm.sh && nvm install ${EXTRA_NODE_VERSION}"
-
-# [Optional] Uncomment if you want to install more global node modules
-# RUN su node -c "npm install -g <your-package-list-here>"
-RUN npm install --ignore-scripts puppeteer
-ENTRYPOINT npm run start-prod
+ENTRYPOINT ["npm", "run", "start-prod"]
