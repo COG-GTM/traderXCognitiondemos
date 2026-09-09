@@ -2,9 +2,6 @@
 /dist
 /node_modules
 
-# Suppressing package-lock so that corporate envs can build locally without leaking local repos
-package-lock.json
-
 # Logs
 logs
 *.log
@@ -36,3 +33,5 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+# Lockfile is required for reproducible "npm ci" builds
+!package-lock.json
