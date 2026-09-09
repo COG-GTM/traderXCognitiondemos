@@ -11,6 +11,9 @@
     "test": "ng test --code-coverage --watch=true",
     "test:ci": "ng test --code-coverage --watch=false --browsers=ChromeHeadlessNoSandbox"
   },
+  "engines": {
+    "node": ">=22"
+  },
   "private": true,
   "license": "Apache-2.0",
   "dependencies": {
