@@ -36,6 +36,10 @@ req() { # name method url [body]
   else
     code=$(curl -s -o "$OUT/$name.raw" -w '%{http_code}' -X "$method" "$url")
   fi
+  if [ "$code" = "000" ]; then
+    echo "ERROR: $name $method $url unreachable (curl failed); aborting snapshot" >&2
+    exit 1
+  fi
   echo "### $name $method $url" >> "$SUMMARY"
   echo "status=$code" >> "$SUMMARY"
   norm < "$OUT/$name.raw" >> "$SUMMARY"
