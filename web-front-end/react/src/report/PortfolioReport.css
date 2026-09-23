@@ -1,0 +1,91 @@
+.portfolio-report {
+	padding: 12px 16px;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+.portfolio-report__header {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px 24px;
+	align-items: flex-end;
+	justify-content: space-between;
+}
+.portfolio-report__header h2 {
+	margin: 0 0 4px;
+}
+.portfolio-report__badge {
+	display: inline-block;
+	background: #fff3cd;
+	color: #664d03;
+	border: 1px solid #ffe69c;
+	border-radius: 4px;
+	padding: 2px 8px;
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+}
+.portfolio-report__controls {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	align-items: flex-end;
+}
+.portfolio-report__controls input[type='number'] {
+	margin-left: 6px;
+	width: 7em;
+}
+.portfolio-report__toggle {
+	display: flex;
+	gap: 12px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	padding: 4px 8px;
+}
+.portfolio-report__meta {
+	color: #444;
+}
+.portfolio-report__scroll {
+	overflow-x: auto;
+}
+.portfolio-report__table {
+	border-collapse: collapse;
+	min-width: 320px;
+	width: 100%;
+	font-size: 14px;
+}
+.portfolio-report__table th,
+.portfolio-report__table td {
+	border-bottom: 1px solid #e3e3e3;
+	padding: 6px 8px;
+	text-align: left;
+	white-space: nowrap;
+}
+.portfolio-report__table td.num {
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+}
+.portfolio-report__flag {
+	background: #f8d7da;
+	color: #58151c;
+	border-radius: 4px;
+	padding: 1px 6px;
+	font-size: 12px;
+	font-weight: 600;
+}
+.app-tabs {
+	display: flex;
+	gap: 4px;
+	padding: 8px 16px 0;
+	border-bottom: 1px solid #ddd;
+}
+.app-tabs button {
+	border: 1px solid #ddd;
+	border-bottom: none;
+	background: #f6f6f6;
+	padding: 8px 14px;
+	cursor: pointer;
+	border-radius: 6px 6px 0 0;
+}
+.app-tabs button[aria-selected='true'] {
+	background: #fff;
+	font-weight: 600;
+}

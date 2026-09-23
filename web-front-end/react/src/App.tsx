@@ -1,11 +1,19 @@
 import './App.css';
 import { Datatable } from './Datatable/Datatable';
-import React from 'react';
+import { PortfolioReport } from './report/PortfolioReport';
+import React, { useState } from 'react';
+
+type Tab = 'blotter' | 'report';
 
 function App() {
+  const [tab, setTab] = useState<Tab>('blotter');
   return (
     <div className="App">
-      <Datatable />
+      <nav className="app-tabs" role="tablist" aria-label="Views">
+        <button role="tab" aria-selected={tab === 'blotter'} onClick={() => setTab('blotter')}>Blotter</button>
+        <button role="tab" aria-selected={tab === 'report'} onClick={() => setTab('report')}>Portfolio report</button>
+      </nav>
+      {tab === 'blotter' ? <Datatable /> : <PortfolioReport />}
     </div>
   );
 }

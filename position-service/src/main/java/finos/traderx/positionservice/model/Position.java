@@ -1,6 +1,7 @@
 package finos.traderx.positionservice.model;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 import jakarta.persistence.Column;
@@ -61,5 +62,27 @@ public class Position implements Serializable {
 
 	public Date getUpdated(){
 		return this.updated;
+	}
+
+	@Column(name = "CURRENCY", length = 3)
+	private String currency;
+
+	public String getCurrency() {
+		return this.currency;
+	}
+
+	public void setCurrency(String currency) {
+		this.currency = currency;
+	}
+
+	@Column(name = "MARKETVALUE", precision = 19, scale = 4)
+	private BigDecimal marketValue;
+
+	public BigDecimal getMarketValue() {
+		return this.marketValue;
+	}
+
+	public void setMarketValue(BigDecimal marketValue) {
+		this.marketValue = marketValue;
 	}
 }
