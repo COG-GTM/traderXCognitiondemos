@@ -8,7 +8,8 @@ import { socket } from '../socket';
 import { GetPositions, GetTrades } from '../hooks';
 import { CreateAccount, CreateAccountUser, CreateTradeButton } from '../ActionButtons';
 import { ColDef } from 'ag-grid-community';
-import { PositionData, TradeData } from './types';
+import { Position, PositionData, TradeData } from './types';
+import { fromLegacyPosition } from '../report/legacyAdapter';
 import { AccountsDropdown } from '../AccountsDropdown';
 
 const PUBLISH='publish';
@@ -20,7 +21,7 @@ const UNSUBSCRIBE='unsubscribe';
 export const Datatable = () => {
 	const [tradeRowData, setTradeRowData] = useState<TradeData[]>([]);
 	const [tradeColumnDefs, setTradeColumnDefs] = useState<ColDef[]>([]);
-	const [positionRowData, setPositionRowData] = useState<PositionData[]>([]);
+	const [positionRowData, setPositionRowData] = useState<Position[]>([]);
 	const [positionColumnDefs, setPositionColumnDefs] = useState<ColDef[]>([]);
 	const [selectedId, setSelectedId] = useState<number>(0);
 	const [currentAccount, setCurrentAccount] = useState<string>('');
@@ -45,19 +46,20 @@ export const Datatable = () => {
 			}
 			if (data.topic === `/accounts/${event.target.value}/positions`) {
 				console.log("INCOMING POSITION DATA: ", data);
-				setPositionRowData((current: PositionData[]) => [...current, data.payload]);
+				const incoming: Position = fromLegacyPosition(data.payload as PositionData);
+				setPositionRowData((current: Position[]) => [...current, incoming]);
 			}
 		});
   }, [selectedId])
 
 	useEffect(() => {
-			const positionKeys = ['security','quantity','updated'];
+			const positionKeys = ['security','quantity','asOf'];
 			const tradeKeys = ['security','quantity','side','state','updated'];
 			setPositionRowData(positionData);
 			setTradeRowData(tradeData);
 			setPositionColumnDefs([])
 			setTradeColumnDefs([]);
-			positionKeys.forEach((key:string) => setPositionColumnDefs((current: ColDef<PositionData>[]) => [...current, {field: key}]));
+			positionKeys.forEach((key:string) => setPositionColumnDefs((current: ColDef<Position>[]) => [...current, {field: key}]));
 			tradeKeys.forEach((key:string) => setTradeColumnDefs((current: ColDef<TradeData>[]) => [...current, {field: key}]));
 	}, [positionData, tradeData, selectedId, currentAccount])
 
