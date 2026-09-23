@@ -20,11 +20,12 @@ Code lives outside this directory: `position-service/src/main/java/.../api/v2/*`
 | Ref | Meaning |
 |---|---|
 | Setup branch | `devin/1790129721-techfest-migration` (PR against `main`) |
-| Starting revision (scenario ref) | first commit on the setup branch carrying the scenario; recorded in the setup PR description and in "Rehearsal record" below |
+| Starting revision (scenario ref) | `3084e41ed92369fd2db1bc677bc3dab3d2b2c1d7` (first commit on the setup branch carrying the scenario; also recorded in the setup PR description) |
 | Branch point | `7206ee800fb49cbf645ea97d8794009014c0d1ae` (`main` at the time of branching) |
 | Remediation | a separate PR opened by the fresh session **against the setup branch**; never merged during the demo |
 
-Select a ref: `git fetch origin && git checkout <ref>` (never `reset --hard` on shared branches).
+Select a ref: `git fetch origin && git checkout <ref>`, e.g. `git checkout 3084e41ed92369fd2db1bc677bc3dab3d2b2c1d7`
+for the exact starting scenario (never `reset --hard` on shared branches).
 
 ## Demo run mode
 
