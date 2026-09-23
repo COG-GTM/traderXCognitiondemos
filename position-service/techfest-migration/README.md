@@ -96,5 +96,13 @@ git checkout devin/1790129721-techfest-migration       # back to the setup branc
 
 ## Rehearsal record
 
-Filled in by the presenter/rehearsal report: starting-revision sha, remediation session URL, remediation PR URL
-and head sha, check timestamps. See the setup PR description.
+Rehearsal 1 (2026-09-23, Normal mode, TASK_PROMPT.md verbatim, no steering):
+
+| Item | Value |
+|---|---|
+| Starting revision | `3084e41ed92369fd2db1bc677bc3dab3d2b2c1d7` |
+| Setup PR | https://github.com/COG-GTM/traderXCognitiondemos/pull/111 |
+| Remediation session | https://app.devin.ai/sessions/701ee8f978794c40a714e773f534d309 (created 02:36 UTC, PR at 02:43 UTC) |
+| Remediation PR | https://github.com/COG-GTM/traderXCognitiondemos/pull/112 against the setup branch, head `4439eed6fa859f44fc862618016b3aa1f96ba62f`, unmerged |
+| Independent checks on `4439eed` (02:44-02:45 UTC) | React `CI=true npm test -- --watchAll=false` 19/19; `tsc --noEmit` clean; `./gradlew test` 13/13; live v2 walk 3 pages / 26 items / 26 unique / sorted; files changed limited to `web-front-end/react/src/**`; only v1 call left is `report/legacyPositions.ts` |
+| Open question raised by the session | trade-feed socket payload still legacy-shaped (brief covers REST only) |
