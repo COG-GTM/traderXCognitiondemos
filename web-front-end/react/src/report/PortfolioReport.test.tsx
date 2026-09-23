@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, within, fireEvent, waitFor } from '@testing-library/react';
 import { PortfolioReport, UNKNOWN_LABEL, INCOMPLETE_LABEL } from './PortfolioReport';
-import { loadFixture, ReportExpectations } from './fixtures';
+import { loadFixture, ReportExpectations, V2Page } from './fixtures';
 import { PositionData } from '../Datatable/types';
 import { formatAmount } from './money';
 
@@ -11,6 +11,7 @@ import { formatAmount } from './money';
  */
 const expectations = loadFixture<ReportExpectations>('report-expectations.json');
 const v1Rows = loadFixture<PositionData[]>('v1-positions-77007.json');
+const v2Pages = loadFixture<V2Page[]>('v2-pages-77007.json');
 
 const mockFetch = (handler: (url: string) => unknown) => {
 	global.fetch = jest.fn(async (input: RequestInfo | URL) => {
@@ -24,7 +25,24 @@ const mockFetch = (handler: (url: string) => unknown) => {
 	return global.fetch as jest.Mock;
 };
 
-const legacyOnly = (url: string) => (url.endsWith(`/positions/${expectations.accountId}`) ? v1Rows : undefined);
+const V1_PATH = `/positions/${expectations.accountId}`;
+const isV1 = (url: string) => new URL(url).pathname === V1_PATH;
+const isV2 = (url: string) => new URL(url).pathname === '/v2/positions';
+
+/** Mocked position-service: v2 pages by recorded cursor for the current source, the v1 array for the legacy toggle. */
+const positionService = (url: string) => {
+	if (isV1(url)) {
+		return v1Rows;
+	}
+	if (isV2(url)) {
+		const u = new URL(url);
+		if (u.searchParams.get('accountId') !== String(expectations.accountId)) {
+			return { items: [], nextCursor: null };
+		}
+		return v2Pages.find((p) => p.request.cursor === u.searchParams.get('cursor'))?.response;
+	}
+	return undefined;
+};
 
 const expectReportMatchesFixture = async () => {
 	await waitFor(() =>
@@ -57,20 +75,23 @@ describe('Portfolio report (consumer integration)', () => {
 	afterEach(() => jest.restoreAllMocks());
 
 	test('shows the Synthetic demonstration label', () => {
-		mockFetch(legacyOnly);
+		mockFetch(positionService);
 		render(<PortfolioReport />);
 		expect(screen.getByTestId('synthetic-label')).toHaveTextContent(expectations.label);
 	});
 
-	test('current report matches the approved fixture expectations', async () => {
-		mockFetch(legacyOnly);
+	test('current report matches the approved fixture expectations from v2 pages, all cursors walked', async () => {
+		const fetchMock = mockFetch(positionService);
 		render(<PortfolioReport />);
 		await expectReportMatchesFixture();
 		expect(screen.getByTestId('report-source')).toHaveTextContent('current adapter');
+		const urls = fetchMock.mock.calls.map(([u]) => String(u));
+		expect(urls.some(isV1)).toBe(false);
+		expect(urls.filter(isV2).map((u) => new URL(u).searchParams.get('cursor'))).toEqual(v2Pages.map((p) => p.request.cursor));
 	});
 
 	test('legacy v1 comparison toggle renders the same approved expectations', async () => {
-		const fetchMock = mockFetch(legacyOnly);
+		const fetchMock = mockFetch(positionService);
 		render(<PortfolioReport />);
 		fireEvent.click(screen.getByLabelText('Legacy v1 (comparison)'));
 		await expectReportMatchesFixture();
@@ -79,7 +100,7 @@ describe('Portfolio report (consumer integration)', () => {
 	});
 
 	test('unknown market values stay unknown and their currency totals are labeled incomplete', async () => {
-		mockFetch(legacyOnly);
+		mockFetch(positionService);
 		render(<PortfolioReport />);
 		await expectReportMatchesFixture();
 		for (const sec of expectations.unknownMarketValueSecurities) {
