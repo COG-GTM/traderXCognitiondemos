@@ -1,0 +1,19 @@
+Migrate the positions adapter `web-front-end/react/src/hooks/GetPositions.ts` and its affected consumers (the positions blotter `web-front-end/react/src/Datatable/Datatable.tsx` and the Portfolio report under `web-front-end/react/src/report/`) from the deprecated v1 `GET /positions/{accountId}` to the approved v2 contract `GET /v2/positions?accountId=&cursor=&limit=` described in `position-service/techfest-migration/CONTRACT_BRIEF.md`. Preserve the agreed meaning of IDs, dates, amounts, currencies and unknown values, and preserve the report behaviour (per-currency count and total, `unknown` cells, `incomplete` labels, `security`-ascending order).
+
+Work from branch `devin/1790129721-techfest-migration` of `COG-GTM/traderXCognitiondemos` (check it out and branch from it; do not branch from `main`). Open your PR against `devin/1790129721-techfest-migration`. The commit message must contain the word "feature" or "bug". The PR description must contain: the diff summary, the contract mapping you applied (v1 field -> v2 field -> report field), the exact checks you ran with their results, a screenshot or recording of the Portfolio report for account 77007, and any unresolved questions. End the PR description with this exact line on its own: `Devin-Org: engineering`.
+
+Context you can rely on:
+- `position-service` already serves both v1 and v2 from the same rows. Approved fixtures for account 77007 live in `position-service/techfest-migration/fixtures/` (`report-expectations.json` is the truth the report must satisfy; `v2-pages-77007.json` records the v2 pages at the default limit; `v1-positions-77007.json` records the legacy array).
+- Existing tests that must stay green: `cd web-front-end/react && CI=true npm test -- --watchAll=false` and `cd position-service && JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew test`.
+- To run the app locally: `position-service/techfest-migration/README.md` ("Start"). Java 21 is at `/usr/lib/jvm/java-21-openjdk-amd64`.
+
+Acceptance criteria (all must hold on your PR head):
+1. Every expected position for account 77007 appears exactly once in the blotter and in the report, including positions on later pages: all cursors are walked until `nextCursor` is `null`, for any `limit` in 1..100 (do not rely on the default page size or on page counts).
+2. IDs, dates, amounts, currencies and unknown values retain their specified meaning: `asOf` is shown as the ISO-8601 UTC instant; amounts stay decimal strings / integer minor units (no float arithmetic); `marketValue: null` renders as `unknown`; a per-currency total containing an unknown stays labeled `incomplete`; no cross-currency sums or conversions.
+3. Contract, pagination and consumer integration tests pass on the combined change; add or extend tests as needed (for example, a test that the adapter walks more than one page and that a `nextCursor` string is followed).
+4. The browser report for account 77007 agrees with `fixtures/report-expectations.json` (26 positions; CHF 5 / EUR 8 incomplete / GBP 7 / JPY 3 incomplete / USD 3). Attach a screenshot or recording to the PR.
+5. No deprecated v1 call remains on the migrated execution path (adapter, blotter, report "Current" source). The one permitted exception is the report's "Legacy v1 (comparison)" toggle in `src/report/legacyPositions.ts`, as stated in the brief's Compatibility section; leave it in place.
+
+Exclusions: do not change the v2 contract or anything in `position-service/` (server code, schema, fixtures' recorded responses); do not add currency conversion; do not change files outside `web-front-end/react/` (source and tests) other than fixture *expectations* if a genuine correction is needed, and call any such change out explicitly.
+
+Escalation: if the brief is ambiguous, or a fixture contradicts the brief or the running service, stop and list the question(s) in the PR description instead of guessing.

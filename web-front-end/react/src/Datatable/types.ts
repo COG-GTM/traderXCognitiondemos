@@ -11,9 +11,12 @@ export interface TradeData {
 	created?: Date;
 }
 
+/** Legacy v1 row shape from GET /positions/{accountId}. currency/marketValue were added for the report. */
 export interface PositionData {
 	accountId: number;
 	security: string;
 	quantity: number;
 	updated: Date;
+	currency?: string;
+	marketValue?: number | null;
 }

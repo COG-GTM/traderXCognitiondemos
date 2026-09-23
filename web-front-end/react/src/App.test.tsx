@@ -2,8 +2,10 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders learn react link', () => {
+jest.mock('./Datatable/Datatable', () => ({ Datatable: () => <div>blotter placeholder</div> }));
+
+test('renders the blotter and portfolio report tabs', () => {
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+  expect(screen.getByRole('tab', { name: 'Blotter' })).toBeInTheDocument();
+  expect(screen.getByRole('tab', { name: 'Portfolio report' })).toBeInTheDocument();
 });

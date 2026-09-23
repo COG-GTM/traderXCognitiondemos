@@ -1,0 +1,226 @@
+{
+  "label": "Synthetic demonstration",
+  "accountId": 77007,
+  "pageSize": 10,
+  "expectedPageCount": 3,
+  "unknownMarketValueSecurities": [
+    "MC",
+    "T9984"
+  ],
+  "rows": [
+    {
+      "security": "ABBN",
+      "quantity": 1200,
+      "asOf": "2026-09-22T16:00:00Z",
+      "currency": "CHF",
+      "marketValue": "58344.00"
+    },
+    {
+      "security": "ADS",
+      "quantity": 300,
+      "asOf": "2026-09-22T16:01:00Z",
+      "currency": "EUR",
+      "marketValue": "67560.00"
+    },
+    {
+      "security": "AIR",
+      "quantity": 450,
+      "asOf": "2026-09-22T16:02:00Z",
+      "currency": "EUR",
+      "marketValue": "70155.00"
+    },
+    {
+      "security": "AZN",
+      "quantity": 800,
+      "asOf": "2026-09-22T16:03:00Z",
+      "currency": "GBP",
+      "marketValue": "97840.00"
+    },
+    {
+      "security": "BARC",
+      "quantity": 15000,
+      "asOf": "2026-09-22T16:04:00Z",
+      "currency": "GBP",
+      "marketValue": "31350.00"
+    },
+    {
+      "security": "BMW",
+      "quantity": 700,
+      "asOf": "2026-09-22T16:05:00Z",
+      "currency": "EUR",
+      "marketValue": "62965.00"
+    },
+    {
+      "security": "BP",
+      "quantity": 9000,
+      "asOf": "2026-09-22T16:06:00Z",
+      "currency": "GBP",
+      "marketValue": "42120.00"
+    },
+    {
+      "security": "C",
+      "quantity": -2000,
+      "asOf": "2026-09-22T16:07:00Z",
+      "currency": "USD",
+      "marketValue": "-128400.00"
+    },
+    {
+      "security": "DBK",
+      "quantity": 4000,
+      "asOf": "2026-09-22T16:08:00Z",
+      "currency": "EUR",
+      "marketValue": "61200.00"
+    },
+    {
+      "security": "HSBA",
+      "quantity": 6000,
+      "asOf": "2026-09-22T16:09:00Z",
+      "currency": "GBP",
+      "marketValue": "40260.00"
+    },
+    {
+      "security": "IBM",
+      "quantity": -100,
+      "asOf": "2026-09-22T16:10:00Z",
+      "currency": "USD",
+      "marketValue": "-19850.00"
+    },
+    {
+      "security": "MC",
+      "quantity": 150,
+      "asOf": "2026-09-22T16:11:00Z",
+      "currency": "EUR",
+      "marketValue": null
+    },
+    {
+      "security": "MS",
+      "quantity": 1000,
+      "asOf": "2026-09-22T16:12:00Z",
+      "currency": "USD",
+      "marketValue": "98750.00"
+    },
+    {
+      "security": "NESN",
+      "quantity": 900,
+      "asOf": "2026-09-22T16:13:00Z",
+      "currency": "CHF",
+      "marketValue": "78300.00"
+    },
+    {
+      "security": "NOVN",
+      "quantity": 1100,
+      "asOf": "2026-09-22T16:14:00Z",
+      "currency": "CHF",
+      "marketValue": "104500.00"
+    },
+    {
+      "security": "OR",
+      "quantity": 250,
+      "asOf": "2026-09-22T16:15:00Z",
+      "currency": "EUR",
+      "marketValue": "101250.00"
+    },
+    {
+      "security": "RIO",
+      "quantity": 1500,
+      "asOf": "2026-09-22T16:16:00Z",
+      "currency": "GBP",
+      "marketValue": "78450.00"
+    },
+    {
+      "security": "ROG",
+      "quantity": 400,
+      "asOf": "2026-09-22T16:17:00Z",
+      "currency": "CHF",
+      "marketValue": "112400.00"
+    },
+    {
+      "security": "SAP",
+      "quantity": 600,
+      "asOf": "2026-09-22T16:18:00Z",
+      "currency": "EUR",
+      "marketValue": "115800.00"
+    },
+    {
+      "security": "SHEL",
+      "quantity": 3200,
+      "asOf": "2026-09-22T16:19:00Z",
+      "currency": "GBP",
+      "marketValue": "85760.00"
+    },
+    {
+      "security": "SIE",
+      "quantity": 500,
+      "asOf": "2026-09-22T16:20:00Z",
+      "currency": "EUR",
+      "marketValue": "88250.00"
+    },
+    {
+      "security": "T6758",
+      "quantity": 2000,
+      "asOf": "2026-09-22T16:21:00Z",
+      "currency": "JPY",
+      "marketValue": "27400000"
+    },
+    {
+      "security": "T7203",
+      "quantity": 3000,
+      "asOf": "2026-09-22T16:22:00Z",
+      "currency": "JPY",
+      "marketValue": "8460000"
+    },
+    {
+      "security": "T9984",
+      "quantity": 1000,
+      "asOf": "2026-09-22T16:23:00Z",
+      "currency": "JPY",
+      "marketValue": null
+    },
+    {
+      "security": "UBSG",
+      "quantity": 2500,
+      "asOf": "2026-09-22T16:24:00Z",
+      "currency": "CHF",
+      "marketValue": "67750.00"
+    },
+    {
+      "security": "VOD",
+      "quantity": 40000,
+      "asOf": "2026-09-22T16:25:00Z",
+      "currency": "GBP",
+      "marketValue": "29800.00"
+    }
+  ],
+  "currencySummaries": [
+    {
+      "currency": "CHF",
+      "count": 5,
+      "totalMarketValue": "421294.00",
+      "incomplete": false
+    },
+    {
+      "currency": "EUR",
+      "count": 8,
+      "totalMarketValue": "567180.00",
+      "incomplete": true
+    },
+    {
+      "currency": "GBP",
+      "count": 7,
+      "totalMarketValue": "405580.00",
+      "incomplete": false
+    },
+    {
+      "currency": "JPY",
+      "count": 3,
+      "totalMarketValue": "35860000",
+      "incomplete": true
+    },
+    {
+      "currency": "USD",
+      "count": 3,
+      "totalMarketValue": "-49500.00",
+      "incomplete": false
+    }
+  ]
+}

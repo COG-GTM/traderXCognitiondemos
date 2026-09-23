@@ -1,0 +1,318 @@
+[
+  {
+    "request": {
+      "accountId": 77007,
+      "limit": 10,
+      "cursor": null
+    },
+    "response": {
+      "items": [
+        {
+          "accountId": 77007,
+          "security": "ABBN",
+          "quantity": 1200,
+          "asOf": "2026-09-22T16:00:00Z",
+          "currency": "CHF",
+          "marketValue": {
+            "amount": "58344.00",
+            "currency": "CHF"
+          }
+        },
+        {
+          "accountId": 77007,
+          "security": "ADS",
+          "quantity": 300,
+          "asOf": "2026-09-22T16:01:00Z",
+          "currency": "EUR",
+          "marketValue": {
+            "amount": "67560.00",
+            "currency": "EUR"
+          }
+        },
+        {
+          "accountId": 77007,
+          "security": "AIR",
+          "quantity": 450,
+          "asOf": "2026-09-22T16:02:00Z",
+          "currency": "EUR",
+          "marketValue": {
+            "amount": "70155.00",
+            "currency": "EUR"
+          }
+        },
+        {
+          "accountId": 77007,
+          "security": "AZN",
+          "quantity": 800,
+          "asOf": "2026-09-22T16:03:00Z",
+          "currency": "GBP",
+          "marketValue": {
+            "amount": "97840.00",
+            "currency": "GBP"
+          }
+        },
+        {
+          "accountId": 77007,
+          "security": "BARC",
+          "quantity": 15000,
+          "asOf": "2026-09-22T16:04:00Z",
+          "currency": "GBP",
+          "marketValue": {
+            "amount": "31350.00",
+            "currency": "GBP"
+          }
+        },
+        {
+          "accountId": 77007,
+          "security": "BMW",
+          "quantity": 700,
+          "asOf": "2026-09-22T16:05:00Z",
+          "currency": "EUR",
+          "marketValue": {
+            "amount": "62965.00",
+            "currency": "EUR"
+          }
+        },
+        {
+          "accountId": 77007,
+          "security": "BP",
+          "quantity": 9000,
+          "asOf": "2026-09-22T16:06:00Z",
+          "currency": "GBP",
+          "marketValue": {
+            "amount": "42120.00",
+            "currency": "GBP"
+          }
+        },
+        {
+          "accountId": 77007,
+          "security": "C",
+          "quantity": -2000,
+          "asOf": "2026-09-22T16:07:00Z",
+          "currency": "USD",
+          "marketValue": {
+            "amount": "-128400.00",
+            "currency": "USD"
+          }
+        },
+        {
+          "accountId": 77007,
+          "security": "DBK",
+          "quantity": 4000,
+          "asOf": "2026-09-22T16:08:00Z",
+          "currency": "EUR",
+          "marketValue": {
+            "amount": "61200.00",
+            "currency": "EUR"
+          }
+        },
+        {
+          "accountId": 77007,
+          "security": "HSBA",
+          "quantity": 6000,
+          "asOf": "2026-09-22T16:09:00Z",
+          "currency": "GBP",
+          "marketValue": {
+            "amount": "40260.00",
+            "currency": "GBP"
+          }
+        }
+      ],
+      "nextCursor": "SFNCQQ"
+    }
+  },
+  {
+    "request": {
+      "accountId": 77007,
+      "limit": 10,
+      "cursor": "SFNCQQ"
+    },
+    "response": {
+      "items": [
+        {
+          "accountId": 77007,
+          "security": "IBM",
+          "quantity": -100,
+          "asOf": "2026-09-22T16:10:00Z",
+          "currency": "USD",
+          "marketValue": {
+            "amount": "-19850.00",
+            "currency": "USD"
+          }
+        },
+        {
+          "accountId": 77007,
+          "security": "MC",
+          "quantity": 150,
+          "asOf": "2026-09-22T16:11:00Z",
+          "currency": "EUR",
+          "marketValue": null
+        },
+        {
+          "accountId": 77007,
+          "security": "MS",
+          "quantity": 1000,
+          "asOf": "2026-09-22T16:12:00Z",
+          "currency": "USD",
+          "marketValue": {
+            "amount": "98750.00",
+            "currency": "USD"
+          }
+        },
+        {
+          "accountId": 77007,
+          "security": "NESN",
+          "quantity": 900,
+          "asOf": "2026-09-22T16:13:00Z",
+          "currency": "CHF",
+          "marketValue": {
+            "amount": "78300.00",
+            "currency": "CHF"
+          }
+        },
+        {
+          "accountId": 77007,
+          "security": "NOVN",
+          "quantity": 1100,
+          "asOf": "2026-09-22T16:14:00Z",
+          "currency": "CHF",
+          "marketValue": {
+            "amount": "104500.00",
+            "currency": "CHF"
+          }
+        },
+        {
+          "accountId": 77007,
+          "security": "OR",
+          "quantity": 250,
+          "asOf": "2026-09-22T16:15:00Z",
+          "currency": "EUR",
+          "marketValue": {
+            "amount": "101250.00",
+            "currency": "EUR"
+          }
+        },
+        {
+          "accountId": 77007,
+          "security": "RIO",
+          "quantity": 1500,
+          "asOf": "2026-09-22T16:16:00Z",
+          "currency": "GBP",
+          "marketValue": {
+            "amount": "78450.00",
+            "currency": "GBP"
+          }
+        },
+        {
+          "accountId": 77007,
+          "security": "ROG",
+          "quantity": 400,
+          "asOf": "2026-09-22T16:17:00Z",
+          "currency": "CHF",
+          "marketValue": {
+            "amount": "112400.00",
+            "currency": "CHF"
+          }
+        },
+        {
+          "accountId": 77007,
+          "security": "SAP",
+          "quantity": 600,
+          "asOf": "2026-09-22T16:18:00Z",
+          "currency": "EUR",
+          "marketValue": {
+            "amount": "115800.00",
+            "currency": "EUR"
+          }
+        },
+        {
+          "accountId": 77007,
+          "security": "SHEL",
+          "quantity": 3200,
+          "asOf": "2026-09-22T16:19:00Z",
+          "currency": "GBP",
+          "marketValue": {
+            "amount": "85760.00",
+            "currency": "GBP"
+          }
+        }
+      ],
+      "nextCursor": "U0hFTA"
+    }
+  },
+  {
+    "request": {
+      "accountId": 77007,
+      "limit": 10,
+      "cursor": "U0hFTA"
+    },
+    "response": {
+      "items": [
+        {
+          "accountId": 77007,
+          "security": "SIE",
+          "quantity": 500,
+          "asOf": "2026-09-22T16:20:00Z",
+          "currency": "EUR",
+          "marketValue": {
+            "amount": "88250.00",
+            "currency": "EUR"
+          }
+        },
+        {
+          "accountId": 77007,
+          "security": "T6758",
+          "quantity": 2000,
+          "asOf": "2026-09-22T16:21:00Z",
+          "currency": "JPY",
+          "marketValue": {
+            "amount": "27400000",
+            "currency": "JPY"
+          }
+        },
+        {
+          "accountId": 77007,
+          "security": "T7203",
+          "quantity": 3000,
+          "asOf": "2026-09-22T16:22:00Z",
+          "currency": "JPY",
+          "marketValue": {
+            "amount": "8460000",
+            "currency": "JPY"
+          }
+        },
+        {
+          "accountId": 77007,
+          "security": "T9984",
+          "quantity": 1000,
+          "asOf": "2026-09-22T16:23:00Z",
+          "currency": "JPY",
+          "marketValue": null
+        },
+        {
+          "accountId": 77007,
+          "security": "UBSG",
+          "quantity": 2500,
+          "asOf": "2026-09-22T16:24:00Z",
+          "currency": "CHF",
+          "marketValue": {
+            "amount": "67750.00",
+            "currency": "CHF"
+          }
+        },
+        {
+          "accountId": 77007,
+          "security": "VOD",
+          "quantity": 40000,
+          "asOf": "2026-09-22T16:25:00Z",
+          "currency": "GBP",
+          "marketValue": {
+            "amount": "29800.00",
+            "currency": "GBP"
+          }
+        }
+      ],
+      "nextCursor": null
+    }
+  }
+]
