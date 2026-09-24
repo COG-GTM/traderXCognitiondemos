@@ -93,6 +93,31 @@ class TradeOrderControllerTest {
 	}
 
 	@Test
+	void rejectsTickerLookupWithEmptyBody() {
+		expectTickerLookup(withSuccess());
+
+		assertThatThrownBy(() -> this.controller.createTradeOrder(ORDER))
+				.isInstanceOf(ResourceNotFoundException.class)
+				.hasMessage("IBM not found in Reference data service.");
+
+		assertThat(this.publisher.published).isEmpty();
+		this.server.verify();
+	}
+
+	@Test
+	void rejectsAccountLookupWithEmptyBody() {
+		expectTickerLookup(withSuccess("{\"ticker\":\"IBM\",\"companyName\":\"IBM Corp\"}", MediaType.APPLICATION_JSON));
+		expectAccountLookup(withSuccess());
+
+		assertThatThrownBy(() -> this.controller.createTradeOrder(ORDER))
+				.isInstanceOf(ResourceNotFoundException.class)
+				.hasMessage("1 not found in Account service.");
+
+		assertThat(this.publisher.published).isEmpty();
+		this.server.verify();
+	}
+
+	@Test
 	void propagatesReferenceDataServerError() {
 		expectTickerLookup(withServerError());
 

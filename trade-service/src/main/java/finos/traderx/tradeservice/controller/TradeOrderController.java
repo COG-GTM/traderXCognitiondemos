@@ -74,7 +74,7 @@ public class TradeOrderController {
 		try {
 			ResponseEntity<Security> response = this.restTemplate.getForEntity(url, Security.class);
 			log.info("Validate ticker {}", response.getBody());
-			return true;
+			return response.getBody() != null;
 		} catch (HttpClientErrorException ex) {
 			logLookupFailure(ex, "Ticker %s not found in reference data service.".formatted(ticker));
 			return false;
@@ -87,7 +87,7 @@ public class TradeOrderController {
 		try {
 			ResponseEntity<Account> response = this.restTemplate.getForEntity(url, Account.class);
 			log.info("Validate account {}", response.getBody());
-			return true;
+			return response.getBody() != null;
 		} catch (HttpClientErrorException ex) {
 			logLookupFailure(ex, "Account %s not found in account service.".formatted(id));
 			return false;
