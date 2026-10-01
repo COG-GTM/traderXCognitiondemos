@@ -1,0 +1,5 @@
+[
+  { "version": "31.4.2", "deployedAt": "2026-09-24T21:05:12Z", "commit": "9c41f0e", "ticket": "PORTAL-3312", "summary": "feature: memoise valuation rows for positions table perf", "deployer": "release-bot" },
+  { "version": "31.4.1", "deployedAt": "2026-09-17T20:58:40Z", "commit": "b7d2a11", "ticket": "PORTAL-3298", "summary": "bug: fix CHF number formatting in statements", "deployer": "release-bot" },
+  { "version": "31.4.0", "deployedAt": "2026-09-10T21:02:03Z", "commit": "41e9c7d", "ticket": "PORTAL-3270", "summary": "feature: settlement status widget", "deployer": "release-bot" }
+]

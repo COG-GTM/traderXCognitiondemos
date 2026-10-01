@@ -1,0 +1,5 @@
+[
+  { "account": "ACC-A", "isin": "GB0002634946", "quantity": 12000 },
+  { "account": "ACC-A", "isin": "CH0012032048", "quantity": 800 },
+  { "account": "ACC-B", "isin": "US0378331005", "quantity": 1500 }
+]

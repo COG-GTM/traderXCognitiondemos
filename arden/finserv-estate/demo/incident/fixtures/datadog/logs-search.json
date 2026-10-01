@@ -1,0 +1,331 @@
+{
+  "data": [
+    {
+      "id": "AQAAAY-20260924T210611Z",
+      "type": "log",
+      "attributes": {
+        "timestamp": "2026-09-24T21:06:11Z",
+        "status": "info",
+        "service": "client-portal",
+        "host": "portal-prod-eu-west-1-3f9c",
+        "tags": [
+          "env:prod",
+          "version:31.4.2",
+          "team:client-digital"
+        ],
+        "message": "{\"level\": \"info\", \"service\": \"client-portal\", \"route\": \"/api/portfolio/valuation\", \"status\": 200, \"ms\": 41}",
+        "attributes": {
+          "route": "/api/portfolio/valuation",
+          "status": 200,
+          "ms": 41,
+          "feed": {
+            "schema": "2.2",
+            "asof": "2026-09-24T16:35:00Z"
+          }
+        }
+      }
+    },
+    {
+      "id": "AQAAAY-20260924T213502Z",
+      "type": "log",
+      "attributes": {
+        "timestamp": "2026-09-24T21:35:02Z",
+        "status": "info",
+        "service": "client-portal",
+        "host": "portal-prod-eu-west-1-3f9c",
+        "tags": [
+          "env:prod",
+          "version:31.4.2",
+          "team:client-digital"
+        ],
+        "message": "{\"level\": \"info\", \"service\": \"client-portal\", \"route\": \"/api/portfolio/valuation\", \"status\": 200, \"ms\": 41}",
+        "attributes": {
+          "route": "/api/portfolio/valuation",
+          "status": 200,
+          "ms": 41,
+          "feed": {
+            "schema": "2.2",
+            "asof": "2026-09-24T16:35:00Z"
+          }
+        }
+      }
+    },
+    {
+      "id": "AQAAAY-20260924T223044Z",
+      "type": "log",
+      "attributes": {
+        "timestamp": "2026-09-24T22:30:44Z",
+        "status": "info",
+        "service": "client-portal",
+        "host": "portal-prod-eu-west-1-3f9c",
+        "tags": [
+          "env:prod",
+          "version:31.4.2",
+          "team:client-digital"
+        ],
+        "message": "{\"level\": \"info\", \"service\": \"client-portal\", \"route\": \"/api/portfolio/valuation\", \"status\": 200, \"ms\": 41}",
+        "attributes": {
+          "route": "/api/portfolio/valuation",
+          "status": 200,
+          "ms": 41,
+          "feed": {
+            "schema": "2.2",
+            "asof": "2026-09-24T16:35:00Z"
+          }
+        }
+      }
+    },
+    {
+      "id": "AQAAAY-20260925T001509Z",
+      "type": "log",
+      "attributes": {
+        "timestamp": "2026-09-25T00:15:09Z",
+        "status": "info",
+        "service": "client-portal",
+        "host": "portal-prod-eu-west-1-3f9c",
+        "tags": [
+          "env:prod",
+          "version:31.4.2",
+          "team:client-digital"
+        ],
+        "message": "{\"level\": \"info\", \"service\": \"client-portal\", \"route\": \"/api/portfolio/valuation\", \"status\": 200, \"ms\": 41}",
+        "attributes": {
+          "route": "/api/portfolio/valuation",
+          "status": 200,
+          "ms": 41,
+          "feed": {
+            "schema": "2.2",
+            "asof": "2026-09-24T16:35:00Z"
+          }
+        }
+      }
+    },
+    {
+      "id": "AQAAAY-20260925T030027Z",
+      "type": "log",
+      "attributes": {
+        "timestamp": "2026-09-25T03:00:27Z",
+        "status": "info",
+        "service": "client-portal",
+        "host": "portal-prod-eu-west-1-3f9c",
+        "tags": [
+          "env:prod",
+          "version:31.4.2",
+          "team:client-digital"
+        ],
+        "message": "{\"level\": \"info\", \"service\": \"client-portal\", \"route\": \"/api/portfolio/valuation\", \"status\": 200, \"ms\": 41}",
+        "attributes": {
+          "route": "/api/portfolio/valuation",
+          "status": 200,
+          "ms": 41,
+          "feed": {
+            "schema": "2.2",
+            "asof": "2026-09-24T16:35:00Z"
+          }
+        }
+      }
+    },
+    {
+      "id": "AQAAAY-20260925T054551Z",
+      "type": "log",
+      "attributes": {
+        "timestamp": "2026-09-25T05:45:51Z",
+        "status": "info",
+        "service": "client-portal",
+        "host": "portal-prod-eu-west-1-3f9c",
+        "tags": [
+          "env:prod",
+          "version:31.4.2",
+          "team:client-digital"
+        ],
+        "message": "{\"level\": \"info\", \"service\": \"client-portal\", \"route\": \"/api/portfolio/valuation\", \"status\": 200, \"ms\": 41}",
+        "attributes": {
+          "route": "/api/portfolio/valuation",
+          "status": 200,
+          "ms": 41,
+          "feed": {
+            "schema": "2.2",
+            "asof": "2026-09-24T16:35:00Z"
+          }
+        }
+      }
+    },
+    {
+      "id": "AQAAAY-20260925T055833Z",
+      "type": "log",
+      "attributes": {
+        "timestamp": "2026-09-25T05:58:33Z",
+        "status": "info",
+        "service": "client-portal",
+        "host": "portal-prod-eu-west-1-3f9c",
+        "tags": [
+          "env:prod",
+          "version:31.4.2",
+          "team:client-digital"
+        ],
+        "message": "{\"level\": \"info\", \"service\": \"client-portal\", \"route\": \"/api/portfolio/valuation\", \"status\": 200, \"ms\": 41}",
+        "attributes": {
+          "route": "/api/portfolio/valuation",
+          "status": 200,
+          "ms": 41,
+          "feed": {
+            "schema": "2.2",
+            "asof": "2026-09-24T16:35:00Z"
+          }
+        }
+      }
+    },
+    {
+      "id": "AQAAAZ-20260925T060041Z",
+      "type": "log",
+      "attributes": {
+        "timestamp": "2026-09-25T06:00:41Z",
+        "status": "error",
+        "service": "client-portal",
+        "host": "portal-prod-eu-west-1-3f9c",
+        "tags": [
+          "env:prod",
+          "version:31.4.2",
+          "team:client-digital"
+        ],
+        "message": "{\"level\": \"error\", \"service\": \"client-portal\", \"route\": \"/api/portfolio/valuation\", \"error\": \"n.px.toFixed is not a function\", \"stack\": \"TypeError: n.px.toFixed is not a function\\n    at valuationRow (file:///srv/client-portal/src/valuation/valuation.js:13:16)\\n    at file:///srv/client-portal/src/valuation/valuation.js:27:38\\n    at Array.map (<anonymous>)\\n    at valuePortfolio (file:///srv/client-portal/src/valuation/valuation.js:27:20)\\n    at Server.<anonymous> (file:///srv/client-portal/src/server.js:12:20)\"}",
+        "attributes": {
+          "route": "/api/portfolio/valuation",
+          "status": 500,
+          "error": {
+            "kind": "TypeError",
+            "message": "n.px.toFixed is not a function",
+            "stack": "TypeError: n.px.toFixed is not a function\n    at valuationRow (file:///srv/client-portal/src/valuation/valuation.js:13:16)\n    at file:///srv/client-portal/src/valuation/valuation.js:27:38\n    at Array.map (<anonymous>)\n    at valuePortfolio (file:///srv/client-portal/src/valuation/valuation.js:27:20)\n    at Server.<anonymous> (file:///srv/client-portal/src/server.js:12:20)"
+          },
+          "feed": {
+            "schema": "2.3",
+            "asof": "2026-09-25T06:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "id": "AQAAAZ-20260925T060112Z",
+      "type": "log",
+      "attributes": {
+        "timestamp": "2026-09-25T06:01:12Z",
+        "status": "error",
+        "service": "client-portal",
+        "host": "portal-prod-eu-west-1-3f9c",
+        "tags": [
+          "env:prod",
+          "version:31.4.2",
+          "team:client-digital"
+        ],
+        "message": "{\"level\": \"error\", \"service\": \"client-portal\", \"route\": \"/api/portfolio/valuation\", \"error\": \"n.px.toFixed is not a function\", \"stack\": \"TypeError: n.px.toFixed is not a function\\n    at valuationRow (file:///srv/client-portal/src/valuation/valuation.js:13:16)\\n    at file:///srv/client-portal/src/valuation/valuation.js:27:38\\n    at Array.map (<anonymous>)\\n    at valuePortfolio (file:///srv/client-portal/src/valuation/valuation.js:27:20)\\n    at Server.<anonymous> (file:///srv/client-portal/src/server.js:12:20)\"}",
+        "attributes": {
+          "route": "/api/portfolio/valuation",
+          "status": 500,
+          "error": {
+            "kind": "TypeError",
+            "message": "n.px.toFixed is not a function",
+            "stack": "TypeError: n.px.toFixed is not a function\n    at valuationRow (file:///srv/client-portal/src/valuation/valuation.js:13:16)\n    at file:///srv/client-portal/src/valuation/valuation.js:27:38\n    at Array.map (<anonymous>)\n    at valuePortfolio (file:///srv/client-portal/src/valuation/valuation.js:27:20)\n    at Server.<anonymous> (file:///srv/client-portal/src/server.js:12:20)"
+          },
+          "feed": {
+            "schema": "2.3",
+            "asof": "2026-09-25T06:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "id": "AQAAAZ-20260925T060203Z",
+      "type": "log",
+      "attributes": {
+        "timestamp": "2026-09-25T06:02:03Z",
+        "status": "error",
+        "service": "client-portal",
+        "host": "portal-prod-eu-west-1-3f9c",
+        "tags": [
+          "env:prod",
+          "version:31.4.2",
+          "team:client-digital"
+        ],
+        "message": "{\"level\": \"error\", \"service\": \"client-portal\", \"route\": \"/api/portfolio/valuation\", \"error\": \"n.px.toFixed is not a function\", \"stack\": \"TypeError: n.px.toFixed is not a function\\n    at valuationRow (file:///srv/client-portal/src/valuation/valuation.js:13:16)\\n    at file:///srv/client-portal/src/valuation/valuation.js:27:38\\n    at Array.map (<anonymous>)\\n    at valuePortfolio (file:///srv/client-portal/src/valuation/valuation.js:27:20)\\n    at Server.<anonymous> (file:///srv/client-portal/src/server.js:12:20)\"}",
+        "attributes": {
+          "route": "/api/portfolio/valuation",
+          "status": 500,
+          "error": {
+            "kind": "TypeError",
+            "message": "n.px.toFixed is not a function",
+            "stack": "TypeError: n.px.toFixed is not a function\n    at valuationRow (file:///srv/client-portal/src/valuation/valuation.js:13:16)\n    at file:///srv/client-portal/src/valuation/valuation.js:27:38\n    at Array.map (<anonymous>)\n    at valuePortfolio (file:///srv/client-portal/src/valuation/valuation.js:27:20)\n    at Server.<anonymous> (file:///srv/client-portal/src/server.js:12:20)"
+          },
+          "feed": {
+            "schema": "2.3",
+            "asof": "2026-09-25T06:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "id": "AQAAAZ-20260925T060319Z",
+      "type": "log",
+      "attributes": {
+        "timestamp": "2026-09-25T06:03:19Z",
+        "status": "error",
+        "service": "client-portal",
+        "host": "portal-prod-eu-west-1-3f9c",
+        "tags": [
+          "env:prod",
+          "version:31.4.2",
+          "team:client-digital"
+        ],
+        "message": "{\"level\": \"error\", \"service\": \"client-portal\", \"route\": \"/api/portfolio/valuation\", \"error\": \"n.px.toFixed is not a function\", \"stack\": \"TypeError: n.px.toFixed is not a function\\n    at valuationRow (file:///srv/client-portal/src/valuation/valuation.js:13:16)\\n    at file:///srv/client-portal/src/valuation/valuation.js:27:38\\n    at Array.map (<anonymous>)\\n    at valuePortfolio (file:///srv/client-portal/src/valuation/valuation.js:27:20)\\n    at Server.<anonymous> (file:///srv/client-portal/src/server.js:12:20)\"}",
+        "attributes": {
+          "route": "/api/portfolio/valuation",
+          "status": 500,
+          "error": {
+            "kind": "TypeError",
+            "message": "n.px.toFixed is not a function",
+            "stack": "TypeError: n.px.toFixed is not a function\n    at valuationRow (file:///srv/client-portal/src/valuation/valuation.js:13:16)\n    at file:///srv/client-portal/src/valuation/valuation.js:27:38\n    at Array.map (<anonymous>)\n    at valuePortfolio (file:///srv/client-portal/src/valuation/valuation.js:27:20)\n    at Server.<anonymous> (file:///srv/client-portal/src/server.js:12:20)"
+          },
+          "feed": {
+            "schema": "2.3",
+            "asof": "2026-09-25T06:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "id": "AQAAAZ-20260925T060405Z",
+      "type": "log",
+      "attributes": {
+        "timestamp": "2026-09-25T06:04:05Z",
+        "status": "error",
+        "service": "client-portal",
+        "host": "portal-prod-eu-west-1-3f9c",
+        "tags": [
+          "env:prod",
+          "version:31.4.2",
+          "team:client-digital"
+        ],
+        "message": "{\"level\": \"error\", \"service\": \"client-portal\", \"route\": \"/api/portfolio/valuation\", \"error\": \"n.px.toFixed is not a function\", \"stack\": \"TypeError: n.px.toFixed is not a function\\n    at valuationRow (file:///srv/client-portal/src/valuation/valuation.js:13:16)\\n    at file:///srv/client-portal/src/valuation/valuation.js:27:38\\n    at Array.map (<anonymous>)\\n    at valuePortfolio (file:///srv/client-portal/src/valuation/valuation.js:27:20)\\n    at Server.<anonymous> (file:///srv/client-portal/src/server.js:12:20)\"}",
+        "attributes": {
+          "route": "/api/portfolio/valuation",
+          "status": 500,
+          "error": {
+            "kind": "TypeError",
+            "message": "n.px.toFixed is not a function",
+            "stack": "TypeError: n.px.toFixed is not a function\n    at valuationRow (file:///srv/client-portal/src/valuation/valuation.js:13:16)\n    at file:///srv/client-portal/src/valuation/valuation.js:27:38\n    at Array.map (<anonymous>)\n    at valuePortfolio (file:///srv/client-portal/src/valuation/valuation.js:27:20)\n    at Server.<anonymous> (file:///srv/client-portal/src/server.js:12:20)"
+          },
+          "feed": {
+            "schema": "2.3",
+            "asof": "2026-09-25T06:00:00Z"
+          }
+        }
+      }
+    }
+  ],
+  "meta": {
+    "page": {
+      "after": null
+    },
+    "status": "done",
+    "elapsed": 112
+  }
+}

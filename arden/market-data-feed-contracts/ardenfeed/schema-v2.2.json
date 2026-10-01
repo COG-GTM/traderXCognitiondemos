@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ArdenFeed quote batch v2.2",
+  "type": "object",
+  "required": ["schema", "quotes"],
+  "properties": {
+    "schema": { "const": "2.2" },
+    "quotes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["isin", "px", "ccy", "asof"],
+        "properties": {
+          "isin": { "type": "string", "pattern": "^[A-Z]{2}[A-Z0-9]{9}[0-9]$" },
+          "px": { "type": "number" },
+          "ccy": { "type": "string", "pattern": "^[A-Z]{3}$" },
+          "asof": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}

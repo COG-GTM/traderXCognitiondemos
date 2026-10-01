@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ArdenFeed quote batch v2.3",
+  "description": "Effective 25 Sep 2026 06:00 UTC. px becomes an object so multi-currency lines can carry their own ccy. ccy at quote level is deprecated.",
+  "type": "object",
+  "required": ["schema", "quotes"],
+  "properties": {
+    "schema": { "const": "2.3" },
+    "quotes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["isin", "px", "asof"],
+        "properties": {
+          "isin": { "type": "string", "pattern": "^[A-Z]{2}[A-Z0-9]{9}[0-9]$" },
+          "px": {
+            "type": "object",
+            "required": ["v", "ccy"],
+            "properties": { "v": { "type": "number" }, "ccy": { "type": "string", "pattern": "^[A-Z]{3}$" } }
+          },
+          "asof": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}

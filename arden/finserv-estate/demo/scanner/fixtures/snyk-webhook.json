@@ -1,0 +1,52 @@
+{
+  "_comment": "Snyk-shaped webhook payload (project_snapshot/v0) for the post-Artifactory sweep. Fixture: repo names, IDs and hashes are synthetic. Shape follows https://docs.snyk.io/snyk-api/webhooks; only the fields normalize.py reads are guaranteed.",
+  "event": "project_snapshot/v0",
+  "group": { "id": "grp-arden", "name": "Arden Capital Markets" },
+  "org": { "id": "org-arden-posttrade", "name": "arden-post-trade" },
+  "receivedAt": "2026-09-25T07:14:02Z",
+  "projects": [
+    {
+      "id": "p-platform-terraform", "name": "ardencm/platform-terraform:artifactory/main.tf", "type": "terraformconfig", "origin": "github",
+      "branch": "main", "targetFile": "artifactory/main.tf",
+      "issues": [
+        { "id": "SNYK-CC-ARDEN-82329", "issueType": "configuration", "title": "JFrog Artifactory 7.111.19 vulnerable to CVE-2026-82329 (authentication bypass, self-hosted)", "severity": "critical",
+          "identifiers": { "CVE": ["CVE-2026-82329"], "CWE": ["CWE-287"] }, "cvssScore": 9.8, "isUpgradable": true,
+          "fixedIn": ["7.111.21"], "package": "jfrog/artifactory", "version": "7.111.19", "path": ["artifactory/main.tf:10"], "exploitMaturity": "mature",
+          "notes": "Public exploitation observed from 28 Aug 2026 (Fastly). Chained with CVE-2026-42016/42018 in observed intrusions (Wiz, 14 Sep)." },
+        { "id": "SNYK-CC-ARDEN-TOKENTTL", "issueType": "configuration", "title": "Artifactory access tokens default to non-expiring (expires_in_seconds = 0)", "severity": "high",
+          "identifiers": { "CWE": ["CWE-613"] }, "isUpgradable": false, "package": "jfrog/artifactory", "path": ["artifactory/main.tf:23"] },
+        { "id": "SNYK-CC-ARDEN-INGRESS", "issueType": "configuration", "title": "Artifactory ingress open to 0.0.0.0/0", "severity": "high",
+          "identifiers": { "CWE": ["CWE-284"] }, "isUpgradable": false, "package": "jfrog/artifactory", "path": ["artifactory/main.tf:20"] },
+        { "id": "SNYK-CC-ARDEN-CITOKENS", "issueType": "configuration", "title": "CI identity tokens created with expires_in = 0 for 11 repos", "severity": "high",
+          "identifiers": { "CWE": ["CWE-613"] }, "isUpgradable": false, "package": "artifactory_scoped_token", "path": ["artifactory/ci-tokens.tf:6"] }
+      ]
+    },
+    { "id": "p-confirmation-service-secrets", "name": "ardencm/confirmation-service:ci/settings.xml", "type": "secrets", "origin": "github", "branch": "main", "targetFile": "ci/settings.xml",
+      "issues": [ { "id": "SNYK-SECRET-ARDEN-0417", "issueType": "secret", "title": "Hard-coded JFrog Artifactory identity token", "severity": "critical", "identifiers": { "CWE": ["CWE-798"] }, "path": ["ci/settings.xml:7"], "isUpgradable": false, "notes": "Token issued 2024-03-19 (identity token, non-expiring). Falls inside Fastly revoke-window guidance (issued or used since 28 Aug 2026)." } ] },
+    { "id": "p-fx-funding-service-secrets", "name": "ardencm/fx-funding-service:ci/settings.xml", "type": "secrets", "origin": "github", "branch": "main", "targetFile": "ci/settings.xml",
+      "issues": [ { "id": "SNYK-SECRET-ARDEN-0418", "issueType": "secret", "title": "Hard-coded JFrog Artifactory identity token", "severity": "critical", "identifiers": { "CWE": ["CWE-798"] }, "path": ["ci/settings.xml:7"], "isUpgradable": false } ] },
+    { "id": "p-corporate-actions-service-secrets", "name": "ardencm/corporate-actions-service:ci/settings.xml", "type": "secrets", "origin": "github", "branch": "main", "targetFile": "ci/settings.xml",
+      "issues": [ { "id": "SNYK-SECRET-ARDEN-0419", "issueType": "secret", "title": "Hard-coded JFrog Artifactory identity token", "severity": "critical", "identifiers": { "CWE": ["CWE-798"] }, "path": ["ci/settings.xml:7"], "isUpgradable": false } ] },
+    { "id": "p-risk-lib-secrets", "name": "ardencm/risk-lib:pip.conf", "type": "secrets", "origin": "github", "branch": "main", "targetFile": "pip.conf",
+      "issues": [ { "id": "SNYK-SECRET-ARDEN-0420", "issueType": "secret", "title": "Artifactory identity token embedded in pip index URL", "severity": "critical", "identifiers": { "CWE": ["CWE-798"] }, "path": ["pip.conf:2"], "isUpgradable": false } ] },
+    { "id": "p-client-portal-secrets", "name": "ardencm/client-portal:.npmrc", "type": "secrets", "origin": "github", "branch": "main", "targetFile": ".npmrc",
+      "issues": [ { "id": "SNYK-SECRET-ARDEN-0421", "issueType": "secret", "title": "Artifactory npm _authToken committed", "severity": "critical", "identifiers": { "CWE": ["CWE-798"] }, "path": [".npmrc:2"], "isUpgradable": false } ] },
+
+    { "id": "p-allocation-service", "name": "ardencm/allocation-service:pom.xml", "type": "maven", "origin": "github", "branch": "main", "targetFile": "pom.xml",
+      "issues": [ { "id": "SNYK-JAVA-ORGYAML-3152153", "issueType": "vuln", "title": "Arbitrary Code Execution in org.yaml:snakeyaml", "severity": "critical", "identifiers": { "CVE": ["CVE-2022-1471"], "CWE": ["CWE-502"] }, "cvssScore": 9.8, "package": "org.yaml:snakeyaml", "version": "1.33", "isUpgradable": true, "fixedIn": ["2.0"], "from": ["com.ardencm.posttrade:allocation-service@4.12.0", "com.ardencm.posttrade:core-dates@1.4.0", "org.yaml:snakeyaml@1.33"], "upgradePath": [false, "com.ardencm.posttrade:core-dates@1.5.0", "org.yaml:snakeyaml@2.2"] } ] },
+    { "id": "p-confirmation-service", "name": "ardencm/confirmation-service:pom.xml", "type": "maven", "origin": "github", "branch": "main", "targetFile": "pom.xml",
+      "issues": [ { "id": "SNYK-JAVA-ORGYAML-3152153", "issueType": "vuln", "title": "Arbitrary Code Execution in org.yaml:snakeyaml", "severity": "critical", "identifiers": { "CVE": ["CVE-2022-1471"] }, "cvssScore": 9.8, "package": "org.yaml:snakeyaml", "version": "1.33", "isUpgradable": true, "fixedIn": ["2.0"], "from": ["com.ardencm.posttrade:confirmation-service@7.3.1", "com.ardencm.posttrade:core-dates@1.4.0", "org.yaml:snakeyaml@1.33"], "upgradePath": [false, "com.ardencm.posttrade:core-dates@1.5.0", "org.yaml:snakeyaml@2.2"] } ] },
+    { "id": "p-settlement-instruction-service", "name": "ardencm/settlement-instruction-service:pom.xml", "type": "maven", "origin": "github", "branch": "main", "targetFile": "pom.xml",
+      "issues": [ { "id": "SNYK-JAVA-ORGYAML-3152153", "issueType": "vuln", "title": "Arbitrary Code Execution in org.yaml:snakeyaml", "severity": "critical", "identifiers": { "CVE": ["CVE-2022-1471"] }, "cvssScore": 9.8, "package": "org.yaml:snakeyaml", "version": "1.33", "isUpgradable": true, "fixedIn": ["2.0"], "from": ["com.ardencm.posttrade:settlement-instruction-service@12.8.2", "com.ardencm.posttrade:core-dates@1.4.0", "org.yaml:snakeyaml@1.33"], "upgradePath": [false, "com.ardencm.posttrade:core-dates@1.5.0", "org.yaml:snakeyaml@2.2"] } ] },
+    { "id": "p-fx-funding-service", "name": "ardencm/fx-funding-service:pom.xml", "type": "maven", "origin": "github", "branch": "main", "targetFile": "pom.xml",
+      "issues": [ { "id": "SNYK-JAVA-ORGYAML-3152153", "issueType": "vuln", "title": "Arbitrary Code Execution in org.yaml:snakeyaml", "severity": "critical", "identifiers": { "CVE": ["CVE-2022-1471"] }, "cvssScore": 9.8, "package": "org.yaml:snakeyaml", "version": "1.33", "isUpgradable": true, "fixedIn": ["2.0"], "from": ["com.ardencm.posttrade:fx-funding-service@3.4.7", "com.ardencm.posttrade:core-dates@1.4.0", "org.yaml:snakeyaml@1.33"], "upgradePath": [false, "com.ardencm.posttrade:core-dates@1.5.0", "org.yaml:snakeyaml@2.2"] } ] },
+    { "id": "p-stock-loan-recall-service", "name": "ardencm/stock-loan-recall-service:pom.xml", "type": "maven", "origin": "github", "branch": "main", "targetFile": "pom.xml",
+      "issues": [ { "id": "SNYK-JAVA-ORGYAML-3152153", "issueType": "vuln", "title": "Arbitrary Code Execution in org.yaml:snakeyaml", "severity": "critical", "identifiers": { "CVE": ["CVE-2022-1471"] }, "cvssScore": 9.8, "package": "org.yaml:snakeyaml", "version": "1.33", "isUpgradable": true, "fixedIn": ["2.0"], "from": ["com.ardencm.posttrade:stock-loan-recall-service@2.9.3", "com.ardencm.posttrade:core-dates@1.4.0", "org.yaml:snakeyaml@1.33"], "upgradePath": [false, "com.ardencm.posttrade:core-dates@1.5.0", "org.yaml:snakeyaml@2.2"] } ] },
+    { "id": "p-corporate-actions-service", "name": "ardencm/corporate-actions-service:pom.xml", "type": "maven", "origin": "github", "branch": "main", "targetFile": "pom.xml",
+      "issues": [ { "id": "SNYK-JAVA-ORGYAML-3152153", "issueType": "vuln", "title": "Arbitrary Code Execution in org.yaml:snakeyaml", "severity": "critical", "identifiers": { "CVE": ["CVE-2022-1471"] }, "cvssScore": 9.8, "package": "org.yaml:snakeyaml", "version": "1.33", "isUpgradable": true, "fixedIn": ["2.0"], "from": ["com.ardencm.posttrade:corporate-actions-service@6.0.4", "com.ardencm.posttrade:core-dates@1.4.0", "org.yaml:snakeyaml@1.33"], "upgradePath": [false, "com.ardencm.posttrade:core-dates@1.5.0", "org.yaml:snakeyaml@2.2"] } ] },
+    { "id": "p-custody-gateway", "name": "ardencm/custody-gateway:pom.xml", "type": "maven", "origin": "github", "branch": "main", "targetFile": "pom.xml",
+      "issues": [ { "id": "SNYK-JAVA-ORGAPACHECOMMONS-6254296", "issueType": "vuln", "title": "Denial of Service (DoS) in org.apache.commons:commons-compress", "severity": "high", "identifiers": { "CVE": ["CVE-2024-25710"] }, "cvssScore": 7.5, "package": "org.apache.commons:commons-compress", "version": "1.24.0", "isUpgradable": true, "fixedIn": ["1.26.0"], "from": ["com.ardencm.posttrade:custody-gateway@9.1.0", "org.apache.commons:commons-compress@1.24.0"], "upgradePath": [false, "org.apache.commons:commons-compress@1.26.0"] } ] },
+    { "id": "p-risk-lib-code", "name": "ardencm/risk-lib", "type": "sast", "origin": "github", "branch": "main", "targetFile": "risk_lib/limits.py",
+      "issues": [ { "id": "SNYK-CODE-PY-YAMLLOAD-0091", "issueType": "code", "title": "Deserialization of Untrusted Data: yaml.load with yaml.Loader", "severity": "high", "identifiers": { "CWE": ["CWE-502"] }, "package": "PyYAML", "version": "5.4.1", "isUpgradable": false, "path": ["risk_lib/limits.py:10"], "notes": "yaml.Loader constructs arbitrary Python objects. Use yaml.safe_load. Snyk SCA also flags PyYAML 5.4.1 as end-of-life; 6.0.2 available." } ] }
+  ]
+}

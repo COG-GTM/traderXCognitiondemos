@@ -1,0 +1,23 @@
+{
+  "id": "7812004411236642001",
+  "alert_id": "183220417",
+  "alert_type": "error",
+  "alert_transition": "Triggered",
+  "alert_status": "Alert",
+  "title": "[Triggered on {service:client-portal,env:prod}] client-portal / valuation 5xx rate",
+  "body": "%%%\n**client-portal / valuation 5xx rate** is above 5% (current value: 100.0%) on route:/api/portfolio/valuation for the last 5 minutes.\n\nRecent error sample: `TypeError: n.px.toFixed is not a function` at src/valuation/valuation.js:14\n\nLast deploy: client-portal 31.4.2 (PORTAL-3312, commit 9c41f0e) at 2026-09-24T21:05:12Z by release-bot.\n\n@slack-inc-client-portal @pagerduty-client-digital\n%%%",
+  "alert_query": "sum(last_5m):sum:trace.http.request.errors{service:client-portal,env:prod,resource_name:GET_/api/portfolio/valuation}.as_count() / sum:trace.http.request.hits{service:client-portal,env:prod,resource_name:GET_/api/portfolio/valuation}.as_count() > 0.05",
+  "alert_scope": "service:client-portal,env:prod",
+  "alert_metric": "trace.http.request.errors",
+  "date": "1790316270000",
+  "last_updated": "1790316270000",
+  "event_type": "query_alert_monitor",
+  "org": {
+    "id": "1000001",
+    "name": "Arden Capital Markets"
+  },
+  "priority": "P2",
+  "tags": "service:client-portal,env:prod,team:client-digital,monitor,route:/api/portfolio/valuation",
+  "link": "https://app.datadoghq.eu/monitors/183220417?group=service%3Aclient-portal%2Cenv%3Aprod",
+  "hostname": "portal-prod-eu-west-1-3f9c"
+}

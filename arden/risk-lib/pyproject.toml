@@ -1,0 +1,14 @@
+[project]
+name = "arden-risk-lib"
+version = "5.2.0"
+description = "Settlement and counterparty exposure calculations for the risk platform."
+requires-python = ">=3.10"
+dependencies = [
+  "PyYAML==5.4.1",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,3 @@
+*                     @ardencm/client-digital
+/src/pricing/         @ardencm/client-digital @ardencm/market-data
+/src/server.js        @ardencm/client-digital

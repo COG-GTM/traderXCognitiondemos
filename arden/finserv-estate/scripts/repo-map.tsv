@@ -1,0 +1,24 @@
+# Where each Arden estate repo lives in the COG-GTM org (no standalone estate repo — Achal's decision, 1 Oct 2026).
+# Columns: estate-repo <TAB> github-repo <TAB> ref <TAB> subdir
+# ref is the branch the demos read from: the feature branch until Achal merges it, then the default branch.
+# Override every ref at once with FS_SOURCE_REF (e.g. FS_SOURCE_REF=main after merge).
+common-java-bom	COG-GTM/Securities-Trade-Processing-System	devin/1790864747-arden-finserv-estate	arden/common-java-bom
+core-dates	COG-GTM/Securities-Trade-Processing-System	devin/1790864747-arden-finserv-estate	arden/core-dates
+iso20022-fix-messages	COG-GTM/Securities-Trade-Processing-System	devin/1790864747-arden-finserv-estate	arden/iso20022-fix-messages
+allocation-service	COG-GTM/Securities-Trade-Processing-System	devin/1790864747-arden-finserv-estate	arden/allocation-service
+confirmation-service	COG-GTM/Securities-Trade-Processing-System	devin/1790864747-arden-finserv-estate	arden/confirmation-service
+settlement-instruction-service	COG-GTM/Securities-Trade-Processing-System	devin/1790864747-arden-finserv-estate	arden/settlement-instruction-service
+custody-gateway	COG-GTM/Securities-Trade-Processing-System	devin/1790864747-arden-finserv-estate	arden/custody-gateway
+fx-funding-service	COG-GTM/Securities-Trade-Processing-System	devin/1790864747-arden-finserv-estate	arden/fx-funding-service
+stock-loan-recall-service	COG-GTM/Securities-Trade-Processing-System	devin/1790864747-arden-finserv-estate	arden/stock-loan-recall-service
+corporate-actions-service	COG-GTM/Securities-Trade-Processing-System	devin/1790864747-arden-finserv-estate	arden/corporate-actions-service
+legacy-position-keeper	COG-GTM/Securities-Trade-Processing-System	devin/1790864747-arden-finserv-estate	arden/legacy-position-keeper
+legacy-stored-procs	COG-GTM/Securities-Trade-Processing-System	devin/1790864747-arden-finserv-estate	arden/legacy-stored-procs
+batch-scheduler-config	COG-GTM/Securities-Trade-Processing-System	devin/1790864747-arden-finserv-estate	arden/batch-scheduler-config
+market-data-feed-contracts	COG-GTM/traderXCognitiondemos	devin/1790864747-arden-finserv-estate	arden/market-data-feed-contracts
+client-portal	COG-GTM/traderXCognitiondemos	devin/1790864747-arden-finserv-estate	arden/client-portal
+eod-pricing-batch	COG-GTM/traderXCognitiondemos	devin/1790864747-arden-finserv-estate	arden/eod-pricing-batch
+risk-lib	COG-GTM/traderXCognitiondemos	devin/1790864747-arden-finserv-estate	arden/risk-lib
+recon-job	COG-GTM/traderXCognitiondemos	devin/1790864747-arden-finserv-estate	arden/recon-job
+platform-terraform	COG-GTM/Springboot-BankApp	devin/1790864747-arden-finserv-estate	arden/platform-terraform
+ci-shared-workflows	COG-GTM/Springboot-BankApp	devin/1790864747-arden-finserv-estate	arden/ci-shared-workflows
