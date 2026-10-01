@@ -10,10 +10,17 @@ elif [[ -z "${JAVA_HOME:-}" || "$(_java_major "$JAVA_HOME")" -lt 17 ]]; then
   done
 fi
 export PATH="$JAVA_HOME/bin:$PATH"
+export PYTHONDONTWRITEBYTECODE=1
 
 log()  { printf '\033[1;36m[estate]\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m[estate]\033[0m %s\n' "$*" >&2; }
 die()  { printf '\033[1;31m[estate]\033[0m %s\n' "$*" >&2; exit 1; }
+
+# git_init_ws — init a seeded workspace repo with the kit-wide excludes (no *.pyc / target/ in demo PRs).
+git_init_ws() {
+  git init -q -b main
+  git config core.excludesFile "$_ESTATE_ROOT/scripts/workspace-excludes"
+}
 
 # git_commit "<message>" "<iso-datetime>"  — commit everything in cwd with a fixed author/date.
 git_commit() {

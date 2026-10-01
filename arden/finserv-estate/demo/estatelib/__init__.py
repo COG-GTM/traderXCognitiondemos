@@ -10,6 +10,8 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
+os.environ.setdefault("PYTHONDONTWRITEBYTECODE", "1")
+
 ESTATE = pathlib.Path(__file__).resolve().parents[2]
 REPOS = ESTATE / "repos"  # local (tarball) layout; absent when the kit runs from COG-GTM/traderXCognitiondemos
 SOURCES = pathlib.Path(os.environ.get("FS_SOURCES", pathlib.Path.home() / "finserv-sources"))

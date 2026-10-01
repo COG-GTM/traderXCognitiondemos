@@ -59,7 +59,7 @@ if [[ "${FS_SEED_GIT:-1}" == "1" ]]; then
   cp -r "$TMP/v140/." "$WORK/" && rm -rf "$WORK/target"
   (
     cd "$WORK"
-    git init -q -b main
+    git_init_ws
     git_commit "feature: core-dates 1.4.0 — TARGET2 calendar, XSWX 2027 holidays" "2026-02-11T10:00:00"
     git tag v1.4.0
     git checkout -q -b release/1.4

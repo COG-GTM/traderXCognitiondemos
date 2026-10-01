@@ -20,7 +20,7 @@ seed_plain() {  # seed_plain <repo> <date>
   rm -rf "$dst"; mkdir -p "$dst"
   cp -a "$(source_dir "$repo")/." "$dst/"
   rm -rf "$dst/target" "$dst/build" "$dst/dist" "$dst/node_modules" "$dst"/**/__pycache__ 2>/dev/null || true
-  (cd "$dst" && git init -q -b main && git_commit "feature: import $repo" "$when")
+  (cd "$dst" && git_init_ws && git_commit "feature: import $repo" "$when")
 }
 
 for r in $(repo_list); do
@@ -32,7 +32,7 @@ done
 dst="$WS/client-portal"; rm -rf "$dst"; mkdir -p "$dst"
 cp -a "$(source_dir client-portal)/." "$dst/"
 cd "$dst"
-git init -q -b main
+git_init_ws
 # 31.4.0 — no memoisation, no CHF fix
 python3 - <<'PY'
 import pathlib, re
@@ -64,7 +64,7 @@ git tag -a v31.4.2 -m "deployed 2026-09-24T21:05:12Z by release-bot"
 dst="$WS/market-data-feed-contracts"; rm -rf "$dst"; mkdir -p "$dst"
 cp -a "$(source_dir market-data-feed-contracts)/." "$dst/"
 cd "$dst"
-git init -q -b main
+git_init_ws
 mv ardenfeed/schema-v2.3.json /tmp/.fs-schema23 && mv ardenfeed/VENDOR-NOTICE-2026-09-11.md /tmp/.fs-notice
 sed -i 's/schema: "2.3"/schema: "2.2"/; s/   # intraday valuation.*//' consumers.yaml
 git_commit "feature: ArdenFeed v2.2 schema and consumer register" "2026-06-02T10:00:00Z"
@@ -84,7 +84,7 @@ dst="$WS/eod-pricing-batch"; rm -rf "$dst"; mkdir -p "$dst"
 cp -a "$(source_dir eod-pricing-batch)/." "$dst/"
 rm -rf "$dst"/**/__pycache__ "$dst/.pytest_cache" 2>/dev/null || true
 cd "$dst"
-git init -q -b main
+git_init_ws
 python3 - <<'PY'
 import pathlib
 p = pathlib.Path("pricing/snapshot.py"); s = p.read_text()
