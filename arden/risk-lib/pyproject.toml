@@ -4,7 +4,7 @@ version = "5.2.0"
 description = "Settlement and counterparty exposure calculations for the risk platform."
 requires-python = ">=3.10"
 dependencies = [
-  "PyYAML==5.4.1",
+  "PyYAML==6.0.2",
 ]
 
 [project.optional-dependencies]
