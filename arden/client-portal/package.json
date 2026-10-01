@@ -1,0 +1,13 @@
+{
+  "name": "@ardencm/client-portal",
+  "version": "31.4.2",
+  "private": true,
+  "description": "Institutional client portal: positions, valuations, settlement status.",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/",
+    "lint": "node --check src/*.js src/**/*.js"
+  }
+}

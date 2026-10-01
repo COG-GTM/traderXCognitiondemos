@@ -1,0 +1,8 @@
+# Who consumes which vendor feed. Used by market-data to notify downstreams of schema changes.
+ardenfeed:
+  - repo: eod-pricing-batch
+    owner: "@ardencm/market-data"
+    schema: "2.3"
+  - repo: client-portal
+    owner: "@ardencm/client-digital"
+    schema: "2.2"   # intraday valuation; not updated for 2.3 (MD-1187 scope was EOD only)

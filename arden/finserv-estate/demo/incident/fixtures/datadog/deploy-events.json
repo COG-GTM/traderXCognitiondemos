@@ -1,0 +1,49 @@
+{
+  "events": [
+    {
+      "id": 991,
+      "title": "Deployed client-portal 31.4.2",
+      "text": "PORTAL-3312 feature: memoise valuation rows for positions table perf \u2014 commit 9c41f0e \u2014 release-bot",
+      "date_happened": 1790283912,
+      "alert_type": "info",
+      "source": "deploy",
+      "tags": [
+        "service:client-portal",
+        "env:prod",
+        "version:31.4.2",
+        "commit:9c41f0e",
+        "ticket:PORTAL-3312"
+      ]
+    },
+    {
+      "id": 990,
+      "title": "Deployed client-portal 31.4.1",
+      "text": "PORTAL-3298 bug: fix CHF number formatting in statements \u2014 commit b7d2a11 \u2014 release-bot",
+      "date_happened": 1789678720,
+      "alert_type": "info",
+      "source": "deploy",
+      "tags": [
+        "service:client-portal",
+        "env:prod",
+        "version:31.4.1",
+        "commit:b7d2a11",
+        "ticket:PORTAL-3298"
+      ]
+    },
+    {
+      "id": 988,
+      "title": "Deployed eod-pricing-batch 7.3.0",
+      "text": "MD-1187 feature: ArdenFeed v2.3 parser \u2014 commit 5d17c0a \u2014 release-bot",
+      "date_happened": 1790106010,
+      "alert_type": "info",
+      "source": "deploy",
+      "tags": [
+        "service:eod-pricing-batch",
+        "env:prod",
+        "version:7.3.0",
+        "commit:5d17c0a",
+        "ticket:MD-1187"
+      ]
+    }
+  ]
+}

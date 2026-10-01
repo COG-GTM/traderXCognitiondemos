@@ -1,0 +1,40 @@
+{
+  "trace_id": "5142330871349226011",
+  "spans": [
+    {
+      "span_id": "1",
+      "service": "client-portal",
+      "name": "http.request",
+      "resource": "GET /api/portfolio/valuation",
+      "start": 1790316245000000000,
+      "duration": 18400000,
+      "error": 1,
+      "meta": {
+        "http.status_code": "500",
+        "http.url": "/api/portfolio/valuation",
+        "version": "31.4.2",
+        "git.commit.sha": "9c41f0e",
+        "error.type": "TypeError",
+        "error.message": "n.px.toFixed is not a function",
+        "error.stack": "TypeError: n.px.toFixed is not a function\n    at valuationRow (file:///srv/client-portal/src/valuation/valuation.js:13:16)\n    at file:///srv/client-portal/src/valuation/valuation.js:27:38\n    at Array.map (<anonymous>)\n    at valuePortfolio (file:///srv/client-portal/src/valuation/valuation.js:27:20)\n    at Server.<anonymous> (file:///srv/client-portal/src/server.js:12:20)"
+      }
+    },
+    {
+      "span_id": "2",
+      "parent_id": "1",
+      "service": "client-portal",
+      "name": "valuation.valuePortfolio",
+      "resource": "valuePortfolio",
+      "start": 1790316245002000000,
+      "duration": 15900000,
+      "error": 1,
+      "meta": {
+        "positions": "3",
+        "quotes.schema": "2.3",
+        "quotes.source": "ardenfeed",
+        "error.type": "TypeError",
+        "error.message": "n.px.toFixed is not a function"
+      }
+    }
+  ]
+}

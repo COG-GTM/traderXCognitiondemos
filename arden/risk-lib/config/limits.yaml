@@ -1,0 +1,7 @@
+limits:
+  - counterparty: BARC
+    limit: 250000000
+  - counterparty: UBSG
+    limit: 180000000
+  - counterparty: BNPP
+    limit: 120000000
