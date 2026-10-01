@@ -433,7 +433,7 @@ TRANCHE_1 = [("core-dates", migrate_core_dates), ("settlement-instruction-servic
 def pr_body(repo: str, attempts: list[dict], branch: str, owners: list[str]) -> str:
     final = attempts[-1]
     status = ("migrated" if all(a["tests_ok"] for a in attempts) else "migrated-with-deviation") if final["tests_ok"] else "blocked"
-    lines = [f"# {PROGRAMME}: T+1 tranche 1 — {repo}", "",
+    lines = [f"# feature: {PROGRAMME} T+1 tranche 1 — {repo}", "",
              f"**Programme:** EU/UK/CH T+1 settlement, go-live {GO_LIVE} · **Branch:** `{branch}` · **Status:** `{status}`",
              target_line(repo), "",
              "Date-gated, not flipped: the cycle is resolved from the trade date, so pre-go-live trades and back-dated corrections keep "

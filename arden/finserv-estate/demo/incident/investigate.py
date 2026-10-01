@@ -220,7 +220,7 @@ def browser_evidence_lines() -> list[str]:
 
 def pr_body(r: dict) -> str:
     s = {x["id"]: x for x in r["steps"]}
-    lines = [f"# {r['incident']}: client-portal valuation 5xx — accept ArdenFeed v2.3 quote shape", "",
+    lines = [f"# bug: {r['incident']} client-portal valuation 5xx — accept ArdenFeed v2.3 quote shape", "",
              f"**Alert:** {r['alert']['title']} · fired {r['alert']['fired_at']} · [monitor]({r['alert']['link']}) · **Branch:** `{r['branch']}` · **Status:** `{r['status']}`",
              target_line("client-portal"), "",
              "## Root cause", f"{s[3]['verdict']}.", "",
