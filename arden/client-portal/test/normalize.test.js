@@ -19,3 +19,14 @@ test('normalises an ArdenFeed v2.3 quote (px wrapped as { v, ccy })', () => {
 test('rejects an unrecognised px shape with a descriptive error', () => {
   assert.throws(() => normalizeQuote({ isin: 'X', px: { value: 1 }, asof: 't' }), /unsupported px/);
 });
+
+test('rejects null, empty or non-numeric px instead of coercing to zero', () => {
+  for (const px of [null, '', '12.4', true, { v: null, ccy: 'GBP' }, { v: '', ccy: 'GBP' }]) {
+    assert.throws(() => normalizeQuote({ isin: 'X', px, ccy: 'GBP', asof: 't' }), /unsupported px/);
+  }
+});
+
+test('rejects a quote with no currency', () => {
+  assert.throws(() => normalizeQuote({ isin: 'X', px: { v: 12.41 }, asof: 't' }), /missing ccy/);
+  assert.throws(() => normalizeQuote({ isin: 'X', px: 12.41, asof: 't' }), /missing ccy/);
+});
