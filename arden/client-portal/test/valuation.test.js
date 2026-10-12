@@ -53,11 +53,21 @@ test('unknown quote shapes fail loudly instead of producing a valuation', () => 
     { px: { v: '12.41', ccy: 'GBP' } },
     { px: { value: 12.41, ccy: 'GBP' } },
     { px: { v: 12.41, ccy: 'gbp' } },
-    { px: { v: 12.41, ccy: 'GBP' }, ccy: 'USD' },
+    { px: { v: 12.41, ccy: ['GBP'] } },
+    { px: 12.41, ccy: ['GBP'] },
     { px: null, ccy: 'GBP' },
     {},
   ]) {
     clearCache();
     assert.throws(() => valuePortfolio(position, { GB0002634946: { ...base, ...shape } }), /Unsupported ArdenFeed quote/, JSON.stringify(shape));
   }
+});
+
+test('v2.3 prices in px.ccy even when the deprecated quote-level ccy is still present', () => {
+  clearCache();
+  const position = [{ account: 'ACC-A', isin: 'GB0002634946', quantity: 100 }];
+  const quote = { isin: 'GB0002634946', px: { v: 12.41, ccy: 'USD' }, ccy: 'GBP', asof: '2026-09-25T06:00:00Z' };
+  const [row] = valuePortfolio(position, { GB0002634946: quote });
+  assert.equal(row.ccy, 'USD');
+  assert.equal(row.marketValue, '1241.00');
 });
