@@ -1,9 +1,13 @@
-// Normalises an ArdenFeed quote (schema v2.2) into { isin, px, ccy, asof }.
+// Normalises an ArdenFeed quote into { isin, px, ccy, asof }.
+// Schema 2.2 sends `px` as a bare number with a quote-level `ccy`;
+// schema 2.3 (effective 2026-09-25) wraps it as `px: { v, ccy }` and drops the quote-level `ccy`.
 export function normalizeQuote(q) {
-  return {
-    isin: q.isin,
-    px: q.px,
-    ccy: q.ccy,
-    asof: q.asof,
-  };
+  if (!q) throw new Error('ArdenFeed quote missing');
+  const wrapped = q.px !== null && typeof q.px === 'object';
+  const px = Number(wrapped ? q.px.v : q.px);
+  const ccy = wrapped ? q.px.ccy ?? q.ccy : q.ccy;
+  if (!Number.isFinite(px)) {
+    throw new Error(`ArdenFeed quote ${q.isin}: unsupported px ${JSON.stringify(q.px)}`);
+  }
+  return { isin: q.isin, px, ccy, asof: q.asof };
 }
