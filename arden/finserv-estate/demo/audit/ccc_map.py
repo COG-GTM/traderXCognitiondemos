@@ -36,17 +36,58 @@ def _comment_above(root: Path, hit: dict) -> str:
     return lines[i].strip().lstrip("#").strip() if i >= 0 and lines[i].strip().startswith("#") else ""
 
 
+TOKEN_BLOCK = re.compile(r'resource\s+"artifactory_scoped_token"|\baccess_token_defaults\s*=')
+EXPIRY = re.compile(r'\bexpires_in(?:_seconds)?\s*=\s*([^\s#]+)')
+
+
+def _var_default(tf: Path, name: str) -> int | None:
+    for f in tf.glob("**/*.tf"):
+        m = re.search(r'variable\s+"%s"\s*{(.*?)\n}' % re.escape(name), f.read_text(), re.S)
+        d = m and re.search(r'\bdefault\s*=\s*(\d+)', m.group(1))
+        if d:
+            return int(d.group(1))
+    return None
+
+
+def token_lifetimes(tf: Path) -> list[dict]:
+    """Every token definition with its effective expiry in seconds (None when missing or unresolvable)."""
+    out = []
+    for f in sorted(tf.glob("**/*.tf")):
+        lines = f.read_text().splitlines()
+        for i, line in enumerate(lines):
+            if not TOKEN_BLOCK.search(line):
+                continue
+            depth, j, seconds, at = 0, i, None, i
+            while j < len(lines):
+                depth += lines[j].count("{") - lines[j].count("}")
+                m = EXPIRY.search(lines[j])
+                if m:
+                    v, at = m.group(1), j
+                    seconds = int(v) if v.isdigit() else _var_default(tf, v[4:]) if v.startswith("var.") else None
+                if depth <= 0 and j > i:
+                    break
+                j += 1
+            out.append({"file": str(f.relative_to(tf.parent)), "line": at + 1, "text": lines[at].strip(), "seconds": seconds})
+    return out
+
+
 def evaluate(tf: Path, wf: Path, chain: dict) -> list[dict]:
     findings = []
 
-    never = _hits(tf, "**/*.tf", r"\bexpires_in(_seconds)?\s*=\s*0\b")
+    tokens = token_lifetimes(tf)
+    never = [k for k in tokens if k["seconds"] == 0]
+    unknown = [k for k in tokens if k["seconds"] is None]
+    route = FIX if never else GAP if (unknown or not tokens) else PASS
     findings.append({
         "control": "CCC.Core.CN13",
-        "route": FIX if never else PASS,
-        "evidence": never or _hits(tf, "**/*.tf", r"\bexpires_in(_seconds)?\s*="),
+        "route": route,
+        "evidence": [{"file": k["file"], "line": k["line"], "text": k["text"]} for k in (never or unknown or tokens)],
         "plain": "Credentials should expire quickly so a leaked one stops working on its own.",
-        "finding": f"{len(never)} token definition(s) never expire" if never else "every token definition has an expiry",
-        "action": f"Devin opened {chain['pr']}" if never else "none",
+        "finding": (f"{len(never)} of {len(tokens)} token definition(s) never expire" if never
+                    else f"{len(unknown)} of {len(tokens)} token definition(s) have no resolvable expiry" if unknown
+                    else "no token definitions found" if not tokens
+                    else f"all {len(tokens)} token definition(s) expire (max {max(k['seconds'] for k in tokens)}s)"),
+        "action": f"Devin opened {chain['pr']}" if never else "Ask the owner to set an explicit expiry" if route == GAP else "none",
     })
 
     open_ingress = _hits(tf, "**/*.tf", r'ingress_cidrs\s*=\s*\[\s*"0\.0\.0\.0/0"')

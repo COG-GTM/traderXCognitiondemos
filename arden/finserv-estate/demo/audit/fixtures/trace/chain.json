@@ -13,7 +13,7 @@
   ],
   "pr_state": {
     "state": "open",
-    "ci": "see PR checks",
+    "ci": "security/snyk passed (1/1)",
     "approved_by": null,
     "merged": false,
     "deployed": false
@@ -25,5 +25,6 @@
     "git commit 304677e; git push -u origin HEAD",
     "address 2 Devin Review findings (rotation before expiry, 6h default); git commit 5c73ebc; git push"
   ],
-  "review_trail": "Devin Review raised 2 findings on PR #327; both fixed in 5c73ebc before human review"
+  "review_trail": "Devin Review raised 2 findings on PR #327; both fixed in 5c73ebc before human review",
+  "pr_state_observed": "2026-10-12T23:55Z"
 }

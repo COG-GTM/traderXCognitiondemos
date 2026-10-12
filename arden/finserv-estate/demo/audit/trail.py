@@ -25,9 +25,16 @@ WINDOW = 100 * 24 * 3600  # documented maximum for time_after..time_before
 
 def fetch_live(org: str, token: str, around: int) -> dict:
     q = urllib.parse.urlencode({"time_after": around - WINDOW // 2, "time_before": around + WINDOW // 2, "first": 200, "order": "asc"})
-    req = urllib.request.Request(f"{API.format(org=org)}?{q}", headers={"Authorization": f"Bearer {token}"})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        return json.load(r)
+    items, after = [], None
+    while True:
+        page_q = q + (f"&after={urllib.parse.quote(after)}" if after else "")
+        req = urllib.request.Request(f"{API.format(org=org)}?{page_q}", headers={"Authorization": f"Bearer {token}"})
+        with urllib.request.urlopen(req, timeout=30) as r:  # any failure aborts: a partial export is never shown
+            page = json.load(r)
+        items += page.get("items", [])
+        if not page.get("has_next_page"):
+            return {"items": items, "end_cursor": None, "has_next_page": False, "total": len(items)}
+        after = page["end_cursor"]
 
 
 def build(chain: dict, ticket: dict, log: dict) -> list[tuple[str, str, str]]:
@@ -35,6 +42,7 @@ def build(chain: dict, ticket: dict, log: dict) -> list[tuple[str, str, str]]:
     session_events = [e for e in log.get("items", []) if sid in json.dumps(e.get("data") or {})]
     started = next((e for e in session_events if e["action"] == "create_session"), None)
     st = chain["pr_state"]
+    snap = f"PR snapshot {chain['pr_state_observed']}; check the live PR"
     def ts(e): return datetime.fromtimestamp(e["created_at"], timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     return [
         ("Why", f"{ticket['key']}: {ticket['summary']}", f"ticket, reported by {ticket['reporter']}"),
@@ -42,9 +50,9 @@ def build(chain: dict, ticket: dict, log: dict) -> list[tuple[str, str, str]]:
          "Devin audit log `create_session`" if started else "no audit-log record for this session"),
         ("What Devin did", "; ".join(chain["commands_run_by_devin"]), f"session transcript {chain['devin_session']}"),
         ("The change", f"{chain['commit']} {chain['commit_message']}", f"PR {chain['pr']} ({chain['pr_footer']})"),
-        ("CI", st["ci"], chain["pr"] + "/checks"),
-        ("Approved by", st["approved_by"] or f"not approved yet; required: {', '.join(chain['required_reviewers'])}", "PR reviews"),
-        ("Deployed", "yes" if st["deployed"] else "no (not merged, not applied)", "PR state"),
+        ("CI", st["ci"], f"{snap}: {chain['pr']}/checks"),
+        ("Approved by", st["approved_by"] or f"not approved yet; required: {', '.join(chain['required_reviewers'])}", f"{snap}: reviews"),
+        ("Deployed", "yes" if st["deployed"] else "no (not merged, not applied)", f"{snap}: merge state"),
     ]
 
 

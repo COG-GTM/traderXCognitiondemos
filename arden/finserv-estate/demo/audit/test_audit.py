@@ -80,3 +80,36 @@ def test_fixture_matches_documented_audit_log_schema():
     assert {"items", "end_cursor", "has_next_page", "total"} <= log.keys()
     for e in log["items"]:
         assert {"audit_log_id", "action", "created_at", "data", "org_id", "user_id", "user_email"} <= e.keys()
+
+
+def test_missing_expiry_is_gap_not_pass(tmp_path):
+    no_expiry = BEFORE_TF.replace("    expires_in_seconds = 0 # 0 = never expires\n", "    refreshable = true\n")
+    assert _routes(ccc_map.evaluate(*_estate(tmp_path, no_expiry), CHAIN))["CCC.Core.CN13"] == "GAP"
+
+
+def test_expiry_from_variable_default_is_resolved(tmp_path):
+    via_var = BEFORE_TF.replace("expires_in_seconds = 0 # 0 = never expires", "expires_in_seconds = var.ttl")
+    via_var += 'variable "ttl" {\n  type    = number\n  default = 21600\n}\n'
+    assert _routes(ccc_map.evaluate(*_estate(tmp_path, via_var), CHAIN))["CCC.Core.CN13"] == "PASS"
+
+
+def test_live_fetch_follows_cursor(monkeypatch):
+    pages = iter([{"items": [{"n": 1}], "has_next_page": True, "end_cursor": "c1"},
+                  {"items": [{"n": 2}], "has_next_page": False, "end_cursor": None}])
+    seen = []
+
+    class R:
+        def __init__(self, req): seen.append(req.full_url); self.p = next(pages)
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def read(self): return json.dumps(self.p).encode()
+
+    monkeypatch.setattr(trail.urllib.request, "urlopen", lambda req, timeout: R(req))
+    log = trail.fetch_live("org_x", "t", 1791848340)
+    assert [i["n"] for i in log["items"]] == [1, 2] and "after=c1" in seen[1]
+
+
+def test_pr_rows_are_labelled_as_snapshot():
+    ticket = json.loads((HERE / "fixtures/trace/PLAT-1142.json").read_text())
+    rows = {q: r for q, _, r in trail.build(CHAIN, ticket, {"items": []})}
+    assert all(rows[q].startswith("PR snapshot") for q in ("CI", "Approved by", "Deployed"))
