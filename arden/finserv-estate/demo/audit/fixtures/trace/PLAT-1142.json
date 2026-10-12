@@ -1,0 +1,8 @@
+{
+  "_fixture": "Arden Jira ticket (synthetic). Real ticket systems are reached through the Jira/Linear integration; this demo stays offline.",
+  "key": "PLAT-1142",
+  "summary": "CCC.Core.CN13: Artifactory CI tokens never expire",
+  "reporter": "internal-audit@ardencm.example",
+  "created": "2026-10-12T23:55:00Z",
+  "description": "Control map for the November platform walkthrough shows expires_in = 0 on 11 per-repo CI tokens and on the Artifactory default. Fix in platform-terraform; revoke old tokens separately."
+}
