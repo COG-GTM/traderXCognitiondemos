@@ -1,0 +1,30 @@
+{
+  "_note": "Real links from the FS-AUDIT pre-run on 2026-10-12. pr_state is a snapshot; check the live PR before showing it.",
+  "ticket": "PLAT-1142",
+  "devin_session": "https://devin-gtm.devinenterprise.com/sessions/bcd8b23df5c042e0b1b51c7fce224869",
+  "pr": "https://github.com/COG-GTM/Springboot-BankApp/pull/327",
+  "branch": "devin/fs-audit-1791848400-ccc-cn13-token-lifetime",
+  "commit": "5c73ebc",
+  "commit_message": "platform-terraform: rotate CI tokens before expiry and sync ARTIFACTORY_TOKEN; 6h default for v4 jobs (follows 304677e, CCC.Core.CN13, PLAT-1142)",
+  "pr_footer": "Devin-Org: engineering",
+  "required_reviewers": [
+    "@ardencm/platform-eng",
+    "@ardencm/security-eng"
+  ],
+  "pr_state": {
+    "state": "open",
+    "ci": "security/snyk passed (1/1)",
+    "approved_by": null,
+    "merged": false,
+    "deployed": false
+  },
+  "commands_run_by_devin": [
+    "git checkout -b devin/fs-audit-1791848400-ccc-cn13-token-lifetime origin/devin/1790864747-arden-finserv-estate",
+    "edit arden/platform-terraform/artifactory/{main.tf,ci-tokens.tf}",
+    "terraform fmt -check -recursive arden/platform-terraform",
+    "git commit 304677e; git push -u origin HEAD",
+    "address 2 Devin Review findings (rotation before expiry, 6h default); git commit 5c73ebc; git push"
+  ],
+  "review_trail": "Devin Review raised 2 findings on PR #327; both fixed in 5c73ebc before human review",
+  "pr_state_observed": "2026-10-12T23:55Z"
+}
