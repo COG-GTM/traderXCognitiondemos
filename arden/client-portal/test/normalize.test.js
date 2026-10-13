@@ -25,14 +25,19 @@ test('v2.2 and v2.3 quotes normalise identically', () => {
   );
 });
 
-test('unknown or inconsistent quote shapes fail loudly instead of producing a number', () => {
+test('v2.3 px.ccy takes precedence over the deprecated quote-level ccy', () => {
+  const n = normalizeQuote({ isin: 'GB0002634946', px: { v: 12.41, ccy: 'GBP' }, ccy: 'USD', asof: '2026-09-25T06:00:00Z' });
+  assert.equal(n.px, 12.41);
+  assert.equal(n.ccy, 'GBP');
+});
+
+test('unknown quote shapes fail loudly instead of producing a number', () => {
   const asof = '2026-09-25T06:00:00Z';
   for (const q of [
     { isin: 'X', px: '12.41', ccy: 'GBP', asof },
     { isin: 'X', px: { value: 12.41, ccy: 'GBP' }, asof },
     { isin: 'X', px: { v: 12.41 }, asof },
     { isin: 'X', px: 12.41, asof },
-    { isin: 'X', px: { v: 12.41, ccy: 'GBP' }, ccy: 'USD', asof },
     undefined,
   ]) {
     assert.throws(() => normalizeQuote(q), TypeError);
