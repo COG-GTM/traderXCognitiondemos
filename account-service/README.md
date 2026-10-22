@@ -42,6 +42,25 @@ gradlew bootRun
 
 Configuration can be found in `application.properties` and can be overridden with env vars or command line parameters
 
+### Access control
+
+All `/account/**` and `/accountuser/**` endpoints use HTTP Basic auth:
+
+| Env var | Purpose |
+|---|---|
+| `ACCOUNT_SERVICE_ADMIN_USERNAME` / `ACCOUNT_SERVICE_ADMIN_PASSWORD` | `ACCOUNT_ADMIN`: read, create (`POST /account/`), rename (`PUT /account/{id}`), assign users |
+| `ACCOUNT_SERVICE_READER_USERNAME` / `ACCOUNT_SERVICE_READER_PASSWORD` | `ACCOUNT_READER`: read only (used by trade-service via `ACCOUNT_SERVICE_USERNAME` / `ACCOUNT_SERVICE_PASSWORD`) |
+| `ACCOUNT_SERVICE_ANONYMOUS_READS` | `false` by default. `docker-compose.yml` sets it to `true` so the local browser UIs can list accounts; writes still require the admin user |
+| `ACCOUNT_SERVICE_CORS_ALLOWED_ORIGINS` | Comma-separated origin allowlist (default `http://localhost:18093,http://localhost:8080`); `*` is ignored |
+
+A user is only created when both its username and password are set. With nothing configured, every account endpoint is rejected.
+Create requests take `{"displayName": "..."}` only; any `id` in the body is ignored. Updates use the path id and return 404 for unknown accounts.
+
+```bash
+curl -u "$ACCOUNT_SERVICE_ADMIN_USERNAME:$ACCOUNT_SERVICE_ADMIN_PASSWORD" -H 'Content-Type: application/json' \
+  -d '{"displayName":"new account"}' http://localhost:18088/account/
+```
+
 ``` 
 ## Simple Testing of Account Service`
 
