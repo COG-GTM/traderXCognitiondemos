@@ -4,7 +4,7 @@ services:
   database:
     restart: always
     environment:
-      - DATABASE_WEB_HOSTNAMES=${TRADERX_FQDN:-localhost}
+      - DATABASE_DBPASS=${DATABASE_DBPASS:?Set DATABASE_DBPASS to a strong database password}
     image: database
     build:
       context: database
@@ -12,12 +12,6 @@ services:
     working_dir: /database
     expose:
       - 18082
-      - 18083
-      - 18084
-    ports:
-      - 18082:18082
-      - 18083:18083
-      - 18084:18084
     volumes:
       # Mount the root folder that contains .git
       - .:/workspace:cached
@@ -88,6 +82,7 @@ services:
       - 18088:18088
     environment:
       - DATABASE_TCP_HOST=database
+      - DATABASE_DBPASS=${DATABASE_DBPASS:?Set DATABASE_DBPASS to a strong database password}
       - PEOPLE_SERVICE_HOST=people-service
     volumes:
       # Mount the root folder that contains .git
@@ -111,6 +106,7 @@ services:
       - 18090:18090
     environment:
       - DATABASE_TCP_HOST=database
+      - DATABASE_DBPASS=${DATABASE_DBPASS:?Set DATABASE_DBPASS to a strong database password}
     volumes:
       # Mount the root folder that contains .git
       - .:/workspace:cached
@@ -161,6 +157,7 @@ services:
       - 18091:18091
     environment:
       - DATABASE_TCP_HOST=database
+      - DATABASE_DBPASS=${DATABASE_DBPASS:?Set DATABASE_DBPASS to a strong database password}
       - TRADE_FEED_HOST=trade-feed
     volumes:
       # Mount the root folder that contains .git

@@ -6,29 +6,36 @@
 
 This is designed to play the role of a SQL database that runs standalone as part of an example environment. The other processes in this environment interact with this via SQL / JDBC drivers and therefore this component can be swapped out in other iterations of this environment and replaced with a robust and productionizable RDBMS.
 
-This uses H2 Java-based database as a standalone server, has NO authentication by default, and initializes with an empty SQL schema every time it is started.
+This uses H2 Java-based database as a standalone server and initializes with an empty SQL schema every time it is started.
+
+## Security
+
+- `DATABASE_DBPASS` is **required** and has no default. `run.sh` refuses to start if it is unset, shorter than 12 characters, or a well-known default such as `sa`. The same value must be supplied to `account-service`, `position-service` and `trade-processor`.
+- Upgrading from the old `sa`/`sa` default: an existing `./_data` database still stores the old password, so `run.sh` will fail authentication. Because `initialSchema.sql` drops and recreates all tables on every start, delete `./_data` and start again; no data is lost that would not already be reset.
+- Only the TCP server (`$DATABASE_TCP_PORT`) accepts connections from other hosts, because the Java services connect to it over the network. Do not publish it outside the internal network.
+- The PG server and the H2 web console are **disabled by default**. Set `DATABASE_PG_SERVER=true` and/or `DATABASE_WEB_CONSOLE=true` to enable them for local debugging; they then only listen on `localhost` inside the database container/host and are not routed through the ingress.
 
 ## Default Port Numbers
 | Protocol | Port Number |
 | :--- | :--- |
 | TCP | 18082 |
-| PG | 18083 |
-| HTTP | 18084 |
+| PG | 18083 (disabled by default, localhost only) |
+| HTTP | 18084 (disabled by default, localhost only) |
  
 ## Connecting to this database remotely
 You can use the `$DATABASE_TCP_PORT`  or `$DATABASE_PG_PORT` and the database URL in JDBC is `jdbc:h2:./_data/traderx`
 
-The default username and password are both *sa*
+The default username is `sa`; the password is whatever you set in `$DATABASE_DBPASS`.
 
 ## Connecting to the web console
 You can use the `$DATABASE_HTTP_PORT`  or `$DATABASE_PG_PORT` and the database URL in JDBC is `jdbc:h2:traderx` (This is because -baseDir is already set to ./_data) - NOTE you will have to change the default setting in the web console which often uses a home directory path. 
 
-The default username and password are both `sa`
+The web console is only available when `DATABASE_WEB_CONSOLE=true` and only from `localhost` on the machine running the database. Log in with `$DATABASE_DBUSER` / `$DATABASE_DBPASS`.
 
 The database you want to use in the H2 GUI is `./traderx` (This may not be the default listed in the GUI)
 
-## Using Web Console behind proxy/K8S/Env
-By default, the hostname, localhost, 127.0.0.1 are all valid host headers to access the database. If you wish to connect using another IP, or via some proxy/gateway that's set up through K8S or other environment, you will need to specify the hostname your browser is using to access the web console. This is done by setting the environment variable `$DATABASE_WEB_HOSTNAMES` to the hostname you are using to access the web console. This is a comma-delimited list of fully qualified hostnames.
+## Using Web Console in K8S/containers
+The web console is never exposed through the ingress. To use it against a running container, enable it with `DATABASE_WEB_CONSOLE=true` and use a local port-forward (e.g. `kubectl port-forward` or `docker exec`) so the connection still originates from `localhost`.
 
 ## Output Directory
 Data is stored in the local `./_data` directory from where the script is run. This is .gitignore'd 
@@ -47,8 +54,9 @@ This is desinged to run on Linux but can easily run on Windows as well. It launc
 
 Currently the run script has environment variables defined for versions of H2 and common ports. These should be altered (or made configurable outside the script) as the environment matures.
 
-To launch, all that should be needed is running:
+To launch, set a strong password and run:
 ```shell
+$> export DATABASE_DBPASS='<strong password>'
 $> run.sh
 ```
 
@@ -65,21 +73,15 @@ You will see the following output
 
 ```
 
-Runing startup script
-Web Console server running at http://[your IP]:18084 (others can connect)
-finished startup script
 TCP server running at tcp://[your IP]:18082 (others can connect)
-PG server running at pg://[your IP]:18083 (others can connect)
 ```
 
 On my windows PC, it actually doesn't work with the public IP address. Just change the above URLs/Host Addresses to use `localhost`  and they work fine.
 
-Example: http://localhost:18084 
-
 
 ## Accessing the Web Console
 
-1. Visit http://localhost:18084 or whatever port you run your service on
+1. Start the database with `DATABASE_WEB_CONSOLE=true` and visit http://localhost:18084 from the same machine
 2. You should see a web console, prompting you for a username, password, and JDBC URL - Values might not be auto-populated correctly
-3. Username and password should both be `sa` and the JDBC URL should be `jdbc:h2:./traderx` and the Driver should be `Generic H2 Embedded`
+3. Username is `$DATABASE_DBUSER` (default `sa`), password is `$DATABASE_DBPASS`, the JDBC URL should be `jdbc:h2:./traderx` and the Driver should be `Generic H2 Embedded`
 4. Click `Connect`
