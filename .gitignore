@@ -467,3 +467,6 @@ website/.docusaurus
 website/npm-debug.log*
 website/yarn-debug.log*
 website/yarn-error.log*
+
+# Local database credentials for gitops/local
+gitops/local/traderx/database.env

@@ -41,8 +41,10 @@ To specify the host and the port for the TradeFeed instance to subscribe to use 
 To specify the database properties, the following properties should be used
 
     spring.datasource.url=jdbc:h2:tcp://localhost:18082/traderx
-    spring.datasource.username=sa
-    spring.datasource.password=sa
+    spring.datasource.username=${DATABASE_DBUSER:traderx_app}
+    spring.datasource.password=${DATABASE_DBPASS}
+
+`DATABASE_DBPASS` has no default and must match the password the [database](../database/README.md) was started with.
 
 
 You can see all configuration details in [src/main/resources/application.properties](application.properties)

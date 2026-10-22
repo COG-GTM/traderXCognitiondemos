@@ -3,6 +3,11 @@ extension radius
 // Parameters
 param application string
 
+@secure()
+@minLength(12)
+@description('Password of the least-privilege TraderX database application user')
+param databasePassword string
+
 resource database 'Applications.Core/containers@2023-10-01-preview' = {
   name: 'database'
   properties: {
@@ -13,11 +18,10 @@ resource database 'Applications.Core/containers@2023-10-01-preview' = {
         tcp: {
           containerPort: 18082
         }
-        pg:{
-          containerPort: 18083
-        }
-        web: {
-          containerPort: 18084
+      }
+      env: {
+        DATABASE_DBPASS: {
+          value: databasePassword
         }
       }
     }
@@ -81,6 +85,9 @@ resource accountservice 'Applications.Core/containers@2023-10-01-preview' = {
         }
       }
       env: {
+        DATABASE_DBPASS: {
+          value: databasePassword
+        }
         DATABASE_TCP_HOST: {
           value: database.name
         }
@@ -112,6 +119,9 @@ resource positionservice 'Applications.Core/containers@2023-10-01-preview' = {
         }
       }
       env: {
+        DATABASE_DBPASS: {
+          value: databasePassword
+        }
         DATABASE_TCP_HOST: {
           value: database.name
         }
@@ -186,6 +196,9 @@ resource tradeprocessor 'Applications.Core/containers@2023-10-01-preview' = {
         }
       }
       env: {
+        DATABASE_DBPASS: {
+          value: databasePassword
+        }
         DATABASE_TCP_HOST: {
           value: database.name
         }
