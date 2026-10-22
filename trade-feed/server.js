@@ -6,6 +6,7 @@ const { authenticate, canSubscribe, canPublish, isOriginAllowed } = require('./a
 // command names
 const SUBSCRIBE = "subscribe";
 const UNSUBSCRIBE = "unsubscribe";
+const MAX_TIMER_MS = 2147483647;
 const PUBLISH = "publish";
 
 const defaultLog = winston.createLogger({
@@ -75,6 +76,15 @@ function createFeedServer(config, log) {
   io.on('connection', (socket) => {
     const identity = socket.data.identity;
     log.info(`New Connection from ${socket.id} as ${identity.kind}:${identity.name}`);
+    if (identity.expiresAt) {
+      // Drop the socket when the user token expires; the client must reconnect with a fresh token.
+      const msLeft = Math.min(identity.expiresAt * 1000 - Date.now(), MAX_TIMER_MS);
+      const expiry = setTimeout(() => {
+        log.info(`Token expired for ${identity.kind}:${identity.name}, disconnecting ${socket.id}`);
+        socket.disconnect(true);
+      }, Math.max(msLeft, 0));
+      socket.on('disconnect', () => clearTimeout(expiry));
+    }
     socket.on(SUBSCRIBE, (topic, ack) => {
       if (!canSubscribe(identity, topic)) {
         log.warn(`Denied subscribe ${JSON.stringify(topic)} for ${identity.kind}:${identity.name}`);
