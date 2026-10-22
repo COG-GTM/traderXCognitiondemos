@@ -44,6 +44,28 @@ gradlew bootRun
 
 Configuration can be found in `application.properties` and can be overridden with env vars or command line parameters
 
+## Authentication and Authorization
+
+`/positions/**` and `/trades/**` require a JWT bearer token (`Authorization: Bearer <jwt>`), typically forwarded by the OIDC proxy in front of the service.
+
+* `GET /positions/{accountId}` and `GET /trades/{accountId}` are only allowed when the token's username claim is mapped to `accountId` in the `AccountUsers` table (managed by account-service). Other accounts, including unknown ones, return `403`.
+* `GET /positions/` and `GET /trades/` (all accounts) require the admin role. Admins may also read any single account.
+* Missing, forged, expired or unsigned tokens return `401`.
+* Swagger UI and the API docs remain public.
+
+| Env var | Default | Purpose |
+|---|---|---|
+| `POSITION_SERVICE_JWT_JWK_SET_URI` | _(none)_ | JWK set URI of the identity provider (preferred) |
+| `POSITION_SERVICE_JWT_HMAC_SECRET` | _(none)_ | HS256 shared secret (at least 32 bytes), used when no JWK set URI is set |
+| `POSITION_SERVICE_JWT_ISSUER` | _(none)_ | Required `iss` value, if set |
+| `POSITION_SERVICE_JWT_AUDIENCE` | _(none)_ | Required `aud` value; mandatory with a JWK set URI (startup fails without it) |
+| `POSITION_SERVICE_JWT_USERNAME_CLAIM` | `preferred_username` | Claim matched against `AccountUsers.Username` |
+| `POSITION_SERVICE_JWT_ROLES_CLAIM` | `roles` | Claim (string or list) holding the caller's roles |
+| `POSITION_SERVICE_ADMIN_ROLE` | `traderx-admin` | Role allowed to list all positions/trades |
+| `POSITION_SERVICE_CORS_ALLOWED_ORIGINS` | _(none)_ | Comma-separated browser origins allowed cross-origin; `*` is ignored |
+
+If neither a JWK set URI nor an HMAC secret is configured, every token is rejected.
+
 
 ## Simple Testing of Position Service`
 
@@ -64,7 +86,7 @@ prism --cors --port 18090 mock openapi.yaml
 You can then try out your requests against the mock service as follows: (or from a browser)
 
 ```bash
-curl -X GET "http://localhost:18090/trades/22214" -H "accept: application/json"
-curl -X GET "http://localhost:18090/positions/22214" -H "accept: application/json"
+curl -X GET "http://localhost:18090/trades/22214" -H "accept: application/json" -H "Authorization: Bearer $TOKEN"
+curl -X GET "http://localhost:18090/positions/22214" -H "accept: application/json" -H "Authorization: Bearer $TOKEN"
 
 ```

@@ -6,6 +6,8 @@ info:
 servers:
   - url: ''
     description: Empty URL to help proxied documentation work
+security:
+  - bearerAuth: []
 paths:
   /trades/{accountId}:
     get:
@@ -28,6 +30,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Trade'
+        '401':
+          description: Missing, invalid or expired bearer token
+        '403':
+          description: Caller is not mapped to this account in AccountUsers
   /trades/:
     get:
       tags:
@@ -42,6 +48,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Trade'
+        '401':
+          description: Missing, invalid or expired bearer token
+        '403':
+          description: Caller does not hold the admin role
   /positions/{accountId}:
     get:
       tags:
@@ -63,6 +73,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Position'
+        '401':
+          description: Missing, invalid or expired bearer token
+        '403':
+          description: Caller is not mapped to this account in AccountUsers
   /positions/:
     get:
       tags:
@@ -77,7 +91,16 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Position'
+        '401':
+          description: Missing, invalid or expired bearer token
+        '403':
+          description: Caller does not hold the admin role
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     Trade:
       type: object
