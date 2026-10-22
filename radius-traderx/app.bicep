@@ -192,6 +192,12 @@ resource tradeprocessor 'Applications.Core/containers@2023-10-01-preview' = {
         TRADE_FEED_HOST: {
           value: tradefeed.name
         }
+        ACCOUNT_SERVICE_HOST: {
+          value: accountservice.name
+        }
+        REFERENCE_DATA_HOST: {
+          value: referencedata.name
+        }
       }
     }
     connections: {
@@ -200,6 +206,12 @@ resource tradeprocessor 'Applications.Core/containers@2023-10-01-preview' = {
       }
       tradefeed: {
         source: tradefeed.id
+      }
+      accountservice: {
+        source: accountservice.id
+      }
+      referencedata: {
+        source: referencedata.id
       }
     }
   }
