@@ -5,4 +5,6 @@ import finos.traderx.accountservice.model.AccountUser;
 import org.springframework.data.repository.CrudRepository;
 
 public interface AccountUserRepository extends CrudRepository<AccountUser, Integer> {
+
+	boolean existsByAccountIdAndUsername(Integer accountId, String username);
 }
