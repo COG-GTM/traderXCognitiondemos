@@ -25,3 +25,7 @@ spec:
           value: database
         - name: TRADE_FEED_HOST
           value: trade-feed
+        - name: ACCOUNT_SERVICE_HOST
+          value: account-service
+        - name: REFERENCE_DATA_HOST
+          value: reference-data
