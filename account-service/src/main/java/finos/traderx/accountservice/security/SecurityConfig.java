@@ -66,19 +66,35 @@ public class SecurityConfig {
 			@Value("${account.security.admin.password:}") String adminPassword,
 			@Value("${account.security.reader.username:}") String readerUsername,
 			@Value("${account.security.reader.password:}") String readerPassword) {
+		// Unconfigured credentials leave the role without any user (fail closed).
+		boolean adminConfigured = isConfigured(adminUsername, adminPassword);
+		boolean readerConfigured = isConfigured(readerUsername, readerPassword);
 		List<UserDetails> users = new ArrayList<>();
-		addUser(users, passwordEncoder, adminUsername, adminPassword, ADMIN_ROLE);
-		addUser(users, passwordEncoder, readerUsername, readerPassword, READER_ROLE);
+		if (adminConfigured && readerConfigured && adminUsername.equals(readerUsername)) {
+			if (!adminPassword.equals(readerPassword)) {
+				throw new IllegalStateException(
+						"Account service admin and reader share username '" + adminUsername
+								+ "' but have different passwords; use distinct usernames or the same password");
+			}
+			users.add(buildUser(passwordEncoder, adminUsername, adminPassword, ADMIN_ROLE, READER_ROLE));
+		} else {
+			if (adminConfigured) {
+				users.add(buildUser(passwordEncoder, adminUsername, adminPassword, ADMIN_ROLE));
+			}
+			if (readerConfigured) {
+				users.add(buildUser(passwordEncoder, readerUsername, readerPassword, READER_ROLE));
+			}
+		}
 		return new InMemoryUserDetailsManager(users);
 	}
 
-	private static void addUser(List<UserDetails> users, PasswordEncoder passwordEncoder, String username,
-			String password, String role) {
-		// Unconfigured credentials leave the role without any user (fail closed).
-		if (username == null || username.isBlank() || password == null || password.isBlank()) {
-			return;
-		}
-		users.add(User.withUsername(username).password(passwordEncoder.encode(password)).roles(role).build());
+	private static boolean isConfigured(String username, String password) {
+		return username != null && !username.isBlank() && password != null && !password.isBlank();
+	}
+
+	private static UserDetails buildUser(PasswordEncoder passwordEncoder, String username, String password,
+			String... roles) {
+		return User.withUsername(username).password(passwordEncoder.encode(password)).roles(roles).build();
 	}
 
 	@Bean
