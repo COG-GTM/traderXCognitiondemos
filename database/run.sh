@@ -47,24 +47,20 @@ echo "Database name is $DATABASE_DBNAME"
 mkdir -p "$DATABASE_DATA_DIR"
 rm -f "$DATABASE_DATA_DIR/$DATABASE_DBNAME.mv.db" "$DATABASE_DATA_DIR/$DATABASE_DBNAME.trace.db"
 
-BOOTSTRAP_SQL=$(mktemp "$DATABASE_DATA_DIR/.bootstrap.XXXXXX.sql")
-trap 'rm -f "$BOOTSTRAP_SQL"' EXIT
-chmod 600 "$BOOTSTRAP_SQL"
+# Bootstrap SQL (contains DATABASE_DBPASS) is streamed over stdin so it never touches disk.
+# User names are quoted (upper-cased, matching H2's login normalisation) so reserved words like USER work.
+APP_USER_IDENT="\"${DATABASE_DBUSER^^}\""
+echo 'Running schema setup script with log output to stdout below'
+echo '---------------------------------------------------------------------------'
 {
   cat initialSchema.sql
   echo
-  echo "CREATE USER $DATABASE_DBUSER PASSWORD $(sql_quote "$DATABASE_DBPASS");"
+  echo "CREATE USER $APP_USER_IDENT PASSWORD $(sql_quote "$DATABASE_DBPASS");"
   # Least privilege: DML only. No ADMIN (blocks CREATE ALIAS / Java code execution) and no DDL.
-  echo "GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA PUBLIC TO $DATABASE_DBUSER;"
-} > "$BOOTSTRAP_SQL"
-
-echo 'Running schema setup script with log output to stdout below'
-echo '---------------------------------------------------------------------------'
-java -cp "$DATABASE_H2JAR" org.h2.tools.RunScript \
+  echo "GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA PUBLIC TO $APP_USER_IDENT;"
+} | java -cp "$DATABASE_H2JAR" org.h2.tools.RunScript \
   -url "jdbc:h2:$DATABASE_DATA_DIR/$DATABASE_DBNAME;DATABASE_TO_UPPER=TRUE" \
-  -user "$DATABASE_ADMIN_USER" -password "$DATABASE_ADMIN_PASS" -script "$BOOTSTRAP_SQL"
-rm -f "$BOOTSTRAP_SQL"
-trap - EXIT
+  -user "$DATABASE_ADMIN_USER" -password "$DATABASE_ADMIN_PASS" -script /dev/stdin
 
 # TCP is the only listener reachable from other hosts (the Java services connect to it).
 # Remote database creation stays disabled (no -ifNotExists), so jdbc:h2:mem:/new files are refused.
