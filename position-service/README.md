@@ -58,7 +58,7 @@ Configuration can be found in `application.properties` and can be overridden wit
 | `POSITION_SERVICE_JWT_JWK_SET_URI` | _(none)_ | JWK set URI of the identity provider (preferred) |
 | `POSITION_SERVICE_JWT_HMAC_SECRET` | _(none)_ | HS256 shared secret (at least 32 bytes), used when no JWK set URI is set |
 | `POSITION_SERVICE_JWT_ISSUER` | _(none)_ | Required `iss` value, if set |
-| `POSITION_SERVICE_JWT_AUDIENCE` | _(none)_ | Required `aud` value, if set |
+| `POSITION_SERVICE_JWT_AUDIENCE` | _(none)_ | Required `aud` value; mandatory with a JWK set URI (startup fails without it) |
 | `POSITION_SERVICE_JWT_USERNAME_CLAIM` | `preferred_username` | Claim matched against `AccountUsers.Username` |
 | `POSITION_SERVICE_JWT_ROLES_CLAIM` | `roles` | Claim (string or list) holding the caller's roles |
 | `POSITION_SERVICE_ADMIN_ROLE` | `traderx-admin` | Role allowed to list all positions/trades |
