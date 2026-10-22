@@ -66,6 +66,12 @@ public class SecurityConfig {
 	JwtDecoder jwtDecoder(SecurityProperties properties) {
 		NimbusJwtDecoder decoder;
 		if (StringUtils.hasText(properties.getJwkSetUri())) {
+			// An IdP key set signs tokens for every client; without an audience check,
+			// tokens minted for other applications would be accepted here.
+			if (!StringUtils.hasText(properties.getAudience())) {
+				throw new IllegalStateException(
+						"traderx.security.jwt.audience must be set when traderx.security.jwt.jwk-set-uri is used");
+			}
 			decoder = NimbusJwtDecoder.withJwkSetUri(properties.getJwkSetUri()).build();
 		} else if (StringUtils.hasText(properties.getHmacSecret())) {
 			byte[] secret = properties.getHmacSecret().getBytes(StandardCharsets.UTF_8);
