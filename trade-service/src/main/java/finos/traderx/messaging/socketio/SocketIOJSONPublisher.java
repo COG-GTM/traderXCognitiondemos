@@ -25,8 +25,19 @@ public abstract class SocketIOJSONPublisher<T> implements Publisher<T>, Initiali
     private static ObjectMapper objectMapper = new ObjectMapper()
             .setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
+    private String authToken;
+
+    /** Service token presented in the Socket.IO handshake ({@code auth.token}). */
+    public void setAuthToken(String token) {
+        authToken = token;
+    }
+
     protected IO.Options getIOOptions() {
-        return new IO.Options();
+        IO.Options options = new IO.Options();
+        if (authToken != null && !authToken.isBlank()) {
+            options.auth = java.util.Map.of("token", authToken);
+        }
+        return options;
     }
 
     org.slf4j.Logger log = LoggerFactory.getLogger(this.getClass().getName());
