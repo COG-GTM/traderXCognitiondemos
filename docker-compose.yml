@@ -111,6 +111,7 @@ services:
       - 18090:18090
     environment:
       - DATABASE_TCP_HOST=database
+      - POSITION_SERVICE_CORS_ALLOWED_ORIGINS=http://localhost:18093,http://localhost:8080
     volumes:
       # Mount the root folder that contains .git
       - .:/workspace:cached
