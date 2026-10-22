@@ -42,7 +42,11 @@ echo "Data will be located in $DATABASE_DATA_DIR"
 echo "Database name is $DATABASE_DBNAME"
 echo 'Running schema setup script with log output to stdout below'
 echo '---------------------------------------------------------------------------'
-java -cp "$DATABASE_H2JAR" org.h2.tools.RunScript -url "jdbc:h2:$DATABASE_DATA_DIR/$DATABASE_DBNAME;DATABASE_TO_UPPER=TRUE;TRACE_LEVEL_SYSTEM_OUT=3" -user "$DATABASE_DBUSER" -password "$DATABASE_DBPASS" -script initialSchema.sql || exit 1
+java -cp "$DATABASE_H2JAR" org.h2.tools.RunScript -url "jdbc:h2:$DATABASE_DATA_DIR/$DATABASE_DBNAME;DATABASE_TO_UPPER=TRUE;TRACE_LEVEL_SYSTEM_OUT=3" -user "$DATABASE_DBUSER" -password "$DATABASE_DBPASS" -script initialSchema.sql || {
+  echo "ERROR: schema setup failed. If $DATABASE_DATA_DIR was created by an older run with the default sa/sa credentials, the stored password no longer matches DATABASE_DBPASS." >&2
+  echo "       initialSchema.sql drops and recreates all tables on every start, so it is safe to delete $DATABASE_DATA_DIR and start again." >&2
+  exit 1
+}
 echo 'Starting Database Server - DB logs below'
 echo '---------------------------------------------------------------------------'
 exec java -cp "$DATABASE_H2JAR" org.h2.tools.Server "${SERVER_ARGS[@]}"

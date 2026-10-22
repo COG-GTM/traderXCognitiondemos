@@ -11,6 +11,7 @@ This uses H2 Java-based database as a standalone server and initializes with an 
 ## Security
 
 - `DATABASE_DBPASS` is **required** and has no default. `run.sh` refuses to start if it is unset, shorter than 12 characters, or a well-known default such as `sa`. The same value must be supplied to `account-service`, `position-service` and `trade-processor`.
+- Upgrading from the old `sa`/`sa` default: an existing `./_data` database still stores the old password, so `run.sh` will fail authentication. Because `initialSchema.sql` drops and recreates all tables on every start, delete `./_data` and start again; no data is lost that would not already be reset.
 - Only the TCP server (`$DATABASE_TCP_PORT`) accepts connections from other hosts, because the Java services connect to it over the network. Do not publish it outside the internal network.
 - The PG server and the H2 web console are **disabled by default**. Set `DATABASE_PG_SERVER=true` and/or `DATABASE_WEB_CONSOLE=true` to enable them for local debugging; they then only listen on `localhost` inside the database container/host and are not routed through the ingress.
 
