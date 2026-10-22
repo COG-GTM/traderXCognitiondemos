@@ -34,6 +34,7 @@ public class TradeService {
     
 	public TradeBookingResult processTrade(TradeOrder order) {
 		log.info("Trade order received : "+order);
+		validate(order);
         Trade t=new Trade();
         t.setAccountId(order.getAccountId());
 
@@ -82,6 +83,24 @@ public class TradeService {
 		}
 		
 		return result;	
+	}
+
+	static void validate(TradeOrder order) {
+		if (order == null) {
+			throw new IllegalArgumentException("Trade order is missing");
+		}
+		if (order.getAccountId() == null || order.getAccountId() <= 0) {
+			throw new IllegalArgumentException("Trade order has an invalid accountId: " + order.getAccountId());
+		}
+		if (!StringUtils.hasText(order.getSecurity())) {
+			throw new IllegalArgumentException("Trade order has no security");
+		}
+		if (order.getSide() == null) {
+			throw new IllegalArgumentException("Trade order has no side");
+		}
+		if (order.getQuantity() == null || order.getQuantity() <= 0) {
+			throw new IllegalArgumentException("Trade order has an invalid quantity: " + order.getQuantity());
+		}
 	}
 
 }

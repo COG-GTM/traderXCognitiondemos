@@ -103,8 +103,11 @@ As of writing, personal Github accounts receive 120 free core hours per month fo
 
 Once you have cloned the repository locally or once your Codespace has started, from the root traderX directory run
 ```
+export TRADE_FEED_TRADE_SERVICE_TOKEN=$(openssl rand -hex 32)
+export TRADE_FEED_TRADE_PROCESSOR_TOKEN=$(openssl rand -hex 32)
 docker compose up
 ```
+The two tokens authenticate trade-service and trade-processor to the trade-feed message bus (see [trade-feed/README.md](trade-feed/README.md)). Compose refuses to start without them; you can also put them in a git-ignored `.env` file.
 On first run this will build all of the containers from the project specific Dockerfile's and then start them in the correct sequence.
 
 The Docker containers are configured via Docker Compose to connect to a shred virtual network enabling them to communciate whether running on your local computer or via a Codespace.
@@ -189,6 +192,8 @@ This command will build and start all locally built applications and deploy them
 cd ./gitops/local/
 tilt up
 ```
+
+The Tiltfile creates a `trade-feed-auth` secret in the `traderx` namespace with random trade-feed service tokens on first run.
 
 
 # Getting Involved
