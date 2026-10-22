@@ -52,6 +52,7 @@ function loadConfig(env) {
     allowedOrigins: splitList(env.TRADE_FEED_ALLOWED_ORIGINS || 'http://localhost:18086,http://localhost:18093,http://localhost:18094,http://localhost:8080'),
     serviceTokens,
     userTokenSecret,
+    userTokenAudience: env.TRADE_FEED_USER_TOKEN_AUDIENCE || 'trade-feed',
     allowAnonymousViewers: env.TRADE_FEED_ALLOW_ANONYMOUS_VIEWERS === 'true'
   };
 }
@@ -67,8 +68,8 @@ function base64urlJson(part) {
 }
 
 // Verifies an HS256 JWT carrying the account ids the user may view:
-// { "sub": "<user>", "accounts": [22214, 22903], "exp": <unix seconds> }
-function verifyUserToken(token, secret, nowSeconds) {
+// { "sub": "<user>", "aud": "trade-feed", "accounts": [22214, 22903], "exp": <unix seconds> }
+function verifyUserToken(token, secret, nowSeconds, audience = 'trade-feed') {
   if (!secret || typeof token !== 'string') return null;
   const parts = token.split('.');
   if (parts.length !== 3) return null;
@@ -85,8 +86,10 @@ function verifyUserToken(token, secret, nowSeconds) {
   if (!safeEqual(expected, parts[2])) return null;
   if (!claims || typeof claims.sub !== 'string' || !claims.sub) return null;
   if (typeof claims.exp !== 'number' || claims.exp <= nowSeconds) return null;
+  const aud = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
+  if (!aud.includes(audience)) return null;
   if (!Array.isArray(claims.accounts) || !claims.accounts.every((a) => Number.isInteger(a) && a > 0)) return null;
-  return { kind: 'user', name: claims.sub, accounts: new Set(claims.accounts) };
+  return { kind: 'user', name: claims.sub, accounts: new Set(claims.accounts), expiresAt: claims.exp };
 }
 
 // Resolves the handshake credentials to an identity, or null when the connection must be refused.
@@ -96,7 +99,7 @@ function authenticate(handshakeAuth, config, nowSeconds) {
     for (const [name, serviceToken] of config.serviceTokens) {
       if (safeEqual(token, serviceToken)) return { kind: 'service', name };
     }
-    return verifyUserToken(token, config.userTokenSecret, nowSeconds);
+    return verifyUserToken(token, config.userTokenSecret, nowSeconds, config.userTokenAudience);
   }
   if (config.allowAnonymousViewers) return { kind: 'viewer', name: 'anonymous' };
   return null;

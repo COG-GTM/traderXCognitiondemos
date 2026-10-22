@@ -57,7 +57,7 @@ services:
       - .:/workspace:cached
     environment:
       - TRADE_FEED_SERVICE_TOKENS=trade-service=${TRADE_FEED_TRADE_SERVICE_TOKEN:?set TRADE_FEED_TRADE_SERVICE_TOKEN (e.g. openssl rand -hex 32)},trade-processor=${TRADE_FEED_TRADE_PROCESSOR_TOKEN:?set TRADE_FEED_TRADE_PROCESSOR_TOKEN (e.g. openssl rand -hex 32)}
-      - TRADE_FEED_ALLOWED_ORIGINS=http://${TRADERX_FQDN:-localhost}:18093,http://${TRADERX_FQDN:-localhost}:8080,http://${TRADERX_FQDN:-localhost}:18086
+      - TRADE_FEED_ALLOWED_ORIGINS=http://${TRADERX_FQDN:-localhost}:18093,http://${TRADERX_FQDN:-localhost}:18094,http://${TRADERX_FQDN:-localhost}:8080,http://${TRADERX_FQDN:-localhost}:18086
       # The demo UI has no login, so it reads account topics anonymously (read-only).
       - TRADE_FEED_ALLOW_ANONYMOUS_VIEWERS=true
     command: npm run start

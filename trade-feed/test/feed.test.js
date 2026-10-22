@@ -71,12 +71,16 @@ test('config requires service tokens', () => {
 
 test('user tokens: signature, alg, expiry and accounts are enforced', () => {
   const now = 1000;
-  const good = { sub: 'alice', accounts: [22214], exp: now + 60 };
+  const good = { sub: 'alice', aud: 'trade-feed', accounts: [22214], exp: now + 60 };
   assert.deepStrictEqual([...auth.verifyUserToken(userToken(good), USER_SECRET, now).accounts], [22214]);
   assert.strictEqual(auth.verifyUserToken(userToken(good, 'w'.repeat(48)), USER_SECRET, now), null);
   assert.strictEqual(auth.verifyUserToken(userToken(good, USER_SECRET, 'none'), USER_SECRET, now), null);
   assert.strictEqual(auth.verifyUserToken(userToken({ ...good, exp: now }), USER_SECRET, now), null);
   assert.strictEqual(auth.verifyUserToken(userToken({ ...good, accounts: ['*'] }), USER_SECRET, now), null);
+  assert.strictEqual(auth.verifyUserToken(userToken({ ...good, aud: 'other-service' }), USER_SECRET, now), null);
+  const { aud, ...noAud } = good;
+  assert.strictEqual(auth.verifyUserToken(userToken(noAud), USER_SECRET, now), null);
+  assert.ok(auth.verifyUserToken(userToken({ ...good, aud: ['other-service', 'trade-feed'] }), USER_SECRET, now));
   const [h, , s] = userToken(good).split('.');
   const forged = Buffer.from(JSON.stringify({ ...good, accounts: [1] })).toString('base64url');
   assert.strictEqual(auth.verifyUserToken(`${h}.${forged}.${s}`, USER_SECRET, now), null);
@@ -110,7 +114,7 @@ test('only trade-service can publish TradeOrders, and the sender is stamped by t
     const processor = await connect(feed.url, { auth: { token: PROCESSOR_TOKEN } }); sockets.push(processor);
     const tradeService = await connect(feed.url, { auth: { token: TRADE_SERVICE_TOKEN } }); sockets.push(tradeService);
     const viewer = await connect(feed.url); sockets.push(viewer);
-    const user = await connect(feed.url, { auth: { token: userToken({ sub: 'alice', accounts: [22214], exp: Math.floor(Date.now() / 1000) + 60 }) } }); sockets.push(user);
+    const user = await connect(feed.url, { auth: { token: userToken({ sub: 'alice', aud: 'trade-feed', accounts: [22214], exp: Math.floor(Date.now() / 1000) + 60 }) } }); sockets.push(user);
     assert.strictEqual((await emitAck(processor, 'subscribe', '/trades')).ok, true);
 
     for (const attacker of [viewer, user, processor]) {
@@ -140,7 +144,7 @@ test('clients cannot subscribe to the wildcard, /trades or other accounts', asyn
   try {
     const processor = await connect(feed.url, { auth: { token: PROCESSOR_TOKEN } }); sockets.push(processor);
     const viewer = await connect(feed.url); sockets.push(viewer);
-    const user = await connect(feed.url, { auth: { token: userToken({ sub: 'alice', accounts: [22214], exp: Math.floor(Date.now() / 1000) + 60 }) } }); sockets.push(user);
+    const user = await connect(feed.url, { auth: { token: userToken({ sub: 'alice', aud: 'trade-feed', accounts: [22214], exp: Math.floor(Date.now() / 1000) + 60 }) } }); sockets.push(user);
 
     for (const topic of ['/*', '*', '/trades', '/accounts/22214/*', '/accounts/x/trades', { $gt: '' }]) {
       assert.strictEqual((await emitAck(viewer, 'subscribe', topic)).ok, false, `viewer ${JSON.stringify(topic)}`);
@@ -169,6 +173,22 @@ test('anonymous viewers are refused unless explicitly enabled', async () => {
   const feed = await startFeed(config());
   try {
     await assert.rejects(connect(feed.url), /unauthorized/);
+  } finally {
+    feed.io.close();
+  }
+});
+
+test('user sockets are disconnected when their token expires', async () => {
+  const feed = await startFeed(config());
+  try {
+    const user = await connect(feed.url, { auth: { token: userToken({ sub: 'alice', aud: 'trade-feed', accounts: [22214], exp: Math.floor(Date.now() / 1000) + 1 }) } });
+    assert.strictEqual((await emitAck(user, 'subscribe', '/accounts/22214/trades')).ok, true);
+    const reason = await new Promise((resolve) => {
+      const t = setTimeout(() => resolve('still connected'), 3000);
+      user.on('disconnect', (r) => { clearTimeout(t); resolve(r); });
+    });
+    assert.strictEqual(reason, 'io server disconnect');
+    user.close();
   } finally {
     feed.io.close();
   }
