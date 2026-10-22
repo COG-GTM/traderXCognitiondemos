@@ -15,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 
 import finos.traderx.messaging.PubSubException;
 import finos.traderx.messaging.Publisher;
+import finos.traderx.tradeservice.exceptions.InvalidTradeOrderException;
 import finos.traderx.tradeservice.exceptions.ResourceNotFoundException;
 import finos.traderx.tradeservice.model.Account;
 import finos.traderx.tradeservice.model.Security;
@@ -40,10 +41,14 @@ public class TradeOrderController {
 	@Value("${account.service.url}")
 	private String accountServiceAddress;
 
+	@Value("${trade.max-quantity:1000000}")
+	private int maxQuantity;
+
 	@Operation(description = "Submit a new trade order")
 	@PostMapping("/")
 	public ResponseEntity<TradeOrder> createTradeOrder(@Parameter(description = "the intendeded trade order") @RequestBody TradeOrder tradeOrder) {
 		log.info("Called createTradeOrder");
+		validateOrder(tradeOrder);
 		
 		if (!validateTicker(tradeOrder.getSecurity())) 
 		{
@@ -62,6 +67,19 @@ public class TradeOrderController {
 			}  catch (PubSubException e){
 				throw new RuntimeException("Failed to publish trade order", e);
 			}
+		}
+	}
+
+	private void validateOrder(TradeOrder tradeOrder)
+	{
+		if (tradeOrder == null || tradeOrder.getAccountId() == null || tradeOrder.getSecurity() == null || tradeOrder.getSide() == null)
+		{
+			throw new InvalidTradeOrderException("Trade order accountId, security and side are required.");
+		}
+		Integer quantity = tradeOrder.getQuantity();
+		if (quantity == null || quantity < 1 || quantity > maxQuantity)
+		{
+			throw new InvalidTradeOrderException("Trade order quantity must be between 1 and " + maxQuantity + ".");
 		}
 	}
 
