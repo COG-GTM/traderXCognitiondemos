@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import finos.traderx.accountservice.exceptions.AccountUserConflictException;
 import finos.traderx.accountservice.exceptions.ResourceNotFoundException;
 import finos.traderx.accountservice.model.Account;
 import finos.traderx.accountservice.model.AccountUser;
@@ -36,12 +37,31 @@ public class AccountUserService {
 		return accountUser.get();
 	}
 
-	public AccountUser upsertAccountUser(AccountUser accountUser) {
-		Optional<Account> account = this.accountRepository.findById(accountUser.getAccountId());
-		if (account.isEmpty()) {
-			throw new ResourceNotFoundException("Account with id " + accountUser.getAccountId() + "not found");
+	public AccountUser createAccountUser(Integer accountId, String username) {
+		requireAccount(accountId);
+		if (this.accountUserRepository.existsByAccountIdAndUsername(accountId, username)) {
+			throw new AccountUserConflictException(username + " is already mapped to account " + accountId);
 		}
-		return this.accountUserRepository.save(accountUser);
+		return this.accountUserRepository.save(newAccountUser(accountId, username));
+	}
+
+	public AccountUser upsertAccountUser(Integer accountId, String username) {
+		requireAccount(accountId);
+		return this.accountUserRepository.save(newAccountUser(accountId, username));
+	}
+
+	private void requireAccount(Integer accountId) {
+		Optional<Account> account = this.accountRepository.findById(accountId);
+		if (account.isEmpty()) {
+			throw new ResourceNotFoundException("Account with id " + accountId + " not found");
+		}
+	}
+
+	private static AccountUser newAccountUser(Integer accountId, String username) {
+		AccountUser accountUser = new AccountUser();
+		accountUser.setAccountId(accountId);
+		accountUser.setUsername(username);
+		return accountUser;
 	}
 
 }

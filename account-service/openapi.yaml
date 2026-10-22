@@ -22,7 +22,9 @@ paths:
       tags:
         - account-user-controller
       operationId: updateAccountUser
-      description: "Update user-account mapping"
+      description: "Creates or replaces a user-account mapping. Requires the admin bearer token; the username must exist in the People service."
+      security:
+        - adminToken: []
       requestBody:
         content:
           application/json:
@@ -36,11 +38,21 @@ paths:
             "application/json":
               schema:
                 $ref: "#/components/schemas/AccountUser"
+        "400":
+          description: Missing accountId or malformed username
+        "401":
+          description: Missing admin bearer token
+        "403":
+          description: Wrong admin token, or administration disabled (ACCOUNT_ADMIN_TOKEN unset)
+        "404":
+          description: Account or person not found
     post:
       tags:
         - account-user-controller
       operationId: createAccountUser
-      description: "Creates a user-account mapping"
+      description: "Creates a user-account mapping. Requires the admin bearer token; the username must exist in the People service."
+      security:
+        - adminToken: []
       requestBody:
         content:
           application/json:
@@ -54,6 +66,16 @@ paths:
             "application/json":
               schema:
                 $ref: "#/components/schemas/AccountUser"
+        "400":
+          description: Missing accountId or malformed username
+        "401":
+          description: Missing admin bearer token
+        "403":
+          description: Wrong admin token, or administration disabled (ACCOUNT_ADMIN_TOKEN unset)
+        "404":
+          description: Account or person not found
+        "409":
+          description: Mapping already exists
   /account/:
     get:
       tags:
@@ -145,6 +167,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Account"
 components:
+  securitySchemes:
+    adminToken:
+      type: http
+      scheme: bearer
+      description: "Value of ACCOUNT_ADMIN_TOKEN (traderx.account-admin.token)"
   schemas:
     AccountList:
       type: array
@@ -164,6 +191,7 @@ components:
           example: 22214
         username:
           type: string
+          pattern: "^[A-Za-z0-9._-]{1,15}$"
           example: user02
     Account:
       type: object
