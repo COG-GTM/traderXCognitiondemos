@@ -18,6 +18,8 @@ rad init
 
 >Select `Yes` when prompted to setup an application in the current directory
 
+The database password is a required secure parameter (`databasePassword`, at least 12 characters, no default). Supply it with `--parameters databasePassword=<strong password>` on the `rad run` / `rad deploy` commands below.
+
 To deploy and run the app in your local environment:
 ```bash
 rad run traderx.bicep

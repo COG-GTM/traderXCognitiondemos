@@ -59,6 +59,7 @@ This is installed locally through normal git clone operations.
 In order to get things working together, it is recommended to select a range of ports to provide all running processes with, so that the pieces can interconnect as needed.  To run this all up 'by hand' here are default ports which are used, and you can easily export these variables to your favorite shell. 
 
 ```bash
+export DATABASE_DBPASS='<strong password>'  # required, no default
 export DATABASE_TCP_PORT=18082
 export DATABASE_PG_PORT=18083
 export DATABASE_WEB_PORT=18084
@@ -101,8 +102,9 @@ To do this
 
 As of writing, personal Github accounts receive 120 free core hours per month for using Codespaces, see the most recent details [here](https://docs.github.com/en/billing/managing-billing-for-github-codespaces/about-billing-for-github-codespaces#monthly-included-storage-and-core-hours-for-personal-accounts) 
 
-Once you have cloned the repository locally or once your Codespace has started, from the root traderX directory run
+Once you have cloned the repository locally or once your Codespace has started, from the root traderX directory set a strong database password (required, there is no default) and run
 ```
+export DATABASE_DBPASS='<strong password>'
 docker compose up
 ```
 On first run this will build all of the containers from the project specific Dockerfile's and then start them in the correct sequence.
@@ -183,10 +185,11 @@ Check your cluster is running using the epic tool `k9s` - https://k9scli.io/
 
 ### Start Tilt
 
-This command will build and start all locally built applications and deploy them to your local K8s environment.
+This command will build and start all locally built applications and deploy them to your local K8s environment. A strong database password is required (there is no default); the Tiltfile stores it in the `traderx-database` Kubernetes Secret.
 
 ```
 cd ./gitops/local/
+export DATABASE_DBPASS='<strong password>'
 tilt up
 ```
 
