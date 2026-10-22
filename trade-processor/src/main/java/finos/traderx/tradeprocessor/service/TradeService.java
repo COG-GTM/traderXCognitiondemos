@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 
 import finos.traderx.messaging.PubSubException;
 import finos.traderx.messaging.Publisher;
+import finos.traderx.tradeprocessor.exceptions.InvalidTradeOrderException;
 import finos.traderx.tradeprocessor.model.*;
 import finos.traderx.tradeprocessor.repository.*;
 
@@ -25,6 +26,9 @@ public class TradeService {
 	@Autowired
 	PositionRepository positionRepository;
 
+	@Autowired
+	TradeOrderValidator tradeOrderValidator;
+
 	
     @Autowired 
     private Publisher<Trade> tradePublisher;
@@ -34,6 +38,7 @@ public class TradeService {
     
 	public TradeBookingResult processTrade(TradeOrder order) {
 		log.info("Trade order received : "+order);
+		tradeOrderValidator.validate(order);
         Trade t=new Trade();
         t.setAccountId(order.getAccountId());
 
@@ -57,7 +62,11 @@ public class TradeService {
 			position.setQuantity(0);
 		}
 		int newQuantity=((order.getSide()==TradeSide.Buy)?1:-1)*t.getQuantity();
-		position.setQuantity(position.getQuantity()+newQuantity);
+		try {
+			position.setQuantity(Math.addExact(position.getQuantity(), newQuantity));
+		} catch (ArithmeticException e) {
+			throw new InvalidTradeOrderException("Trade would overflow the position for account "+order.getAccountId());
+		}
 		log.info("Trade {}",t);
 		tradeRepository.save(t);
 		positionRepository.save(position);

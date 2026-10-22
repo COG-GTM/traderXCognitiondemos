@@ -36,6 +36,21 @@ To specify the host and the port for the TradeFeed instance to subscribe to use 
 
    $ gradlew bootRun --args='--trade.feed.address=http://localhost:18086
 
+## Order validation
+
+Every order is validated in `TradeService.processTrade` before anything is persisted, whether it arrives from the trade feed or over HTTP:
+
+- `accountId` must be positive, `side` must be `Buy` or `Sell`, and `quantity` must be between 1 and `trade.processor.max-order-quantity` (default `1000000`, env `TRADE_PROCESSOR_MAX_ORDER_QUANTITY`).
+- `security` must be a well-formed ticker that exists in reference-data (`reference.data.service.url`, env `REFERENCE_DATA_HOST` / `REFERENCE_DATA_SERVICE_URL`).
+- The account must exist in account-service (`account.service.url`, env `ACCOUNT_SERVICE_HOST` / `ACCOUNT_SERVICE_URL`).
+- Orders that would overflow the resulting position are rejected.
+
+If reference-data or account-service is unreachable, the order is rejected (fail closed).
+
+## Internal order endpoint
+
+`POST /tradeservice/order` is an internal, service-to-service endpoint. It is disabled (returns 404) unless `trade.processor.order.token` (env `TRADE_PROCESSOR_ORDER_TOKEN`) is set, and callers must then send `Authorization: Bearer <token>`. It has no CORS policy and is not routed through the ingress. User-facing order entry goes through trade-service.
+
 ## Database settings
 
 To specify the database properties, the following properties should be used

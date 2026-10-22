@@ -157,11 +157,11 @@ services:
     working_dir: /trade-processor
     expose:
       - 18091
-    ports:
-      - 18091:18091
     environment:
       - DATABASE_TCP_HOST=database
       - TRADE_FEED_HOST=trade-feed
+      - ACCOUNT_SERVICE_HOST=account-service
+      - REFERENCE_DATA_HOST=reference-data
     volumes:
       # Mount the root folder that contains .git
       - .:/workspace:cached
@@ -171,6 +171,8 @@ services:
     depends_on:
       - database
       - trade-feed
+      - account-service
+      - reference-data
   web-front-end-angular:
     restart: always
     image: web-front-end-angular
