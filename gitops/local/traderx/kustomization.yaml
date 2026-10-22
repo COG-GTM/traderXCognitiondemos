@@ -13,4 +13,10 @@ resources:
  - ../../base/trade-feed 
  - ../../base/trade-processor
  - ../../base/trade-service
- - ../../base/web-front-end 
+ - ../../base/web-front-end
+
+# Database credentials are read from the git-ignored database.env (see database.env.example).
+secretGenerator:
+ - name: traderx-database
+   envs:
+    - database.env

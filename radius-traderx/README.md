@@ -20,8 +20,10 @@ rad init
 
 To deploy and run the app in your local environment:
 ```bash
-rad run traderx.bicep
+rad run app.bicep --parameters databasePassword='<strong-password>'
 ```
+
+The `databasePassword` parameter is required: it is the password of the least-privilege application user that the database creates and the Java services use. There is no default.
 
 If you have an Azure environment set up, you can deploy the app there as well (in this example the Azure environment is associated with the `prod-azure` workspace):
 ```bash

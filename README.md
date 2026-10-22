@@ -60,8 +60,7 @@ In order to get things working together, it is recommended to select a range of 
 
 ```bash
 export DATABASE_TCP_PORT=18082
-export DATABASE_PG_PORT=18083
-export DATABASE_WEB_PORT=18084
+export DATABASE_DBPASS='<strong-password>'  # required, no default - see database/README.md
 export REFERENCE_DATA_SERVICE_PORT=18085
 export TRADE_FEED_PORT=18086
 export ACCOUNT_SERVICE_PORT=18088
@@ -101,8 +100,9 @@ To do this
 
 As of writing, personal Github accounts receive 120 free core hours per month for using Codespaces, see the most recent details [here](https://docs.github.com/en/billing/managing-billing-for-github-codespaces/about-billing-for-github-codespaces#monthly-included-storage-and-core-hours-for-personal-accounts) 
 
-Once you have cloned the repository locally or once your Codespace has started, from the root traderX directory run
+Once you have cloned the repository locally or once your Codespace has started, from the root traderX directory set a database password (required, there is no default) and run
 ```
+export DATABASE_DBPASS="$(openssl rand -hex 16)"
 docker compose up
 ```
 On first run this will build all of the containers from the project specific Dockerfile's and then start them in the correct sequence.
@@ -187,6 +187,7 @@ This command will build and start all locally built applications and deploy them
 
 ```
 cd ./gitops/local/
+cp traderx/database.env.example traderx/database.env   # then set DATABASE_DBPASS
 tilt up
 ```
 
