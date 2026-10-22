@@ -18,7 +18,7 @@
   <body>
     <ul id="messages"></ul>
     <form id="form" action="">
-      <input title="Send Message" id="input" autocomplete="off" /><button>Send</button>
+      <input title="Account id" id="input" placeholder="Account id to watch" autocomplete="off" /><button>Watch</button>
     </form>
     <script src="/socket.io/socket.io.js"></script>
 
@@ -36,32 +36,24 @@
       }
 
       
-      form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        if (input.value) {
-          socket.emit(PUBLISH, { topic:'/chat',payload:{message:input.value}});
-          input.value = '';
-        }
-      });
-
       var socket=io();
       const PUBLISH='publish';
       const SUBSCRIBE='subscribe';
-      const UNSUBSCRIBE='unsubscribe';
+      socket.on('connect_error',(err)=>addMessage('ERROR',err.message));
       socket.on(PUBLISH,(data)=>{
         data=typeof(data)!="object"?JSON.parse(data):data;
-        console.log("PUBLISH DATA "+JSON.stringify(data));
         addMessage(data.topic||'GENERAL',data);
       });
 
-      socket.emit(SUBSCRIBE,"/*");
-      
-      // Example:
-      // socket.emit(SUBSCRIBE,"/accounts/12345/trades");
-      // socket.emit(SUBSCRIBE,"/chat");
-      // socket.emit(SUBSCRIBE,"/accounts/12345/positions");
-      
-      
+      // Read-only inspector: account topics only (requires TRADE_FEED_ALLOW_ANONYMOUS_VIEWERS=true).
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (input.value) {
+          socket.emit(SUBSCRIBE,`/accounts/${input.value}/trades`);
+          socket.emit(SUBSCRIBE,`/accounts/${input.value}/positions`);
+          input.value = '';
+        }
+      });
     </script>
   </body>
 </html>
