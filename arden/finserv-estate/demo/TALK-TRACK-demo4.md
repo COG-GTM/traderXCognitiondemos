@@ -6,7 +6,7 @@ Use this presenter script beat by beat. Demo 4 maps five controls, shows one cod
 
 ### 0. Setup
 
-**Run:** `demo/setup-demo.sh` once on a fresh Linux machine. On a fresh clone with an empty HOME and an empty Python environment it took 6.6 seconds (installs PyYAML and pytest, clones the estate repo, runs the tests and a smoke run). A rerun takes about 4 seconds.
+**Run:** `demo/setup-demo4.sh` once on a fresh Linux machine. On a fresh clone with an empty HOME and an empty Python environment it took 6.6 seconds (installs PyYAML and pytest, clones the estate repo, runs the tests and a smoke run). A rerun takes about 4 seconds.
 
 **Show on screen:** The setup terminal ending with `READY: Demo 4, audit readiness and traceability (FINOS CCC.Core v2025.10)`.
 
@@ -91,7 +91,7 @@ Use this presenter script beat by beat. Demo 4 maps five controls, shows one cod
 
 | Step | Measured time |
 |---|---:|
-| `demo/setup-demo.sh` | 6.6 s cold on a fresh machine, about 4 s rerun |
+| `demo/setup-demo4.sh` | 6.6 s cold on a fresh machine, about 4 s rerun |
 | `demo/run-demo4.sh` | about 2.5 s including reset, 0.2 s with `FS_SKIP_RESET=1` |
 | `demo/audit/reset.sh` | 2.1 s |
 

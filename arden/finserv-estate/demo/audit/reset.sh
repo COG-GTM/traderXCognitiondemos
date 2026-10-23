@@ -15,5 +15,5 @@ else
   log "resetting $dir -> origin/$ref"
   git -C "$dir" fetch -q --depth 1 origin "$ref" && git -C "$dir" checkout -q -B "$ref" FETCH_HEAD && git -C "$dir" reset -q --hard FETCH_HEAD
 fi
-python3 -c "import yaml" 2>/dev/null || die "PyYAML missing: run demo/setup-demo.sh first"
+python3 -c "import yaml" 2>/dev/null || die "PyYAML missing: run demo/setup-demo4.sh first"
 log "demo 4 reset complete"

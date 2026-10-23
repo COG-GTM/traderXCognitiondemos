@@ -95,4 +95,5 @@ fi
 
 printf 'READY: Demo 4, audit readiness and traceability (FINOS CCC.Core v2025.10)\n'
 printf 'First command:  cd %s && demo/run-demo4.sh\n' "$KIT_DIR"
+printf 'Talk track:     demo/TALK-TRACK-demo4.md\n'
 printf 'First line:     "Your auditor just asked: show me every platform control, and who changed what, why, and who approved it. Devin answers with one run."\n'
