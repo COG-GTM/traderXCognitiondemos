@@ -1,8 +1,9 @@
 {
   "_fixture": "Shape of GET /v3/enterprise/organizations/{org_id}/audit-logs (https://docs.devin.ai/api-reference/v3/audit-logs/organizations-audit-logs). Field names and action values come from the documented schema; the values are fixtures, and the documented schema types `data` as a free-form object, so its keys here are illustrative. Run demo/audit/trail.py --live with a token that has ViewAccountAuditLogs to replace this file with the real export.",
+  "_captured": "2026-10-12",
   "items": [
-    {"audit_log_id": "fixture-0001", "action": "create_session", "created_at": 1791848340, "org_id": "org_69IXJFLrljx8zSAw", "user_id": "user-c064a969b9054bbda2d0eb6448bd6b99", "user_email": "requester@ardencm.example", "service_user_id": null, "service_user_name": null, "data": {"session_id": "devin-bcd8b23df5c042e0b1b51c7fce224869"}},
-    {"audit_log_id": "fixture-0002", "action": "send_message", "created_at": 1791848350, "org_id": "org_69IXJFLrljx8zSAw", "user_id": "user-c064a969b9054bbda2d0eb6448bd6b99", "user_email": "requester@ardencm.example", "service_user_id": null, "service_user_name": null, "data": {"session_id": "devin-bcd8b23df5c042e0b1b51c7fce224869"}}
+    {"audit_log_id": "fixture-0001", "action": "create_session", "created_at": 1791848340, "org_id": "org-fixture-arden", "user_id": "user-fixture-0001", "user_email": "requester@ardencm.example", "service_user_id": null, "service_user_name": null, "data": {"session_id": "devin-bcd8b23df5c042e0b1b51c7fce224869"}},
+    {"audit_log_id": "fixture-0002", "action": "send_message", "created_at": 1791848350, "org_id": "org-fixture-arden", "user_id": "user-fixture-0001", "user_email": "requester@ardencm.example", "service_user_id": null, "service_user_name": null, "data": {"session_id": "devin-bcd8b23df5c042e0b1b51c7fce224869"}}
   ],
   "end_cursor": null,
   "has_next_page": false,

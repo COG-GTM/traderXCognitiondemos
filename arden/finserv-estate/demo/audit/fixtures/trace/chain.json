@@ -5,6 +5,9 @@
   "pr": "https://github.com/COG-GTM/Springboot-BankApp/pull/327",
   "branch": "devin/fs-audit-1791848400-ccc-cn13-token-lifetime",
   "commit": "5c73ebc",
+  "commit_sha": "5c73ebcadc8529824f467b55be55a9d55e218819",
+  "commit_url": "https://github.com/COG-GTM/Springboot-BankApp/commit/5c73ebcadc8529824f467b55be55a9d55e218819",
+  "ci_status_url": "https://app.snyk.io/org/cognition-default/pr-checks/1c92e861-9e1a-4244-bf8e-1496c79f1e27",
   "commit_message": "platform-terraform: rotate CI tokens before expiry and sync ARTIFACTORY_TOKEN; 6h default for v4 jobs (follows 304677e, CCC.Core.CN13, PLAT-1142)",
   "pr_footer": "Devin-Org: engineering",
   "required_reviewers": [

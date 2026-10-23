@@ -1,6 +1,9 @@
+import os
 import json
 import subprocess
 import sys
+import urllib.error
+from datetime import datetime, timezone
 from pathlib import Path
 
 import yaml
@@ -113,3 +116,112 @@ def test_pr_rows_are_labelled_as_snapshot():
     ticket = json.loads((HERE / "fixtures/trace/PLAT-1142.json").read_text())
     rows = {q: r for q, _, r in trail.build(CHAIN, ticket, {"items": []})}
     assert all(rows[q].startswith("PR snapshot") for q in ("CI", "Approved by", "Deployed"))
+
+
+def test_findings_include_evidence_gap_owners_and_pass_actions(tmp_path):
+    findings = ccc_map.evaluate(*_estate(tmp_path, BEFORE_TF), CHAIN)
+    assert all(f["evidence"] for f in findings)
+    assert all("url" in evidence for f in findings for evidence in f["evidence"])
+    assert all(f.get("owner") and f.get("due") for f in findings if f["route"] == "GAP")
+    assert all(f["action"] == f"No action, monitored by {f['control']}"
+               for f in findings if f["route"] == "PASS")
+
+
+def test_token_instances_count_for_each_and_default_block(tmp_path):
+    terraform = '''resource "artifactory_scoped_token" "ci" {
+  for_each   = toset(var.ci_repos)
+  expires_in = 0
+}
+
+variable "ci_repos" {
+  type = list(string)
+  default = [
+    "repo-a",
+    "repo-b",
+    "repo-c",
+  ]
+}
+
+access_token_defaults = {
+  expires_in_seconds = 0
+}
+'''
+    findings = ccc_map.evaluate(*_estate(tmp_path, terraform), CHAIN)
+    cn13 = next(f for f in findings if f["control"] == "CCC.Core.CN13")
+    assert "4 tokens" in cn13["finding"]
+
+
+def test_cn04_passes_when_cloudtrail_configuration_exists(tmp_path):
+    terraform = BEFORE_TF + '\nresource "aws_cloudtrail" "audit" {}\n'
+    findings = ccc_map.evaluate(*_estate(tmp_path, terraform), CHAIN)
+    cn04 = next(f for f in findings if f["control"] == "CCC.Core.CN04")
+    assert cn04["route"] == "PASS"
+    assert any("aws_cloudtrail" in item["text"] for item in cn04["evidence"])
+
+
+def test_github_permalink_builds_full_source_line_url(tmp_path):
+    repository = tmp_path / "repo"
+    terraform = repository / "arden" / "platform-terraform"
+    terraform.mkdir(parents=True)
+    (terraform / "main.tf").write_text("resource {}\n")
+    subprocess.run(["git", "-C", str(repository), "init", "-q"], check=True)
+    subprocess.run(["git", "-C", str(repository), "remote", "add", "origin", "git@github.com:Acme/x.git"], check=True)
+    subprocess.run(["git", "-C", str(repository), "add", "."], check=True)
+    subprocess.run(["git", "-C", str(repository), "-c", "user.name=Test", "-c", "user.email=test@example.com",
+                    "commit", "-q", "-m", "fixture"], check=True)
+    permalink = ccc_map._github_permalink(terraform)
+    assert permalink is not None
+    url = ccc_map._evidence_url(terraform, {
+        "file": "platform-terraform/main.tf", "line": 1, "text": "resource {}",
+    }, permalink)
+    assert url == f"https://github.com/Acme/x/blob/{permalink[1]}/arden/platform-terraform/main.tf#L1"
+
+
+def test_live_missing_org_falls_back_to_recorded_snapshot(tmp_path):
+    env = os.environ.copy()
+    for key in ("DEVIN_ORG_ID", "DEVIN_AUDIT_TOKEN", "DEVIN_API_KEY"):
+        env.pop(key, None)
+    result = subprocess.run(
+        [sys.executable, str(HERE / "trail.py"), "--live", "--out", str(tmp_path)],
+        capture_output=True, text=True, env=env, check=False,
+    )
+    assert result.returncode == 0
+    assert result.stdout.count("Live audit log unavailable: DEVIN_ORG_ID is not set. Showing recorded snapshot.") == 1
+    assert "Recorded audit snapshot (fixture)" in result.stdout
+    assert "Traceback" not in result.stderr
+
+
+def test_live_http_403_falls_back_without_traceback(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("DEVIN_ORG_ID", "org_x")
+    monkeypatch.setenv("DEVIN_AUDIT_TOKEN", "bogus")
+    monkeypatch.setattr(trail.urllib.request, "urlopen", lambda *args, **kwargs: (_ for _ in ()).throw(
+        urllib.error.HTTPError("https://api.devin.ai", 403, "Forbidden", None, None)))
+    monkeypatch.setattr(sys, "argv", ["trail.py", "--live", "--out", str(tmp_path)])
+    trail.main()
+    output = capsys.readouterr().out
+    assert output.count("Live audit log unavailable: HTTP 403 Forbidden (the token needs ViewAccountAuditLogs). Showing recorded snapshot.") == 1
+    assert "Recorded audit snapshot (fixture)" in output
+    assert "Traceback" not in output
+
+
+def test_risk_memo_and_ci_record_use_safe_current_links(tmp_path):
+    tf, wf = _estate(tmp_path, BEFORE_TF)
+    findings = ccc_map.evaluate(tf, wf, CHAIN)
+    catalog = yaml.safe_load((HERE / "fixtures/ccc-core-v2025.10.yaml").read_text())
+    calendar = yaml.safe_load((HERE / "fixtures/audit-calendar.yaml").read_text())
+    out = tmp_path / "out"
+    ccc_map.write(out, findings, catalog, calendar, CHAIN, tf)
+    memo = (out / "evidence-pack/risk-decision-CN05.md").read_text()
+    assert "FAIL" not in memo
+    ticket = json.loads((HERE / "fixtures/trace/PLAT-1142.json").read_text())
+    rows = {question: record for question, _, record in trail.build(CHAIN, ticket, {"items": []})}
+    assert "/commit/5c73ebc" in rows["CI"]
+    assert "/checks" not in rows["CI"]
+
+
+def test_ticket_precedes_session_creation():
+    ticket = json.loads((HERE / "fixtures/trace/PLAT-1142.json").read_text())
+    log = json.loads((HERE / "fixtures/trace/devin-audit-log.json").read_text())
+    ticket_created = datetime.strptime(ticket["created"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc).timestamp()
+    session_created = next(item["created_at"] for item in log["items"] if item["action"] == "create_session")
+    assert ticket_created < session_created
