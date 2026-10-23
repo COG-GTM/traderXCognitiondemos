@@ -28,10 +28,20 @@ trap '[[ -n "$TEST_PID" ]] && kill "$TEST_PID" 2>/dev/null; true' EXIT
 step() { CURRENT_STEP="$1"; printf '==> %s\n' "$1"; }
 fail() { CURRENT_STEP="$1"; printf 'ERROR: %s\n' "$1" >&2; false; }
 
+is_portal() {  # pid is a client-portal server: cmdline runs src/server.js and cwd is arden/client-portal
+  [[ "$1" =~ ^[0-9]+$ && -r "/proc/$1/cmdline" ]] || return 1
+  tr '\0' ' ' <"/proc/$1/cmdline" 2>/dev/null | grep -q 'src/server.js' || return 1
+  local cwd; cwd=$(readlink "/proc/$1/cwd" 2>/dev/null) || return 1
+  [[ "${cwd% (deleted)}" == */arden/client-portal ]]  # "(deleted)": its worktree was recreated by a rerun
+}
 port_free() { ! (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; }
 stop_port() {  # stop a client-portal we started earlier on this port
   local pidfile="$WORK/portal-$1.pid"
-  if [[ -f "$pidfile" ]]; then kill "$(cat "$pidfile")" 2>/dev/null || true; rm -f "$pidfile"; sleep 1; fi
+  if [[ -f "$pidfile" ]]; then
+    local pid; pid=$(cat "$pidfile")
+    if is_portal "$pid"; then kill "$pid" 2>/dev/null || true; sleep 1; else echo "    stale pid file for :$1 (pid $pid is not the portal), not killing"; fi
+    rm -f "$pidfile"
+  fi
   port_free "$1" || fail "port $1 is in use by another process"
 }
 wait_up() { for _ in $(seq 1 50); do curl -fs "http://127.0.0.1:$1/health" >/dev/null 2>&1 && return 0; sleep 0.2; done; return 1; }
