@@ -2,7 +2,7 @@
 # demo_fleetwide: set up the live fleet-wide CVE remediation situation a presenter hands to Devin.
 #   1. Closes security/* PRs left by earlier LIVE fleetwide runs in the three host repos (never sec-2026-0912 PRs).
 #   2. Prepares this machine: Maven + GCS mirror, FS_SOURCE_MODE=remote reset.sh (core-dates 1.4.0 / 1.4.1 / 1.5.0).
-#   3. Proves the hard case locally: settlement-instruction-service is green at BEFORE, red on core-dates 1.5.0
+#   3. Checks core-dates 1.4.0 embeds snakeyaml 1.33 (1.4.1: 2.2), then proves the hard case locally: settlement-instruction-service is green at BEFORE, red on core-dates 1.5.0
 #      (tag 64 contract), green on 1.4.1.
 #   4. Re-creates demo/arden-live-before with the shared seed-situation.sh and checks the 5 stage findings fan out.
 #   5. Prints READY with the seed URL, prompt 1 and the fallback.
@@ -32,7 +32,7 @@ step() { CURRENT_STEP="$1"; printf '==> %s\n' "$1"; }
 fail() { CURRENT_STEP="$1"; false; }
 
 step "Tools"
-for t in git gh python3 curl java; do command -v "$t" >/dev/null || fail "$t not installed"; done
+for t in git gh python3 curl java unzip; do command -v "$t" >/dev/null || fail "$t not installed"; done
 gh auth status >/dev/null 2>&1 || fail "gh not authenticated"
 
 step "Close security/* PRs from earlier live fleetwide runs"
@@ -65,6 +65,14 @@ XML
   for v in 1.4.0 1.4.1 1.5.0; do
     [[ -f "$HOME/.m2/repository/com/ardencm/posttrade/core-dates/$v/core-dates-$v.jar" ]] || fail "core-dates $v not installed"
   done
+  embedded() { unzip -p "$HOME/.m2/repository/com/ardencm/posttrade/core-dates/$1/core-dates-$1.jar" \
+      META-INF/maven/org.yaml/snakeyaml/pom.properties 2>/dev/null | sed -n "s/^version=//p" || true; }
+  if [[ "$(embedded 1.4.0)" != "1.33" || "$(embedded 1.4.1)" != "2.2" ]]; then
+    step "Reseed core-dates releases (~/.m2 predates the embedded snakeyaml)"
+    FS_SOURCE_MODE=remote FS_RESEED_CORE_DATES=1 "$ESTATE/scripts/reset.sh" >/dev/null
+  fi
+  [[ "$(embedded 1.4.0)" == "1.33" ]] || fail "core-dates 1.4.0 does not embed snakeyaml 1.33 (the finding would be a false positive)"
+  [[ "$(embedded 1.4.1)" == "2.2" ]] || fail "core-dates 1.4.1 does not embed snakeyaml 2.2"
 
   step "Hard case: tag 64 contract green at BEFORE, red on core-dates 1.5.0, green on 1.4.1"
   TMP=$(mktemp -d)
