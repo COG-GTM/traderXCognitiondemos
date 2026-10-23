@@ -360,8 +360,10 @@ def evaluate(tf: Path, wf: Path, chain: dict) -> list[dict]:
                      "url": _tree_url(tf, "platform-terraform")},
                     {"file": "ci-shared-workflows tree", "line": None, "text": "searched ci-shared-workflows",
                      "url": _tree_url(wf, "ci-shared-workflows")},
-                ],
-                "plain": plain, "finding": finding_text,
+                ] + modules,
+                "plain": plain,
+                "finding": finding_text + (f"; {len(modules)} CloudTrail module call(s) found, configuration outside this "
+                                           "tree, owner to confirm" if modules else ""),
                 "scope_note": note,
                 "owner": owner, "due": due, "due_action": action,
                 "action": f"Owner: {owner}. Due {due}: {action}",

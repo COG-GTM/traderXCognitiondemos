@@ -172,10 +172,10 @@ def test_gap_findings_use_short_tree_evidence_labels(tmp_path):
     assert cn04["finding"] == "no CloudTrail or audit-log resource in platform-terraform or ci-shared-workflows"
     assert cn09["finding"] == "no log file validation or Object Lock setting in platform-terraform or ci-shared-workflows"
     assert [item["text"] for item in cn04["evidence"]] == [
-        "searched platform-terraform", "searched ci-shared-workflows",
+        "searched platform-terraform", "searched ci-shared-workflows"
     ]
     assert [item["text"] for item in cn09["evidence"]] == [
-        "searched platform-terraform", "searched ci-shared-workflows",
+        "searched platform-terraform", "searched ci-shared-workflows"
     ]
 
 
@@ -354,7 +354,7 @@ def test_cloudtrail_module_stays_gap_but_is_named(tmp_path):
     cn04 = next(f for f in ccc_map.evaluate(*_estate(tmp_path, tf_text), CHAIN) if f["control"] == "CCC.Core.CN04")
     assert cn04["route"] == "GAP" and cn04["owner"] and "CloudTrail module" in cn04["scope_note"]
     assert [item["text"] for item in cn04["evidence"]] == [
-        "searched platform-terraform", "searched ci-shared-workflows",
+        "searched platform-terraform", "searched ci-shared-workflows", 'module "cloudtrail" {',
     ]
 
 
@@ -373,3 +373,16 @@ def test_log_validation_comparison_is_not_resolved_as_true(tmp_path):
 def test_log_validation_with_block_comment_passes(tmp_path):
     tf_text = BEFORE_TF + '\nresource "aws_cloudtrail" "audit" {\n  enable_log_file_validation = true /* required for audit */\n}\n'
     assert _routes(ccc_map.evaluate(*_estate(tmp_path, tf_text), CHAIN))["CCC.Core.CN09"] == "PASS"
+
+
+def test_cloudtrail_module_is_shown_in_rendered_reports(tmp_path):
+    import yaml
+    tf_text = BEFORE_TF + '\nmodule "cloudtrail" {\n  source = "terraform-aws-modules/cloudtrail/aws"\n}\n'
+    tf, wf = _estate(tmp_path, tf_text)
+    catalog = yaml.safe_load((HERE / "fixtures/ccc-core-v2025.10.yaml").read_text())
+    calendar = yaml.safe_load((HERE / "fixtures/audit-calendar.yaml").read_text())
+    out = tmp_path / "out"
+    ccc_map.write(out, ccc_map.evaluate(tf, wf, CHAIN), catalog, calendar, CHAIN, tf)
+    for f in (out / "control-map.md", out / "control-map.html", out / "evidence-pack/README.md"):
+        text = f.read_text()
+        assert "CloudTrail module call" in text and "platform-terraform/artifactory/main.tf:" in text, f.name
