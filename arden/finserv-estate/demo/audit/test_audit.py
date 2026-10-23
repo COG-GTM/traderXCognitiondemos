@@ -1,5 +1,6 @@
 import os
 import json
+import re
 import subprocess
 import sys
 import urllib.error
@@ -50,12 +51,17 @@ def test_after_fix_cn13_passes_and_cn05_stays_with_risk(tmp_path):
 
 def test_open_ingress_without_recorded_exception_is_a_fix_not_risk(tmp_path):
     no_exc = BEFORE_TF.replace("  # Public ingress kept for the vendor SaaS build agents (ticket PLAT-771, 2023).\n", "")
-    assert _routes(ccc_map.evaluate(*_estate(tmp_path, no_exc), CHAIN))["CCC.Core.CN05"] == "FIX"
+    findings = ccc_map.evaluate(*_estate(tmp_path, no_exc), CHAIN)
+    cn05 = next(f for f in findings if f["control"] == "CCC.Core.CN05")
+    assert cn05["route"] == "FIX"
+    assert cn05["action"] == "Fix needed: no PR opened yet"
 
 
 def test_plain_http_fails_cn01(tmp_path):
-    r = _routes(ccc_map.evaluate(*_estate(tmp_path, BEFORE_TF, "http://artifactory.ardencm.internal/x"), CHAIN))
-    assert r["CCC.Core.CN01"] == "FIX"
+    findings = ccc_map.evaluate(*_estate(tmp_path, BEFORE_TF, "http://artifactory.ardencm.internal/x"), CHAIN)
+    cn01 = next(f for f in findings if f["control"] == "CCC.Core.CN01")
+    assert cn01["route"] == "FIX"
+    assert cn01["action"] == "Fix needed: no PR opened yet"
 
 
 def test_only_stable_catalog_controls_are_named():
@@ -159,6 +165,20 @@ def test_cn04_passes_when_cloudtrail_configuration_exists(tmp_path):
     assert any("aws_cloudtrail" in item["text"] for item in cn04["evidence"])
 
 
+def test_gap_findings_use_short_tree_evidence_labels(tmp_path):
+    findings = ccc_map.evaluate(*_estate(tmp_path, BEFORE_TF), CHAIN)
+    cn04 = next(f for f in findings if f["control"] == "CCC.Core.CN04")
+    cn09 = next(f for f in findings if f["control"] == "CCC.Core.CN09")
+    assert cn04["finding"] == "no CloudTrail or audit-log resource in platform-terraform or ci-shared-workflows"
+    assert cn09["finding"] == "no log file validation or Object Lock setting in platform-terraform or ci-shared-workflows"
+    assert [item["text"] for item in cn04["evidence"]] == [
+        "searched platform-terraform", "searched ci-shared-workflows",
+    ]
+    assert [item["text"] for item in cn09["evidence"]] == [
+        "searched platform-terraform", "searched ci-shared-workflows",
+    ]
+
+
 def test_github_permalink_builds_full_source_line_url(tmp_path):
     repository = tmp_path / "repo"
     terraform = repository / "arden" / "platform-terraform"
@@ -219,6 +239,62 @@ def test_risk_memo_and_ci_record_use_safe_current_links(tmp_path):
     assert "/checks" not in rows["CI"]
 
 
+def test_html_links_short_labels_ticket_record_and_layout(tmp_path):
+    tf, wf = _estate(tmp_path, BEFORE_TF)
+    findings = ccc_map.evaluate(tf, wf, CHAIN)
+    cn05 = next(f for f in findings if f["control"] == "CCC.Core.CN05")
+    risk_source = next(item for item in cn05["evidence"] if item.get("line") is not None)
+    risk_source["url"] = "https://github.com/Acme/x/blob/abc/arden/platform-terraform/artifactory/main.tf#L3"
+    catalog = yaml.safe_load((HERE / "fixtures/ccc-core-v2025.10.yaml").read_text())
+    calendar = yaml.safe_load((HERE / "fixtures/audit-calendar.yaml").read_text())
+    out = tmp_path / "out"
+    ccc_map.write(out, findings, catalog, calendar, CHAIN, tf)
+    control_html = (out / "control-map.html").read_text()
+    control_md = (out / "control-map.md").read_text()
+    assert f"href='{CHAIN['pr']}'" in control_html
+    assert f'Devin opened <a href="{CHAIN["pr"]}">PR #327</a>' in control_html
+    assert f"href='{CHAIN['commit_url']}'>commit 5c73ebc</a>" in control_html
+    assert f"Devin opened [PR #327]({CHAIN['pr']})" in control_md
+    control_text = re.sub(r"""href=['"][^'"]+['"]""", "", control_html)
+    assert CHAIN["pr"] not in control_text
+    assert "https://" not in control_text
+    assert "<colgroup><col style='width:16%'><col style='width:15%'><col style='width:7%'>" in control_html
+    assert "<col style='width:18%'><col style='width:22%'><col style='width:22%'>" in control_html
+    assert "vertical-align:middle" in control_html
+
+    memo_html = (out / "evidence-pack/risk-decision-CN05.html").read_text()
+    assert '<a href="https://github.com/Acme/x/blob/abc/arden/platform-terraform/artifactory/main.tf#L3">' \
+           "<code>platform-terraform/artifactory/main.tf:3</code></a>" in memo_html
+    assert '<code>ingress_cidrs = ["0.0.0.0/0"]</code>' in memo_html
+    assert "<a href='../control-map.html'>Back to control map</a>" in memo_html
+    readme = (out / "evidence-pack/README.md").read_text()
+    assert "[risk-decision-CN05.html](risk-decision-CN05.html)" in readme
+    assert "[../traceability.html](../traceability.html)" in readme
+    assert "[../traceability.md](../traceability.md)" in readme
+
+    trace_out = tmp_path / "trace"
+    result = subprocess.run(
+        [sys.executable, str(HERE / "trail.py"), "--out", str(trace_out)],
+        capture_output=True, text=True, check=True,
+    )
+    trace_html = (trace_out / "traceability.html").read_text()
+    trace_md = (trace_out / "traceability.md").read_text()
+    assert f'href="{CHAIN["pr"]}">PR #327</a>' in trace_html
+    assert f'href="{CHAIN["commit_url"]}">commit 5c73ebc</a>' in trace_html
+    assert f'href="{CHAIN["ci_status_url"]}">Snyk report</a>' in trace_html
+    assert f'href="{CHAIN["devin_session"]}">Devin session bcd8b23d</a>' in trace_html
+    assert '<a href="../../audit/fixtures/trace/PLAT-1142.json">PLAT-1142 ticket (recorded fixture)</a>' in trace_html
+    assert "[PLAT-1142 ticket (recorded fixture)](../../audit/fixtures/trace/PLAT-1142.json)" in trace_md
+    assert "└ PLAT-1142 ticket (recorded fixture), reported by internal-audit@ardencm.example" in result.stdout
+    assert "[PLAT-1142 ticket" not in result.stdout
+    assert "<a href='control-map.html'>Back to control map</a>" in trace_html
+    trace_text = re.sub(r"""href=['"][^'"]+['"]""", "", trace_html)
+    assert "https://" not in trace_text
+    assert all(url not in trace_text for url in (
+        CHAIN["pr"], CHAIN["commit_url"], CHAIN["ci_status_url"], CHAIN["devin_session"],
+    ))
+
+
 def test_ticket_precedes_session_creation():
     ticket = json.loads((HERE / "fixtures/trace/PLAT-1142.json").read_text())
     log = json.loads((HERE / "fixtures/trace/devin-audit-log.json").read_text())
@@ -267,7 +343,10 @@ def test_log_validation_resolves_variable_defaults(tmp_path):
 def test_cloudtrail_module_stays_gap_but_is_named(tmp_path):
     tf_text = BEFORE_TF + '\nmodule "cloudtrail" {\n  source = "terraform-aws-modules/cloudtrail/aws"\n}\n'
     cn04 = next(f for f in ccc_map.evaluate(*_estate(tmp_path, tf_text), CHAIN) if f["control"] == "CCC.Core.CN04")
-    assert cn04["route"] == "GAP" and cn04["owner"] and "CloudTrail module" in cn04["evidence"][0]["text"]
+    assert cn04["route"] == "GAP" and cn04["owner"] and "CloudTrail module" in cn04["scope_note"]
+    assert [item["text"] for item in cn04["evidence"]] == [
+        "searched platform-terraform", "searched ci-shared-workflows",
+    ]
 
 
 def test_log_validation_expression_is_not_resolved_as_true(tmp_path):

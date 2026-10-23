@@ -96,33 +96,77 @@ def _evidence_label(evidence: dict) -> str:
     return evidence.get("text") or evidence["file"]
 
 
-def _markdown_evidence(evidence: list[dict]) -> str:
+def _markdown_evidence(evidence: list[dict], base: str = "evidence-pack/") -> str:
     links = []
     for item in evidence:
         label = _evidence_label(item)
-        links.append(f"[{label}]({item['url']})" if item.get("url") else label)
+        url = item.get("url")
+        if url and url.startswith("evidence-pack/"):
+            url = f"{base}{url[len('evidence-pack/'):]}"
+        links.append(f"[{label}]({url})" if url else label)
     return "<br>".join(links) if links else "none in repo"
 
 
-def _html_evidence(evidence: list[dict]) -> str:
+def _html_evidence(evidence: list[dict], labels: dict[str, str]) -> str:
     links = []
     for item in evidence:
-        label = html.escape(_evidence_label(item))
+        label = html.escape(labels.get(item.get("url"), _evidence_label(item)))
         links.append(f"<a href='{html.escape(item['url'], quote=True)}'>{label}</a>" if item.get("url") else label)
     return "<br>".join(links) if links else "none in repo"
 
 
-def _markdown_action(text: str, base: str = "evidence-pack/") -> str:
-    text = re.sub(r"(https?://[^\s)]+)", lambda m: f"[{m.group(1)}]({m.group(1)})", text)
+def _chain_url_labels(chain: dict) -> dict[str, str]:
+    session_id = chain["devin_session"].rstrip("/").rsplit("/", 1)[-1]
+    return {
+        chain["pr"]: f"PR #{chain['pr'].rstrip('/').rsplit('/', 1)[-1]}",
+        chain["commit_url"]: f"commit {chain['commit'][:7]}",
+        chain["ci_status_url"]: "Snyk report",
+        chain["devin_session"]: f"Devin session {session_id[:8]}",
+    }
+
+
+def _markdown_action(text: str, chain: dict, base: str = "evidence-pack/") -> str:
+    labels = _chain_url_labels(chain)
+    text = re.sub(r"(https?://[^\s)]+)",
+                  lambda m: f"[{labels.get(m.group(1), m.group(1))}]({m.group(1)})", text)
     return text.replace("risk-decision-CN05.html", f"[risk-decision-CN05.html]({base}risk-decision-CN05.html)")
 
 
-def _html_action(text: str) -> str:
-    escaped = html.escape(text)
-    escaped = re.sub(r"(https?://[^\s&lt;]+)",
-                     lambda m: f'<a href="{m.group(1)}">{m.group(1)}</a>', escaped)
-    return escaped.replace("risk-decision-CN05.html",
-                           '<a href="evidence-pack/risk-decision-CN05.html">risk-decision-CN05.html</a>')
+def _html_links(text: str, labels: dict[str, str]) -> str:
+    parts = []
+    position = 0
+    for match in re.finditer(r"""https?://[^\s<>"')]+""", text):
+        parts.append(html.escape(text[position:match.start()]))
+        url = match.group(0)
+        label = html.escape(labels.get(url, url))
+        parts.append(f'<a href="{html.escape(url, quote=True)}">{label}</a>')
+        position = match.end()
+    parts.append(html.escape(text[position:]))
+    return "".join(parts)
+
+
+def _html_action(text: str, labels: dict[str, str]) -> str:
+    rendered = _html_links(text, labels)
+    return rendered.replace(
+        "risk-decision-CN05.html",
+        '<a href="evidence-pack/risk-decision-CN05.html">risk-decision-CN05.html</a>',
+    )
+
+
+def _memo_inline_html(text: str, evidence_code: str, evidence_url: str | None) -> str:
+    parts = []
+    position = 0
+    for match in re.finditer(r"`([^`]+)`", text):
+        parts.append(html.escape(text[position:match.start()], quote=False))
+        code = html.escape(match.group(1), quote=False)
+        rendered = f"<code>{code}</code>"
+        if match.group(1) == evidence_code and evidence_url:
+            href = html.escape(evidence_url, quote=True)
+            rendered = f'<a href="{href}">{rendered}</a>'
+        parts.append(rendered)
+        position = match.end()
+    parts.append(html.escape(text[position:], quote=False))
+    return "".join(parts)
 
 
 def _comment_above(root: Path, hit: dict) -> str:
@@ -264,7 +308,7 @@ def evaluate(tf: Path, wf: Path, chain: dict) -> list[dict]:
         "exception": exception,
         "action": ("Routed to risk: the opening is a recorded business exception, so closing it is a policy decision. "
                    "Devin changed no code. See risk-decision-CN05.html") if exception else
-                  "Devin opened " + chain["pr"] if open_ingress else "No action, monitored by CCC.Core.CN05",
+                  "Fix needed: no PR opened yet" if open_ingress else "No action, monitored by CCC.Core.CN05",
     })
 
     urls = _hits(wf, "**/*.yml", r"https?://artifactory") + _hits(wf, "**/*.yaml", r"https?://artifactory")
@@ -280,15 +324,19 @@ def evaluate(tf: Path, wf: Path, chain: dict) -> list[dict]:
         "evidence": ci_evidence,
         "plain": "Data in transit is encrypted.",
         "finding": "plain HTTP to Artifactory" if plain_http else f"all {len(urls)} Artifactory call(s) in shared CI use HTTPS",
-        "action": f"Devin opened {chain['pr']}" if plain_http else "No action, monitored by CCC.Core.CN01",
+        "action": "Fix needed: no PR opened yet" if plain_http else "No action, monitored by CCC.Core.CN01",
     })
 
-    for cid, plain, pattern, description, owner, action in [
+    for cid, plain, pattern, description, finding_text, owner, action in [
         ("CCC.Core.CN04", "Every access and change is logged.", r'^\s*resource\s+"aws_cloudtrail"',
-         "aws_cloudtrail resource", "Cloud platform owner (@ardencm/platform-eng)",
+         "aws_cloudtrail resource",
+         "no CloudTrail or audit-log resource in platform-terraform or ci-shared-workflows",
+         "Cloud platform owner (@ardencm/platform-eng)",
          "Confirm which account-level trail (for example AWS CloudTrail) covers the Artifactory and scheduler accounts, and attach the trail config"),
         ("CCC.Core.CN09", "Logs cannot be quietly edited.", r'^\s*(enable_log_file_validation|object_lock_enabled)\s*=\s*(true|var\.\w+)\b',
-         "enable_log_file_validation = true or object_lock_enabled = true", "Security engineering (@ardencm/security-eng)",
+         "enable_log_file_validation = true or object_lock_enabled = true",
+         "no log file validation or Object Lock setting in platform-terraform or ci-shared-workflows",
+         "Security engineering (@ardencm/security-eng)",
          "Show where those logs are stored and what makes them tamper-evident (for example CloudTrail log file validation or S3 Object Lock)"),
     ]:
         # configured resources only; comments, disabled settings and unresolvable values do not count
@@ -306,12 +354,13 @@ def evaluate(tf: Path, wf: Path, chain: dict) -> list[dict]:
             findings.append({
                 "control": cid, "route": GAP,
                 "evidence": [
-                    {"file": "platform-terraform tree", "line": None, "text": note,
+                    {"file": "platform-terraform tree", "line": None, "text": "searched platform-terraform",
                      "url": _tree_url(tf, "platform-terraform")},
-                    {"file": "ci-shared-workflows tree", "line": None, "text": note,
+                    {"file": "ci-shared-workflows tree", "line": None, "text": "searched ci-shared-workflows",
                      "url": _tree_url(wf, "ci-shared-workflows")},
                 ],
-                "plain": plain, "finding": "not defined in platform-terraform or ci-shared-workflows",
+                "plain": plain, "finding": finding_text,
+                "scope_note": note,
                 "owner": owner, "due": due, "due_action": action,
                 "action": f"Owner: {owner}. Due {due}: {action}",
             })
@@ -327,6 +376,7 @@ def write(out: Path, findings: list[dict], catalog: dict, calendar: list, chain:
     out.mkdir(parents=True, exist_ok=True)
     pack = out / "evidence-pack"
     pack.mkdir(exist_ok=True)
+    url_labels = _chain_url_labels(chain)
     for finding in findings:
         finding["title"] = catalog["controls"][finding["control"]]
     (out / "control-map.json").write_text(json.dumps({
@@ -347,11 +397,20 @@ def write(out: Path, findings: list[dict], catalog: dict, calendar: list, chain:
     ]
     if risk["route"] == RISK:
         (pack / "risk-decision-CN05.md").write_text("\n".join(risk_lines))
-        risk_html = "".join(f"<li>{html.escape(line[2:])}</li>" for line in risk_lines if line.startswith("- "))
+        risk_source = next(
+            (item for item in risk["evidence"] if item.get("line") is not None and item["file"].endswith("main.tf")),
+            None,
+        )
+        risk_location = (f"{risk_source['file']}:{risk_source['line']}" if risk_source else "")
+        risk_html = "".join(
+            f"<li>{_memo_inline_html(line[2:], risk_location, risk_source.get('url') if risk_source else None)}</li>"
+            for line in risk_lines if line.startswith("- ")
+        )
         (pack / "risk-decision-CN05.html").write_text(
             "<!doctype html><meta charset=utf-8><title>CN05 risk decision</title>"
             "<style>body{font:15px system-ui;margin:32px}li{margin:12px 0}</style>"
             "<h2>Risk decision request: CCC.Core.CN05 Prevent Access from Untrusted Entities</h2>"
+            "<p><a href='../control-map.html'>Back to control map</a></p>"
             f"<ul>{risk_html}</ul>"
         )
 
@@ -363,16 +422,15 @@ def write(out: Path, findings: list[dict], catalog: dict, calendar: list, chain:
     md += ["", "## Findings", "", "| Control | What it means | Route | Finding | Evidence | Action |", "|---|---|---|---|---|---|"]
     for finding in findings:
         evidence = _markdown_evidence(finding["evidence"])
-        action = _markdown_action(finding["action"])
+        action = _markdown_action(finding["action"], chain)
         md.append(f"| {finding['control']} {finding['title']} | {finding['plain']} | **{finding['route']}** | "
                   f"{finding['finding']} | {evidence} | {action} |")
     (out / "control-map.md").write_text("\n".join(md) + "\n")
 
     rows = []
     for finding in findings:
-        action = _markdown_action(finding["action"], base="")
-        evidence = _markdown_evidence([{**e, "url": e["url"].removeprefix("evidence-pack/")} if e.get("url") else e
-                                       for e in finding["evidence"]])
+        action = _markdown_action(finding["action"], chain, base="")
+        evidence = _markdown_evidence(finding["evidence"], base="")
         rows.append(f"- {finding['control']} {finding['title']}: **{finding['route']}**. {finding['finding']} "
                     f"Evidence: {evidence}. {action}")
     (pack / "README.md").write_text("\n".join([
@@ -382,15 +440,17 @@ def write(out: Path, findings: list[dict], catalog: dict, calendar: list, chain:
         "## Change trail for the fix", "",
         f"- Ticket {chain['ticket']}, Devin session {chain['devin_session']}, PR {chain['pr']} "
         f"(commit {chain['commit_url']}).",
-        "- Full who/why/approved trail: ../traceability.md (generated by demo/audit/trail.py).", ""]))
+        "- Full who/why/approved trail: [../traceability.html](../traceability.html) and "
+        "[../traceability.md](../traceability.md) (generated by demo/audit/trail.py).", ""]))
 
     colour = {PASS: "#1b7f3b", FIX: "#b26a00", RISK: "#b00020", GAP: "#555"}
     trs = "".join(
         f"<tr><td><b>{html.escape(finding['control'])}</b><br>{html.escape(finding['title'])}</td>"
         f"<td>{html.escape(finding['plain'])}</td>"
-        f"<td style='color:#fff;background:{colour[finding['route']]};text-align:center'><b>{finding['route']}</b></td>"
-        f"<td>{html.escape(finding['finding'])}</td><td>{_html_evidence(finding['evidence'])}</td>"
-        f"<td>{_html_action(finding['action'])}</td></tr>" for finding in findings
+        f"<td style='color:#fff;background:{colour[finding['route']]};text-align:center;vertical-align:middle'>"
+        f"<b>{finding['route']}</b></td>"
+        f"<td>{html.escape(finding['finding'])}</td><td>{_html_evidence(finding['evidence'], url_labels)}</td>"
+        f"<td>{_html_action(finding['action'], url_labels)}</td></tr>" for finding in findings
     )
     permalink = _github_permalink(tf)
     if permalink:
@@ -410,7 +470,8 @@ def write(out: Path, findings: list[dict], catalog: dict, calendar: list, chain:
         trail_line = "Change trail: see traceability.html for live audit-log status"
     else:
         trail_line = f"Recorded audit snapshot (fixture), captured {audit_fixture['_captured']}"
-    source_link = f"<a href='{html.escape(catalog['source'], quote=True)}'>{html.escape(catalog['source'])}</a>"
+    source_link = (f"<a href='{html.escape(catalog['source'], quote=True)}'>"
+                   f"FINOS {catalog['catalog']} {catalog['version']} catalog</a>")
     (out / "control-map.html").write_text(
         "<!doctype html><meta charset=utf-8><title>Control map</title>"
         "<style>body{font:15px system-ui;margin:32px}table{border-collapse:collapse;width:100%;table-layout:fixed}"
@@ -421,7 +482,9 @@ def write(out: Path, findings: list[dict], catalog: dict, calendar: list, chain:
         "<p>Every row links to its evidence: a file line, a PR, a memo, or a named owner question.</p>"
         f"<p><a href='traceability.html'>Change trail for the CN13 fix (traceability.html)</a>: "
         f"{html.escape(trail_line)}</p>"
-        f"<table><tr><th>Control</th><th>What it means</th><th>Route</th><th>Finding</th>"
+        "<table><colgroup><col style='width:16%'><col style='width:15%'><col style='width:7%'>"
+        "<col style='width:18%'><col style='width:22%'><col style='width:22%'></colgroup>"
+        "<tr><th>Control</th><th>What it means</th><th>Route</th><th>Finding</th>"
         f"<th>Evidence</th><th>Action</th></tr>{trs}</table>"
     )
 

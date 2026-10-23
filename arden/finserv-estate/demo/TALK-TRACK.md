@@ -34,13 +34,13 @@ Use this presenter script beat by beat. Demo 4 maps five controls, shows one cod
 
 **Show on screen:** The control map and its Evidence column. Click an Evidence link to show the real GitHub source line.
 
-**Say:** "The wow moment is that every row points to evidence. The source line, pull request, risk memo, and named owner questions are all one click away."
+**Say:** "Every row points to evidence: a source line, a pull request, a risk memo, or a named owner with a due date. One click each."
 
 ### 4. CN13 FIX
 
 **Run:** Click the CN13 PR #327 evidence link.
 
-**Show on screen:** The token definitions, PR #327, and the commit showing the 12 Artifactory tokens.
+**Show on screen:** CN13 finding (12 tokens that never expire), PR #327 with Devin's two commits, not approved yet.
 
 **Say:** "Devin found 12 tokens that never expire and opened a fix. The change is not approved yet. Humans approve."
 
@@ -84,8 +84,8 @@ Use this presenter script beat by beat. Demo 4 maps five controls, shows one cod
 | RISK | 1 |
 | PASS | 1 |
 | GAP | 2 |
-| Artifactory token definitions | 12 |
-| Audit tests | 20 |
+| Tokens that never expire | 12 (2 token definitions) |
+| Audit tests | 22 |
 
 ## Timings
 

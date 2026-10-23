@@ -54,7 +54,7 @@ def build(chain: dict, ticket: dict, log: dict, label: str | None = None) -> lis
 
     return [
         ("Why", f"{ticket['key']}: {ticket['summary']}",
-         f"[{ticket['key']} ticket fixture](../../audit/fixtures/trace/{ticket['key']}.json), reported by {ticket['reporter']}"),
+         f"{ticket['key']} ticket (recorded fixture), reported by {ticket['reporter']}"),
         ("Who asked Devin", f"{started['user_email']} at {ts(started)}" if started else "MISSING",
          f"{label}: Devin audit log create_session" if started else f"{label}: no audit-log record for this session"),
         ("What Devin did", "\n".join(chain["commands_run_by_devin"]),
@@ -72,13 +72,44 @@ def _markdown_links(text: str) -> str:
     return re.sub(r"(https?://[^\s)]+)", lambda m: f"[{m.group(1)}]({m.group(1)})", text)
 
 
-def _html_links(text: str) -> str:
-    escaped = html.escape(text)
-    return re.sub(
-        r"(https?://[^\s&lt;]+)",
-        lambda m: f'<a href="{m.group(1)}">{m.group(1)}</a>',
-        escaped,
-    )
+def _chain_url_labels(chain: dict) -> dict[str, str]:
+    session_id = chain["devin_session"].rstrip("/").rsplit("/", 1)[-1]
+    return {
+        chain["pr"]: f"PR #{chain['pr'].rstrip('/').rsplit('/', 1)[-1]}",
+        chain["commit_url"]: f"commit {chain['commit'][:7]}",
+        chain["ci_status_url"]: "Snyk report",
+        chain["devin_session"]: f"Devin session {session_id[:8]}",
+    }
+
+
+def _html_links(text: str, labels: dict[str, str]) -> str:
+    parts = []
+    position = 0
+    for match in re.finditer(r"""https?://[^\s<>"')]+""", text):
+        parts.append(html.escape(text[position:match.start()]))
+        url = match.group(0)
+        label = html.escape(labels.get(url, url))
+        parts.append(f'<a href="{html.escape(url, quote=True)}">{label}</a>')
+        position = match.end()
+    parts.append(html.escape(text[position:]))
+    return "".join(parts)
+
+
+def _markdown_record(question: str, record: str, ticket: dict) -> str:
+    if question != "Why":
+        return _markdown_links(record)
+    label = f"{ticket['key']} ticket (recorded fixture)"
+    suffix = record[len(label):]
+    return f"[{label}](../../audit/fixtures/trace/{ticket['key']}.json){suffix}"
+
+
+def _html_record(question: str, record: str, ticket: dict, labels: dict[str, str]) -> str:
+    if question != "Why":
+        return _html_links(record, labels)
+    label = f"{ticket['key']} ticket (recorded fixture)"
+    suffix = html.escape(record[len(label):])
+    href = html.escape(f"../../audit/fixtures/trace/{ticket['key']}.json", quote=True)
+    return f'<a href="{href}">{html.escape(label)}</a>{suffix}'
 
 
 def _fallback_reason(exc: Exception) -> str:
@@ -129,11 +160,13 @@ def main() -> None:
           f"Devin audit log source: {label}. Endpoint: `GET /v3/enterprise/organizations/{{org_id}}/audit-logs` "
           "(https://docs.devin.ai/api-reference/v3/audit-logs/organizations-audit-logs).", "",
           "| Question | Answer | Record |", "|---|---|---|"]
-    md.extend(f"| {q} | {v.replace(chr(10), '<br>')} | {_markdown_links(r)} |" for q, v, r in rows)
+    md.extend(f"| {q} | {v.replace(chr(10), '<br>')} | {_markdown_record(q, r, ticket)} |" for q, v, r in rows)
     (a.out / "traceability.md").write_text("\n".join(md) + "\n")
     banner_style = "background:#fff1cf;border:1px solid #d89b22;padding:10px;margin:12px 0" if "fixture" in label else "background:#e8f5ec;border:1px solid #6a7;padding:10px;margin:12px 0"
+    url_labels = _chain_url_labels(chain)
     html_rows = "".join(
-        f"<tr><td>{html.escape(q)}</td><td>{html.escape(v).replace(chr(10), '<br>')}</td><td>{_html_links(r)}</td></tr>"
+        f"<tr><td>{html.escape(q)}</td><td>{html.escape(v).replace(chr(10), '<br>')}</td>"
+        f"<td>{_html_record(q, r, ticket, url_labels)}</td></tr>"
         for q, v, r in rows
     )
     (a.out / "traceability.html").write_text(
@@ -143,6 +176,7 @@ def main() -> None:
         "th{background:#f3f3f3;text-align:left}a{overflow-wrap:anywhere}</style>"
         "<h2>Change trail: CN13 token lifetime fix</h2>"
         f"<div style='{banner_style}'>{html.escape(label)}</div>"
+        "<p><a href='control-map.html'>Back to control map</a></p>"
         f"<table><tr><th>Question</th><th>Answer</th><th>Record</th></tr>{html_rows}</table>"
     )
     print(f"  Audit log source: {label}")
