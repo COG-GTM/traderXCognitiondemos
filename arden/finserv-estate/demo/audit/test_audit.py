@@ -225,3 +225,32 @@ def test_ticket_precedes_session_creation():
     ticket_created = datetime.strptime(ticket["created"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc).timestamp()
     session_created = next(item["created_at"] for item in log["items"] if item["action"] == "create_session")
     assert ticket_created < session_created
+
+
+def test_cn13_gap_has_owner_and_cli_summary_runs(tmp_path):
+    no_expiry = BEFORE_TF.replace("    expires_in_seconds = 0 # 0 = never expires\n", "    refreshable = true\n")
+    tf, wf = _estate(tmp_path, no_expiry)
+    cn13 = next(f for f in ccc_map.evaluate(tf, wf, CHAIN) if f["control"] == "CCC.Core.CN13")
+    assert cn13["route"] == "GAP" and cn13["owner"] and cn13["due"]
+    import subprocess, sys
+    r = subprocess.run([sys.executable, str(HERE / "ccc_map.py"), "--terraform", str(tf), "--workflows", str(wf),
+                        "--out", str(tmp_path / "out")], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+
+
+def test_disabled_or_mentioned_logging_does_not_pass(tmp_path):
+    tf_text = BEFORE_TF + '\n# aws_cloudtrail is not configured\nresource "aws_s3_bucket" "logs" {\n  enable_log_file_validation = false\n}\n'
+    routes = _routes(ccc_map.evaluate(*_estate(tmp_path, tf_text), CHAIN))
+    assert routes["CCC.Core.CN04"] == "GAP" and routes["CCC.Core.CN09"] == "GAP"
+
+
+def test_evidence_pack_readme_links_resolve(tmp_path):
+    import re
+    tf, wf = _estate(tmp_path, BEFORE_TF)
+    catalog = __import__("yaml").safe_load((HERE / "fixtures/ccc-core-v2025.10.yaml").read_text())
+    calendar = __import__("yaml").safe_load((HERE / "fixtures/audit-calendar.yaml").read_text())
+    out = tmp_path / "out"
+    ccc_map.write(out, ccc_map.evaluate(tf, wf, CHAIN), catalog, calendar, CHAIN, tf)
+    pack = out / "evidence-pack"
+    links = [l for l in re.findall(r"\]\(([^)]+)\)", (pack / "README.md").read_text()) if "risk-decision" in l]
+    assert links and all((pack / l).exists() for l in links)

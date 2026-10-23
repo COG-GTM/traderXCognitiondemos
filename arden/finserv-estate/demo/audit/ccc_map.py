@@ -225,6 +225,10 @@ def evaluate(tf: Path, wf: Path, chain: dict) -> list[dict]:
         "finding": token_finding,
         "action": f"Devin opened {chain['pr']}" if never else "Ask the owner to set an explicit expiry" if route == GAP else "No action, monitored by CCC.Core.CN13",
     })
+    if route == GAP:
+        owner = "Cloud platform owner (@ardencm/platform-eng)"
+        findings[-1].update(owner=owner, due=due, due_action="Set an explicit expiry on every Artifactory token definition",
+                            action=f"Owner: {owner}. Due {due}: set an explicit expiry on every Artifactory token definition")
 
     open_ingress = _hits(tf, "**/*.tf", r'ingress_cidrs\s*=\s*\[\s*"0\.0\.0\.0/0"')
     exception = _comment_above(tf, open_ingress[0]) if open_ingress else ""
@@ -265,14 +269,14 @@ def evaluate(tf: Path, wf: Path, chain: dict) -> list[dict]:
     })
 
     for cid, plain, pattern, description, owner, action in [
-        ("CCC.Core.CN04", "Every access and change is logged.", r"aws_cloudtrail|cloudtrail|audit_log",
-         "AWS CloudTrail, cloudtrail, or audit_log", "Cloud platform owner (@ardencm/platform-eng)",
+        ("CCC.Core.CN04", "Every access and change is logged.", r'^\s*resource\s+"aws_cloudtrail"',
+         "aws_cloudtrail resource", "Cloud platform owner (@ardencm/platform-eng)",
          "Confirm which account-level trail (for example AWS CloudTrail) covers the Artifactory and scheduler accounts, and attach the trail config"),
-        ("CCC.Core.CN09", "Logs cannot be quietly edited.", r"enable_log_file_validation|object_lock|log_file_validation",
-         "enable_log_file_validation, object_lock, or log_file_validation", "Security engineering (@ardencm/security-eng)",
+        ("CCC.Core.CN09", "Logs cannot be quietly edited.", r'^\s*(enable_log_file_validation|object_lock_enabled)\s*=\s*true\b',
+         "enable_log_file_validation = true or object_lock_enabled = true", "Security engineering (@ardencm/security-eng)",
          "Show where those logs are stored and what makes them tamper-evident (for example CloudTrail log file validation or S3 Object Lock)"),
     ]:
-        hits = _hits(tf, "**/*.tf", pattern) + _hits(wf, "**/*.yml", pattern) + _hits(wf, "**/*.yaml", pattern)
+        hits = _hits(tf, "**/*.tf", pattern)  # configured resources only; comments and disabled settings do not count
         if hits:
             findings.append({"control": cid, "route": PASS, "evidence": hits, "plain": plain,
                              "finding": f"logging configuration found in {len(hits)} location(s)",
@@ -347,7 +351,8 @@ def write(out: Path, findings: list[dict], catalog: dict, calendar: list, chain:
     rows = []
     for finding in findings:
         action = _markdown_action(finding["action"], base="")
-        evidence = _markdown_evidence(finding["evidence"])
+        evidence = _markdown_evidence([{**e, "url": e["url"].removeprefix("evidence-pack/")} if e.get("url") else e
+                                       for e in finding["evidence"]])
         rows.append(f"- {finding['control']} {finding['title']}: **{finding['route']}**. {finding['finding']} "
                     f"Evidence: {evidence}. {action}")
     (pack / "README.md").write_text("\n".join([
