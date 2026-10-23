@@ -180,9 +180,9 @@ def _var_bool_default(tf: Path, name: str) -> bool | None:
 
 
 def _enabled(tf: Path, hit: dict) -> bool:
-    """True only for a literal true, or a var.* whose default resolves to true."""
-    v = re.search(r'=\s*(\S+)', hit["text"]).group(1)
-    return v == "true" or (v.startswith("var.") and _var_bool_default(tf, v[4:]) is True)
+    """True only when the whole value is a literal true, or a bare var.* whose default resolves to true."""
+    m = re.search(r'=\s*(true|var\.(\w+))\s*(?:(?:#|//).*)?$', hit["text"])
+    return bool(m) and (m.group(1) == "true" or _var_bool_default(tf, m.group(2)) is True)
 
 
 def token_lifetimes(tf: Path) -> list[dict]:
