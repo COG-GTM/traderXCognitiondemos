@@ -19,6 +19,10 @@ HOST_REPOS="COG-GTM/Securities-Trade-Processing-System COG-GTM/traderXCognitiond
 MIRROR=https://maven-central.storage-download.googleapis.com/maven2/
 STAGE_IDS="settlement-instruction-service:SNYK-JAVA-ORGYAML-3152153 custody-gateway:SNYK-JAVA-ORGAPACHECOMMONS-6254296 fx-funding-service:SNYK-SECRET-ARDEN-0418 platform-terraform:SNYK-CC-ARDEN-TOKENTTL risk-lib:SNYK-CODE-PY-YAMLLOAD-0091"
 DRY_RUN="${DEMO_FLEETWIDE_DRY_RUN:-}"
+# Historical SEC-2026-0912 / audit / swarm PRs (Achal and other demos): never closed, whatever their head branch.
+PROTECTED=" COG-GTM/Securities-Trade-Processing-System#$(seq -s ' COG-GTM/Securities-Trade-Processing-System#' 7 36) \
+COG-GTM/traderXCognitiondemos#115 COG-GTM/traderXCognitiondemos#116 COG-GTM/traderXCognitiondemos#117 \
+COG-GTM/Springboot-BankApp#$(seq -s ' COG-GTM/Springboot-BankApp#' 316 320) COG-GTM/Springboot-BankApp#327 COG-GTM/Springboot-BankApp#333 "
 HERE=$(cd "$(dirname "$0")" && pwd)
 ESTATE=$(cd "$HERE/../../.." && pwd)
 GIT_ROOT=$(git -C "$HERE" rev-parse --show-toplevel)
@@ -42,6 +46,7 @@ for host in $HOST_REPOS; do
   while IFS=$'\t' read -r num head; do
     [[ "$head" == security/* ]] || continue
     [[ "$head" == *sec-2026-0912* ]] && continue
+    [[ "$PROTECTED" == *" $host#$num "* ]] && { echo "    kept $host#$num (protected)"; continue; }
     if [[ -n "$DRY_RUN" ]]; then echo "    would close $host#$num ($head)"; continue; fi
     gh pr close -R "$host" "$num" --delete-branch \
        --comment "Closed by demo/live/fleetwide/setup-fleetwide.sh: reseeding the demo_fleetwide situation for a new live run." >/dev/null
@@ -98,9 +103,18 @@ if [[ -n "$DRY_RUN" ]]; then
   step "Dry run: skipping seed-situation.sh"
   SEED_LINE="(dry run, not reseeded)"
 else
-  step "Re-create the seed branch"
-  "$HERE/../seed-situation.sh" >/dev/null
-  SEED_LINE=""
+  FOREIGN=$(gh pr list -R "$REPO" --base "$SEED_BRANCH" --state open --json number,headRefName \
+    --jq '.[] | "#\(.number) \(.headRefName)"')
+  if [[ -n "$FOREIGN" ]]; then
+    # seed-situation.sh would close these; they belong to other demos' live runs on the shared seed branch.
+    step "Seed branch has other demos' open PRs, keeping it as is (fleetwide children target the estate branch)"
+    printf '    %s\n' "$FOREIGN"
+    SEED_LINE="(seed kept: other demos have open PRs on it)"
+  else
+    step "Re-create the seed branch"
+    "$HERE/../seed-situation.sh" >/dev/null
+    SEED_LINE=""
+  fi
 fi
 
 step "Seed branch fans the 5 stage findings out with the live playbook"
