@@ -14,7 +14,7 @@ periods) are escalated to their named owner, never guessed. Only ever create the
 - Names of the decision owners for calendars, corporate actions and securities lending
 
 ## Reference (all phases)
-- Estate helpers: `demo/t1/inventory.py`, `demo/t1/migrate.py`, `demo/t1/parity.py`, `demo/run-demo2.sh`
+- Estate helper: `demo/t1/parity.py` replays `demo/t1/golden/*.csv` through old and new code. The inventory and the migration are yours to produce.
 - Each commit message must contain `feature` or `bug`. Every PR description ends with the line `Devin-Org: engineering`.
 - Wire formats are contracts: FIX tag 64/75 stay `LocalMktDate` (`yyyyMMdd`); tag 63 changes with the cycle (`3` = T+2, `2` = T+1).
 - Consumers pin the date library through the BOM; check what they actually run before choosing a release base.
@@ -120,3 +120,13 @@ periods) are escalated to their named owner, never guessed. Only ever create the
 - Do not decide calendar authority, ex-date regime, dual-listing treatment, FX value dates or recall notice periods in code.
 - Do not merge, move BOM pins, or change repos outside the tranche's file list.
 - Do not run bare `pytest`; use `python -m pytest`.
+<phase name="Verify frontend" id="6">
+## Verify frontend
+If a changed repo serves a UI (`client-portal`): start it on a free port, open it in the browser, load the portfolio valuation and the settlement status pages, and record a screen recording as proof of no user-facing regression. Backend-only tranches: say `frontend: n/a`.
+
+<verification>
+- UI repos: server started, main pages exercised, screen recording attached
+- Backend-only tranches: 'frontend: n/a' stated
+</verification>
+</phase>
+
