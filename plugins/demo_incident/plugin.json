@@ -1,0 +1,8 @@
+{
+  "name": "demo_incident",
+  "version": "1.0.0",
+  "description": "FS Golden Demo: incident before the London open. Seeds the Arden client-portal valuation 5xx (ArdenFeed schema 2.3 vs deploy 31.4.2) on COG-GTM/traderXCognitiondemos, prepares the machine, and gives the presenter the exact prompt to run Devin live.",
+  "author": { "name": "Cognition GTM (FS Golden Demo Bank)" },
+  "repository": "https://github.com/COG-GTM/traderXCognitiondemos",
+  "keywords": ["demo", "financial-services", "incident-response", "datadog", "golden-demo"]
+}
