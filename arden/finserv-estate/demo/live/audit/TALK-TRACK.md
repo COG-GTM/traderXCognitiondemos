@@ -4,12 +4,12 @@
 
 ## Before the room (2 minutes)
 
-Start a Devin session with the `FS Golden Demo: demo_audit` playbook. It resets the demo, opens a fresh Devin session for
-you, and sends you these 3 tabs plus the prompt:
+Start a Devin session with the `FS Golden Demo: demo_audit` playbook (`!demo_audit`). It resets the demo and sends you
+these 3 tabs plus the prompt:
 
 1. [Control list](https://github.com/COG-GTM/traderXCognitiondemos/blob/demo/arden-live-before/arden/finserv-estate/demo/audit/fixtures/ccc-core-v2025.10.yaml): the 5 controls the auditor asked about.
 2. [Artifactory config, line 19](https://github.com/COG-GTM/Springboot-BankApp/blob/devin/1790864747-arden-finserv-estate/arden/platform-terraform/artifactory/main.tf#L19): the open firewall rule and the 2023 exception (PLAT-771) that covers it.
-3. Your fresh Devin session: paste prompt 1 ([PROMPTS.md](PROMPTS.md)) here at beat 2.
+3. [Devin home](https://devin-gtm.devinenterprise.com/): start a new session here at beat 2 and paste prompt 1 ([PROMPTS.md](PROMPTS.md)).
 
 ## Beats
 
