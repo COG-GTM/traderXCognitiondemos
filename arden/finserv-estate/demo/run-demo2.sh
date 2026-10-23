@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Demo 2 — regulatory-driven T+1 migration (EU/UK/CH, go-live 11 Oct 2027), end to end, deterministic.
+# Demo 2: regulatory-driven T+1 migration (EU/UK/CH, go-live 11 Oct 2027), end to end, deterministic.
 #
 #   demo/run-demo2.sh                # inventory → migration plan → tranche 1 on branches → golden-file parity → escalations
 #   FS_SKIP_RESET=1 demo/run-demo2.sh          # keep the current workspace (re-run on top of an existing state)
@@ -25,7 +25,7 @@ python3 demo/t1/parity.py
 log "4/4 artifacts"
 echo "  inventory       demo/reports/demo2-t1-inventory.md        (file/line citations + owners)"
 echo "  migration plan  demo/reports/demo2-t1-migration-plan.md   (tranches, decisions owed)"
-echo "  PR artifacts    demo/out/t1/prs/<repo>/{PR.md,change.patch}  (+ attempt-1-from-main.patch for the deviation)"
+echo "  PR artifacts    demo/out/t1/prs/<repo>/{PR.md,change.patch}"
 echo "  parity          demo/reports/demo2-parity.html            (old vs new, escalations)"
 echo "  report          demo/reports/demo2-migration-report.md    (leave-behind)"
 echo "  branches        t1/tranche-1-* in ${FS_WORKSPACE:-$HOME/finserv-workspace}/{core-dates,settlement-instruction-service,iso20022-fix-messages}"

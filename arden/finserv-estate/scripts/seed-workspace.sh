@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Seed $FS_WORKSPACE (default ~/finserv-workspace) with one git repo per estate repo, each with a small
 # deterministic history. The demos operate on the workspace, never on the pristine sources (repos/ locally,
-# or the mapped COG-GTM repos — see lib.sh source_dir).
+# or the mapped COG-GTM repos: see lib.sh source_dir).
 #
 # Histories that matter to the demos:
 #   client-portal               3 commits mirroring deploys/history.json; HEAD = the "false lead" perf deploy.
 #   market-data-feed-contracts  v2.2 baseline → vendor notice (11 Sep) → auto-ingested v2.3 sample at 06:02Z on 25 Sep.
-#   eod-pricing-batch           baseline → MD-1187 v2.3 fix (22 Sep) — proves the vendor change was known internally.
+#   eod-pricing-batch           baseline → MD-1187 v2.3 fix (22 Sep): proves the vendor change was known internally.
 #   core-dates                  handled by seed-core-dates-releases.sh (tags v1.4.0 / v1.4.1 / v1.5.0).
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -15,12 +15,27 @@ ESTATE="$(cd "$HERE/.." && pwd)"
 WS="${FS_WORKSPACE:-$HOME/finserv-workspace}"
 mkdir -p "$WS"
 
+if [[ "${FS_SELF_SOURCES:-1}" != "0" ]]; then
+  for r in $(repo_list); do
+    [[ "$(repo_github "$r")" == "COG-GTM/traderXCognitiondemos" ]] || continue
+    subdir="$(repo_subdir "$r")"
+    if [[ -d "$_ESTATE_ROOT/../${subdir##*/}" ]]; then
+      log "using this checkout's sibling sources for mapped repos under $(dirname "$_ESTATE_ROOT")"
+      break
+    fi
+  done
+fi
+
 seed_plain() {  # seed_plain <repo> <date>
   local repo="$1" when="$2" dst="$WS/$1"
   rm -rf "$dst"; mkdir -p "$dst"
   cp -a "$(source_dir "$repo")/." "$dst/"
-  rm -rf "$dst/target" "$dst/build" "$dst/dist" "$dst/node_modules" "$dst"/**/__pycache__ 2>/dev/null || true
-  (cd "$dst" && git_init_ws && git_commit "feature: import $repo" "$when")
+  rm -rf "$dst/target" "$dst/build" "$dst/dist" "$dst/node_modules" "$dst"/**/__pycache__
+  (
+    cd "$dst"
+    git_init_ws
+    git_commit "feature: import $repo" "$when"
+  )
 }
 
 for r in $(repo_list); do
@@ -33,7 +48,7 @@ dst="$WS/client-portal"; rm -rf "$dst"; mkdir -p "$dst"
 cp -a "$(source_dir client-portal)/." "$dst/"
 cd "$dst"
 git_init_ws
-# 31.4.0 — no memoisation, no CHF fix
+# 31.4.0: no memoisation, no CHF fix
 python3 - <<'PY'
 import pathlib, re
 p = pathlib.Path("src/valuation/valuation.js")
@@ -48,11 +63,11 @@ pathlib.Path("deploys/history.json").write_text('[\n  { "version": "31.4.0", "de
 PY
 sed -i 's/"version": "31.4.2"/"version": "31.4.0"/' package.json
 git_commit "feature: PORTAL-3270 settlement status widget" "2026-09-10T17:40:00Z"
-# 31.4.1 — CHF formatting (touches server.js only)
+# 31.4.1: CHF formatting (touches server.js only)
 sed -i 's/"version": "31.4.0"/"version": "31.4.1"/' package.json
 sed -i "s|settle 2 business days after execution (T+2). US equities settle T+1.|settle 2 business days after execution (T+2). US equities settle T+1. Amounts shown in the account currency.|" src/server.js
 git_commit "bug: PORTAL-3298 fix CHF number formatting in statements" "2026-09-17T16:12:00Z"
-# 31.4.2 — memoise valuation rows (the false lead)
+# 31.4.2: memoise valuation rows (the false lead)
 cp "$(source_dir client-portal)/src/valuation/valuation.js" src/valuation/valuation.js
 cp "$(source_dir client-portal)/deploys/history.json" deploys/history.json
 sed -i 's/"version": "31.4.1"/"version": "31.4.2"/' package.json
@@ -65,7 +80,8 @@ dst="$WS/market-data-feed-contracts"; rm -rf "$dst"; mkdir -p "$dst"
 cp -a "$(source_dir market-data-feed-contracts)/." "$dst/"
 cd "$dst"
 git_init_ws
-mv ardenfeed/schema-v2.3.json /tmp/.fs-schema23 && mv ardenfeed/VENDOR-NOTICE-2026-09-11.md /tmp/.fs-notice
+mv ardenfeed/schema-v2.3.json /tmp/.fs-schema23
+mv ardenfeed/VENDOR-NOTICE-2026-09-11.md /tmp/.fs-notice
 sed -i 's/schema: "2.3"/schema: "2.2"/; s/   # intraday valuation.*//' consumers.yaml
 git_commit "feature: ArdenFeed v2.2 schema and consumer register" "2026-06-02T10:00:00Z"
 mv /tmp/.fs-notice ardenfeed/VENDOR-NOTICE-2026-09-11.md
@@ -82,7 +98,7 @@ FS_GIT_NAME="feed-ingest-bot" FS_GIT_EMAIL="feed-ingest-bot@ardencm.example" \
 # ---- eod-pricing-batch --------------------------------------------------------------------------------
 dst="$WS/eod-pricing-batch"; rm -rf "$dst"; mkdir -p "$dst"
 cp -a "$(source_dir eod-pricing-batch)/." "$dst/"
-rm -rf "$dst"/**/__pycache__ "$dst/.pytest_cache" 2>/dev/null || true
+rm -rf "$dst"/**/__pycache__ "$dst/.pytest_cache"
 cd "$dst"
 git_init_ws
 python3 - <<'PY'

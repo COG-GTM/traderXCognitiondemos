@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Demo 2, step 3 — golden-file parity: replay the same settlement-instruction input through the pre-migration and
+"""Demo 2, step 3: golden-file parity: replay the same settlement-instruction input through the pre-migration and
 post-migration core-dates CLI, list every difference, and classify each one as expected, unchanged, or ESCALATE.
 
     python3 demo/t1/parity.py     # -> demo/out/t1/parity.json, demo/reports/demo2-parity.html, demo/reports/demo2-migration-report.md
@@ -65,10 +65,10 @@ def classify(trade: dict, old: dict, new: dict, cals: dict[str, set[dt.date]]) -
         elif td < GO_LIVE:
             row.update(verdict="unchanged", why="trade date before go-live: T+2 preserved (date gate)")
         else:
-            row.update(verdict="ESCALATE", why="post-go-live EU/UK/CH trade did not change — investigate")
+            row.update(verdict="ESCALATE", why="post-go-live EU/UK/CH trade did not change: investigate")
         return row
     if td < GO_LIVE or mic in NORTH_AMERICA:
-        row.update(verdict="ESCALATE", why="changed although out of scope of the date gate — regression")
+        row.update(verdict="ESCALATE", why="changed although out of scope of the date gate: regression")
         return row
     venue_hol = cals[mic]
     cash_hol = cals[CASH_CALENDAR[mic]]
@@ -80,7 +80,7 @@ def classify(trade: dict, old: dict, new: dict, cals: dict[str, set[dt.date]]) -
         row.update(verdict="ESCALATE", why=f"new date {new_sd} != venue-calendar T+1 {venue_sd}")
         return row
     if venue_sd != cash_sd or not is_business_day(venue_sd, cash_hol):
-        row.update(verdict="ESCALATE", why=f"venue ({mic}) settles {venue_sd} but cash calendar ({CASH_CALENDAR[mic]}) says {cash_sd} — "
+        row.update(verdict="ESCALATE", why=f"venue ({mic}) settles {venue_sd} but cash calendar ({CASH_CALENDAR[mic]}) says {cash_sd}: "
                                           f"which is authoritative is a business decision", decision=CALENDAR_DECISION,
                    candidates={"venue": venue_sd.isoformat(), "cash": cash_sd.isoformat()})
         return row
@@ -122,10 +122,22 @@ def pill(v: str) -> str:
     return f'<span class="pill {cls}">{esc(v)}</span>'
 
 
-def render_html(summary: dict, rows: list[dict], divs: list[dict], migration: dict) -> str:
+def render_html(summary: dict, rows: list[dict], divs: list[dict], migration: dict, inventory: dict) -> str:
+    inv = inventory["summary"]
     cards = "".join(f'<div class="card"><div class="k">{k}</div><div class="v">{v}</div></div>' for k, v in [
         ("golden trades", summary["trades"]), ("changed", summary["changed"]), ("expected", summary["expected"]),
-        ("unchanged", summary["unchanged"]), ("escalated", summary["escalated"]), ("dividend events escalated", summary["dividends_escalated"])])
+        ("unchanged", summary["unchanged"]), ("escalated", summary["escalated"])])
+    escalations = [row for row in rows if row["verdict"] == "ESCALATE"]
+    calendar_owner = next((item["decision_owner"] for item in inventory["items"]
+                           if item["repo"] == "core-dates" and item["path"] == "docs/t1-calendar-mismatch.md"),
+                          "owner not assigned")
+    escalation_rows = "".join(
+        f'<tr><td class="trade-id">{esc(row["trade_id"])}</td><td>{esc(row["mic"])}</td>'
+        f'<td>{esc(row["trade_date"])}</td><td>{esc(row.get("candidates", {}).get("venue", "not calculated"))}</td>'
+        f'<td>{esc(row.get("candidates", {}).get("cash", "not calculated"))}</td>'
+        f'<td>{esc(calendar_owner)}</td><td>No choice made</td></tr>'
+        for row in escalations
+    )
     trs = []
     for r in rows:
         def cell(k: str) -> str:
@@ -141,25 +153,41 @@ def render_html(summary: dict, rows: list[dict], divs: list[dict], migration: di
     mig = "".join(f'<tr><td>{m["repo"]}</td><td class="mono">{m["branch"]}</td><td>{pill("expected" if m["status"] == "migrated" else ("ESCALATE" if m["status"] == "blocked" else "pending-policy")).replace(">expected<", ">migrated<").replace(">pending-policy<", ">deviation<")}</td>'
                   f'<td>{"<br>".join(esc(("PASS " if a["tests_ok"] else "FAIL ") + a["strategy"]) for a in m["attempts"])}</td><td>{esc(", ".join(m["owners"]))}</td></tr>' for m in migration["results"])
     body = f"""
-<h1>T+1 golden-file parity — SETTLE-4471</h1>
+<h1>T+1 golden-file parity: SETTLE-4471</h1>
 <p class="sub">EU/UK/CH regular way T+2 → T+1, go-live 11 Oct 2027. Same 30-trade golden file replayed through core-dates {summary['baseline']} (production pin)
 and {summary['migrated']} (tranche 1). Every difference is listed; nothing marked ESCALATE was resolved in code. Generated {summary['generated_at']}.</p>
+<style>
+main{{max-width:none;padding:20px 28px 44px}}body{{font-size:18px}}h1{{font-size:32px;margin-bottom:10px}}h2{{margin:12px 0 6px}}
+table{{font-size:16px}}th{{font-size:14px}}
+.summary-table{{table-layout:fixed}}.summary-table th,.summary-table td{{padding:5px 6px;overflow-wrap:anywhere}}
+.summary-table .trade-id{{white-space:nowrap;font-family:"JetBrains Mono",monospace}}
+.summary-table col:nth-child(1){{width:14%}}.summary-table col:nth-child(2){{width:7%}}
+.summary-table col:nth-child(3){{width:11%}}.summary-table col:nth-child(4){{width:14%}}
+.summary-table col:nth-child(5){{width:14%}}.summary-table col:nth-child(6){{width:25%}}
+.summary-table col:nth-child(7){{width:15%}}
+</style>
+<h2>Migration summary</h2>
+<p class="sub">{inv['files']} files · {inv['citations']} citations · {inv['repos_affected']} repositories</p>
 <div class="grid">{cards}</div>
+<h2>Calendar escalations: no choice made</h2>
+<table class="summary-table"><colgroup><col><col><col><col><col><col><col></colgroup>
+<tr><th>Trade ID</th><th>Venue</th><th>Trade date</th><th>Venue-calendar candidate</th><th>TARGET2 candidate</th><th>Owner</th><th>Decision</th></tr>
+{escalation_rows}</table>
 <h2>Tranche 1 execution</h2>
 <table><tr><th>repo</th><th>branch</th><th>status</th><th>steps</th><th>CODEOWNERS</th></tr>{mig}</table>
-<h2>Old vs new — settlement instructions</h2>
+<h2>Old vs new: settlement instructions</h2>
 <table><tr><th>trade</th><th>trade date</th><th>MIC</th><th>settle (old)</th><th>settle (new)</th><th>tag 63 old</th><th>new</th><th>affirm by (old)</th><th>new</th><th>verdict</th><th>why</th></tr>
 {''.join(trs)}</table>
-<h2>Corporate actions — ex-date under both regimes</h2>
+<h2>Corporate actions: ex-date under both regimes</h2>
 <p class="sub">Not executed in tranche 1. Listed so the business owner sees exactly which events need a ruling before ExDateCalculator changes.</p>
 <table><tr><th>event</th><th>ISIN</th><th>venue(s)</th><th>announced</th><th>record</th><th>ex-date (T+2 rule)</th><th>ex-date (T+1 rule)</th><th>verdict</th><th>why</th></tr>{dtrs}</table>
 """
-    return html_page("T+1 parity — SETTLE-4471", body, "Arden Capital Markets (synthetic estate) · demo/t1/parity.py · human decisions are routed, not guessed")
+    return html_page("T+1 parity: SETTLE-4471", body, "Arden Capital Markets (synthetic estate) · demo/t1/parity.py · human decisions are routed, not guessed")
 
 
 def render_md(summary: dict, rows: list[dict], divs: list[dict], migration: dict, inventory: dict) -> str:
     inv = inventory["summary"]
-    out = ["# T+1 migration — tranche 1 report (SETTLE-4471)", "",
+    out = ["# T+1 migration: tranche 1 report (SETTLE-4471)", "",
            f"Generated {summary['generated_at']}. Scope: EU, UK, Switzerland regular-way settlement T+2 → T+1 on **11 October 2027**. "
            "Synthetic estate (Arden Capital Markets, 20 repos).", "",
            "## 1. What was found", "",
@@ -168,14 +196,14 @@ def render_md(summary: dict, rows: list[dict], divs: list[dict], migration: dict
            f"{inv['by_tranche']['3']} that need a business decision first (tranche 3).", f"- Decisions owed: {', '.join(inv['decisions'])}.", "",
            "## 2. What was changed (tranche 1)", ""]
     for m in migration["results"]:
-        out.append(f"### {m['repo']} — `{m['status']}` · branch `{m['branch']}` · reviewers {', '.join(m['owners'])}")
+        out.append(f"### {m['repo']}: `{m['status']}` · branch `{m['branch']}` · reviewers {', '.join(m['owners'])}")
         for i, a in enumerate(m["attempts"], 1):
-            out.append(f"{i}. {'PASS' if a['tests_ok'] else 'FAIL'} — {a['strategy']}  \n   `{a['test_summary']}`")
+            out.append(f"{i}. {'PASS' if a['tests_ok'] else 'FAIL'}: {a['strategy']}<br>\n   `{a['test_summary']}`")
             if a.get("reason"):
                 out.append(f"   - {a['reason']}")
         out.append(f"   PR artifact: `{pathlib.Path(m['pr_dir']).relative_to(OUT.parents[1])}/PR.md`")
         out.append("")
-    out += ["## 3. Parity — what the counterparty would see", "",
+    out += ["## 3. Parity: what the counterparty would see", "",
             f"Golden file `demo/t1/golden/trades-2027Q4.csv` ({summary['trades']} trades) through core-dates {summary['baseline']} vs {summary['migrated']}: "
             f"**{summary['changed']} changed**, {summary['unchanged']} unchanged, {summary['expected']} expected, **{summary['escalated']} escalated**.", "",
             "| trade | date | MIC | settle old → new | tag 63 | affirm-by old → new | verdict | why |", "|---|---|---|---|---|---|---|---|"]
@@ -183,7 +211,7 @@ def render_md(summary: dict, rows: list[dict], divs: list[dict], migration: dict
         o, n = r["old"], r["new"]
         arrow = lambda k: f"{o[k]}" if o[k] == n[k] else f"{o[k]} → **{n[k]}**"  # noqa: E731
         out.append(f"| {r['trade_id']} | {r['trade_date']} | {r['mic']} | {arrow('settlement_date')} | {arrow('tag63')} | {arrow('affirmation_deadline')} | {r['verdict']} | {r['why']}{' → ' + r['decision'] if r.get('decision') else ''} |")
-    out += ["", "## 4. Escalations — decisions the code does not make", ""]
+    out += ["", "## 4. Escalations: decisions the code does not make", ""]
     for r in [x for x in rows if x["verdict"] == "ESCALATE"]:
         c = r.get("candidates", {})
         out.append(f"- **{r['trade_id']}** ({r['trade_date']} {r['mic']}): {r['why']}." + (f" Candidates: venue {c['venue']} / cash {c['cash']}." if c else "") + f" Owner: {r.get('decision', 'engineering')}")
@@ -214,7 +242,7 @@ def main() -> None:
                "dividends_escalated": sum(d["verdict"] == "ESCALATE" for d in divs)}
     write_json(OUT / "t1/parity.json", {"summary": summary, "trades": rows, "dividends": divs})
     REPORTS.mkdir(parents=True, exist_ok=True)
-    html = render_html(summary, rows, divs, migration)
+    html = render_html(summary, rows, divs, migration, inventory)
     (OUT / "t1/parity.html").write_text(html)
     (REPORTS / "demo2-parity.html").write_text(html)
     (REPORTS / "demo2-migration-report.md").write_text(render_md(summary, rows, divs, migration, inventory))

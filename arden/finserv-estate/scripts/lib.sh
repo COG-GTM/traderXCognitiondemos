@@ -16,13 +16,13 @@ log()  { printf '\033[1;36m[estate]\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m[estate]\033[0m %s\n' "$*" >&2; }
 die()  { printf '\033[1;31m[estate]\033[0m %s\n' "$*" >&2; exit 1; }
 
-# git_init_ws — init a seeded workspace repo with the kit-wide excludes (no *.pyc / target/ in demo PRs).
+# git_init_ws: init a seeded workspace repo with the kit-wide excludes (no *.pyc / target/ in demo PRs).
 git_init_ws() {
   git init -q -b main
   git config core.excludesFile "$_ESTATE_ROOT/scripts/workspace-excludes"
 }
 
-# git_commit "<message>" "<iso-datetime>"  — commit everything in cwd with a fixed author/date.
+# git_commit "<message>" "<iso-datetime>" : commit everything in cwd with a fixed author/date.
 git_commit() {
   local msg="$1" when="${2:-}"
   git add -A
@@ -43,7 +43,6 @@ git_commit() {
 FS_SOURCES="${FS_SOURCES:-$HOME/finserv-sources}"
 _ESTATE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO_MAP="$_ESTATE_ROOT/scripts/repo-map.tsv"
-
 # repo_map_field <repo> <2=github-repo|3=ref|4=subdir>
 repo_map_field() {
   local v
@@ -57,13 +56,21 @@ repo_ref()    { repo_map_field "$1" 3; }
 repo_subdir() { repo_map_field "$1" 4; }
 repo_clone_dir() { printf '%s/%s\n' "$FS_SOURCES" "${1##*/}"; }   # <github-repo> -> local clone path
 
-# source_dir <repo> — pristine source tree for an estate repo (local repos/ wins when present).
+# source_dir <repo>: pristine source tree for an estate repo (local repos/ wins when present).
 source_dir() {
   if [[ -d "$_ESTATE_ROOT/repos/$1" ]]; then printf '%s\n' "$_ESTATE_ROOT/repos/$1"; return; fi
-  printf '%s/%s\n' "$(repo_clone_dir "$(repo_github "$1")")" "$(repo_subdir "$1")"
+  local github subdir self_source
+  github="$(repo_github "$1")"
+  subdir="$(repo_subdir "$1")"
+  self_source="$_ESTATE_ROOT/../${subdir##*/}"
+  if [[ "$github" == "COG-GTM/traderXCognitiondemos" && "${FS_SELF_SOURCES:-1}" != "0" && -d "$self_source" ]]; then
+    printf '%s\n' "$self_source"
+    return
+  fi
+  printf '%s/%s\n' "$(repo_clone_dir "$github")" "$subdir"
 }
 
-# sources_sync — clone/fast-forward every mapped COG-GTM repo at its ref (remote mode only).
+# sources_sync: clone/fast-forward every mapped COG-GTM repo at its ref (remote mode only).
 sources_sync() {
   mkdir -p "$FS_SOURCES"
   awk -F'\t' '$0 !~ /^#/ && NF >= 4 { print $2 "\t" $3 }' "$REPO_MAP" | sort -u | while IFS=$'\t' read -r gh ref; do
@@ -79,7 +86,7 @@ sources_sync() {
   done
 }
 
-# repo_list — the 20 estate repos in dependency order.
+# repo_list: the 20 estate repos in dependency order.
 repo_list() {
   cat <<'EOF'
 common-java-bom

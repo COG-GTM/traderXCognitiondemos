@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic remediation executor — the fixture fallback for the child sessions.
+"""Deterministic remediation executor: the fixture fallback for the child sessions.
 
 In a live demo each finding is worked by a real Devin child session (fanout.py --mode live). This script does the
 same work locally and deterministically so the estate can be dry-run without Devin, and so the AE can show exactly
@@ -7,7 +7,7 @@ what the children *should* land on. For each finding it:
 
   1. branches the workspace repo (security/<finding-slug>)
   2. applies the fix (per finding kind), running the repo's tests after each attempt
-  3. records every attempt — including the failing one for the hard case — in demo/out/scanner/results/<slug>.json
+  3. records every attempt: including the failing one for the hard case: in demo/out/scanner/results/<slug>.json
   4. writes the PR-equivalent as a patch + PR body under demo/out/scanner/prs/<slug>/
 
 Hard case (settlement-instruction-service): the scanner recommends core-dates 1.5.0. That version changes FIX tag 64
@@ -64,10 +64,14 @@ def java_summary(repo: pathlib.Path) -> str:
         for k in totals:
             totals[k] += int(root.get(k, "0"))
         for tc in root.iter("testcase"):
-            if any(child.tag in ("failure", "error") for child in tc):
-                failed.append(f"{tc.get('classname', '').rsplit('.', 1)[-1]}.{tc.get('name')}")
+            for child in tc:
+                if child.tag in ("failure", "error"):
+                    detail = child.get("message") or (child.text or "").strip().splitlines()[0:1]
+                    if isinstance(detail, list):
+                        detail = " ".join(detail)
+                    failed.append(f"{tc.get('classname', '').rsplit('.', 1)[-1]}.{tc.get('name')}: {detail}")
     s = f"Tests run: {totals['tests']}, Failures: {totals['failures']}, Errors: {totals['errors']}, Skipped: {totals['skipped']}"
-    return s + (" — FAILED: " + ", ".join(failed) if failed else "")
+    return s + ("; FAILED: " + ", ".join(failed) if failed else "")
 
 
 def test_repo(repo: pathlib.Path) -> tuple[bool, str, str]:
@@ -124,7 +128,7 @@ def fix_sca_core_dates(repo: pathlib.Path, f: dict) -> list[dict]:
     attempts.append({"strategy": "deviation: pin core-dates 1.4.1 (SnakeYAML 2.2, no wire change) per ADR 0007 + compensating wire-format test",
                      "changes": ["pom.xml", "src/test/java/com/ardencm/settlements/instruction/Tag64WireFormatPinTest.java"],
                      "tests_ok": ok2, "test_summary": summary2,
-                     "reason": "core-dates 1.5.0 changes FixDates.tag64 from LocalMktDate (yyyyMMdd) to ISO-8601; custody-gateway contract test failed."})
+                     "reason": f"core-dates 1.5.0 changes FIX tag 64 from LocalMktDate (yyyyMMdd) to ISO-8601; the custody-gateway contract failed: {summary}"})
     return attempts
 
 
@@ -228,19 +232,19 @@ def pick_fixer(f: dict):
 def pr_body(f: dict, attempts: list[dict], branch: str) -> str:
     final = attempts[-1]
     status = "fixed" if final["tests_ok"] and len(attempts) == 1 else ("fixed-with-deviation" if final["tests_ok"] else "blocked")
-    lines = [f"# security: {f['scanner_id']} — {f['title']}", "",
+    lines = [f"# security: {f['scanner_id']}: {f['title']}", "",
              f"**Finding:** `{f['id']}` · severity **{f['severity']}** · {', '.join(f['cve']) or 'no CVE'} · {', '.join(f['cwe'])}",
              f"**Incident:** SEC-2026-0912 (CVE-2026-82329 Artifactory response) · **Branch:** `{branch}` · **Status:** `{status}`",
              target_line(f["repo"]), "",
              "## What changed", *[f"- `{c}`" for c in final["changes"]], "", "## Attempts"]
     for i, a in enumerate(attempts, 1):
-        lines.append(f"{i}. {a['strategy']} → {'PASS' if a['tests_ok'] else 'FAIL'} — `{a['test_summary']}`")
+        lines.append(f"{i}. {a['strategy']} → {'PASS' if a['tests_ok'] else 'FAIL'}: `{a['test_summary']}`")
         if a.get("reason"):
             lines.append(f"   - why: {a['reason']}")
     lines += ["", "## Test evidence", f"`{final['test_summary']}`", ""]
     if final.get("revocation_required"):
         r = final["revocation_required"]
-        lines += ["## Token revocation required", f"- fingerprint `{r['fingerprint']}` in `{r['file']}` — {r['action']}", ""]
+        lines += ["## Token revocation required", f"- fingerprint `{r['fingerprint']}` in `{r['file']}`: {r['action']}", ""]
     lines += ["## Residual risk",
               "- Fix is in a PR; exposure ends when CODEOWNERS merge and the deploy pipeline runs." if status != "blocked" else "- Not fixed; needs human decision.",
               "- Scanner re-run is scheduled post-merge; this PR does not itself close the finding.", "",
@@ -258,7 +262,7 @@ def remediate(f: dict) -> dict:
     started = now_iso()
     attempts = pick_fixer(f)(repo, f)
     git(repo, "add", "-A")
-    git(repo, "commit", "-q", "-m", f"bug: security {f['scanner_id']} — {f['title'][:60]}")
+    git(repo, "commit", "-q", "-m", f"bug: security {f['scanner_id']}: {f['title'][:60]}")
     patch = git(repo, "format-patch", "-1", "--stdout").stdout
     pr_dir = OUT / "scanner/prs" / slug
     pr_dir.mkdir(parents=True, exist_ok=True)

@@ -1,4 +1,4 @@
-# T+1 settlement migration — inventory, plan and execute one tranche
+# T+1 settlement migration: inventory, plan and execute one tranche
 
 ## Overview
 Move a post-trade estate from T+2 to T+1 for a set of markets on a regulator-set date, one tranche at a time. Every
@@ -50,7 +50,7 @@ periods) are escalated to their named owner, never guessed. Only ever create the
 5. If a contract test fails, do not weaken it. Record the attempt, find the cause (e.g. an unrelated wire-format change on
    the branch you built from), and take the smallest deviation that keeps the contract green (e.g. cut the release from the
    line consumers run). Record both attempts and the reason in the PR body.
-6. Commit per repo (`feature: <ticket> T+1 tranche N — <repo>`) and produce the PR body: what changed, tests, deviation,
+6. Commit per repo (`feature: <ticket> T+1 tranche N: <repo>`) and produce the PR body: what changed, tests, deviation,
    follow-ups, reviewers from CODEOWNERS, ending with `Devin-Org: engineering`.
 
 <verification>

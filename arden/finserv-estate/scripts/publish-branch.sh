@@ -53,4 +53,4 @@ done
 git log --oneline "origin/$ref..$branch"
 if [[ "${FS_PUBLISH_DRY_RUN:-0}" == "1" ]]; then log "dry run: not pushing $branch to $gh"; exit 0; fi
 git push -q -u origin "$branch"
-log "pushed https://github.com/$gh/tree/$branch — open the PR from PR.md (body must end with 'Devin-Org: engineering')"
+log "pushed https://github.com/$gh/tree/$branch: open the PR from PR.md (body must end with 'Devin-Org: engineering')"
