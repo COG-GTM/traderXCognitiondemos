@@ -225,8 +225,9 @@ def _var_bool_default(tf: Path, name: str) -> bool | None:
 
 def _enabled(tf: Path, hit: dict) -> bool:
     """True only when the whole value is a literal true, or a bare var.* whose default resolves to true."""
-    m = re.fullmatch(r'(?:enable_log_file_validation|object_lock_enabled)\s*=\s*(true|var\.(\w+))\s*(?:(?:#|//).*)?',
-                     hit["text"])
+    text = re.sub(r"/\*.*?\*/", " ", hit["text"])
+    text = re.sub(r"\s*(?:#|//).*$", "", text).strip()
+    m = re.fullmatch(r'(?:enable_log_file_validation|object_lock_enabled)\s*=\s*(true|var\.(\w+))', text)
     return bool(m) and (m.group(1) == "true" or _var_bool_default(tf, m.group(2)) is True)
 
 
