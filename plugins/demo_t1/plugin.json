@@ -1,0 +1,8 @@
+{
+  "name": "demo_t1",
+  "version": "1.0.0",
+  "description": "FS Golden Demo Bank, demo_t1: seeds the Arden T+1 settlement migration situation (BEFORE branch, estate workspace, Maven mirror) so a presenter can run the inventory, tranche 1 migration, parity and calendar escalation with Devin live.",
+  "author": { "name": "Cognition GTM" },
+  "repository": "https://github.com/COG-GTM/traderXCognitiondemos/tree/devin/1792724600-demo-arden-live/arden/finserv-estate/demo/live/t1",
+  "keywords": ["demo", "financial-services", "t+1", "settlement", "migration", "arden"]
+}

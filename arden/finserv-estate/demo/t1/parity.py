@@ -3,6 +3,10 @@
 post-migration core-dates CLI, list every difference, and classify each one as expected, unchanged, or ESCALATE.
 
     python3 demo/t1/parity.py     # -> demo/out/t1/parity.json, demo/reports/demo2-parity.html, demo/reports/demo2-migration-report.md
+    python3 demo/t1/parity.py --migrated ~/finserv-workspace/core-dates/target/core-dates-<v>-cli.jar   # presenter's independent check
+
+Baseline defaults to demo/out/t1/baseline-cli.jar, else the core-dates CLI pinned by common-java-bom in ~/.m2.
+Migrated defaults to demo/out/t1/migrated-cli.jar. demo/out/t1/{inventory,migration-results}.json are optional.
 
 The harness never decides business questions.  A trade whose new settlement date falls on a day where the venue
 calendar and the TARGET2 cash calendar disagree is reported with both candidate dates and routed to market-ops;
@@ -10,9 +14,11 @@ dividend events straddling go-live are listed with the two possible ex-dates and
 """
 from __future__ import annotations
 
+import argparse
 import csv
 import datetime as dt
 import io
+import re
 import pathlib
 import sys
 
@@ -138,15 +144,16 @@ def render_html(summary: dict, rows: list[dict], divs: list[dict], migration: di
                    f'<td class="mono">{d["announced"]}</td><td class="mono">{d["record_date"]}</td><td class="mono">{d["ex_date_t2_rule"]}</td><td class="mono">{d["ex_date_t1_rule"]}</td>'
                    f'<td>{pill(d["verdict"])}</td><td>{esc(d["why"])}{"<br><span class=mono style=color:var(--warn)>→ " + esc(d["decision"]) + "</span>" if d.get("decision") else ""}</td></tr>'
                    for d in divs)
-    mig = "".join(f'<tr><td>{m["repo"]}</td><td class="mono">{m["branch"]}</td><td>{pill("expected" if m["status"] == "migrated" else ("ESCALATE" if m["status"] == "blocked" else "pending-policy")).replace(">expected<", ">migrated<").replace(">pending-policy<", ">deviation<")}</td>'
+    mig = "" if not migration else "".join(f'<tr><td>{m["repo"]}</td><td class="mono">{m["branch"]}</td><td>{pill("expected" if m["status"] == "migrated" else ("ESCALATE" if m["status"] == "blocked" else "pending-policy")).replace(">expected<", ">migrated<").replace(">pending-policy<", ">deviation<")}</td>'
                   f'<td>{"<br>".join(esc(("PASS " if a["tests_ok"] else "FAIL ") + a["strategy"]) for a in m["attempts"])}</td><td>{esc(", ".join(m["owners"]))}</td></tr>' for m in migration["results"])
+    mig_section = f"""<h2>Tranche 1 execution</h2>
+<table><tr><th>repo</th><th>branch</th><th>status</th><th>steps</th><th>CODEOWNERS</th></tr>{mig}</table>""" if mig else ""
     body = f"""
 <h1>T+1 golden-file parity — SETTLE-4471</h1>
 <p class="sub">EU/UK/CH regular way T+2 → T+1, go-live 11 Oct 2027. Same 30-trade golden file replayed through core-dates {summary['baseline']} (production pin)
 and {summary['migrated']} (tranche 1). Every difference is listed; nothing marked ESCALATE was resolved in code. Generated {summary['generated_at']}.</p>
 <div class="grid">{cards}</div>
-<h2>Tranche 1 execution</h2>
-<table><tr><th>repo</th><th>branch</th><th>status</th><th>steps</th><th>CODEOWNERS</th></tr>{mig}</table>
+{mig_section}
 <h2>Old vs new — settlement instructions</h2>
 <table><tr><th>trade</th><th>trade date</th><th>MIC</th><th>settle (old)</th><th>settle (new)</th><th>tag 63 old</th><th>new</th><th>affirm by (old)</th><th>new</th><th>verdict</th><th>why</th></tr>
 {''.join(trs)}</table>
@@ -158,16 +165,19 @@ and {summary['migrated']} (tranche 1). Every difference is listed; nothing marke
 
 
 def render_md(summary: dict, rows: list[dict], divs: list[dict], migration: dict, inventory: dict) -> str:
-    inv = inventory["summary"]
     out = ["# T+1 migration — tranche 1 report (SETTLE-4471)", "",
            f"Generated {summary['generated_at']}. Scope: EU, UK, Switzerland regular-way settlement T+2 → T+1 on **11 October 2027**. "
            "Synthetic estate (Arden Capital Markets, 20 repos).", "",
-           "## 1. What was found", "",
-           f"- {inv['files']} files in {inv['repos_affected']} repositories carry a settlement-cycle assumption ({inv['citations']} line citations, `demo2-t1-inventory.md`).",
-           f"- Tranche split: {inv['by_tranche']['1']} files in the instruction path (tranche 1), {inv['by_tranche']['2']} downstream/scheduler/wording (tranche 2), "
-           f"{inv['by_tranche']['3']} that need a business decision first (tranche 3).", f"- Decisions owed: {', '.join(inv['decisions'])}.", "",
-           "## 2. What was changed (tranche 1)", ""]
-    for m in migration["results"]:
+           "## 1. What was found", ""]
+    if inventory:
+        inv = inventory["summary"]
+        out += [f"- {inv['files']} files in {inv['repos_affected']} repositories carry a settlement-cycle assumption ({inv['citations']} line citations, `demo2-t1-inventory.md`).",
+                f"- Tranche split: {inv['by_tranche']['1']} files in the instruction path (tranche 1), {inv['by_tranche']['2']} downstream/scheduler/wording (tranche 2), "
+                f"{inv['by_tranche']['3']} that need a business decision first (tranche 3).", f"- Decisions owed: {', '.join(inv['decisions'])}."]
+    else:
+        out.append("- See the inventory produced for this ticket (`demo/out/t1/inventory.json` not present).")
+    out += ["", "## 2. What was changed (tranche 1)", ""]
+    for m in (migration or {}).get("results", []):
         out.append(f"### {m['repo']} — `{m['status']}` · branch `{m['branch']}` · reviewers {', '.join(m['owners'])}")
         for i, a in enumerate(m["attempts"], 1):
             out.append(f"{i}. {'PASS' if a['tests_ok'] else 'FAIL'} — {a['strategy']}  \n   `{a['test_summary']}`")
@@ -196,18 +206,40 @@ def render_md(summary: dict, rows: list[dict], divs: list[dict], migration: dict
     return "\n".join(out)
 
 
+def bom_cli_jar() -> pathlib.Path:
+    m = re.search(r"<core-dates\.version>([^<]+)</core-dates\.version>", (WORKSPACE / "common-java-bom/pom.xml").read_text())
+    v = m.group(1) if m else "1.4.0"
+    return pathlib.Path.home() / f".m2/repository/com/ardencm/posttrade/core-dates/{v}/core-dates-{v}-cli.jar"
+
+
+def jar_version(jar: pathlib.Path) -> str:
+    m = re.search(r"core-dates-([\d.]+)-cli\.jar$", jar.resolve().name)
+    return m.group(1) if m else jar.name
+
+
+def optional_json(path: pathlib.Path) -> dict | None:
+    return read_json(path) if path.exists() else None
+
+
 def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    ap.add_argument("--baseline", type=pathlib.Path, help="pre-migration core-dates CLI jar")
+    ap.add_argument("--migrated", type=pathlib.Path, default=OUT / "t1/migrated-cli.jar", help="post-migration core-dates CLI jar")
+    args = ap.parse_args()
+    baseline = args.baseline or (OUT / "t1/baseline-cli.jar" if (OUT / "t1/baseline-cli.jar").exists() else bom_cli_jar())
+    for label, jar in (("baseline", baseline), ("migrated", args.migrated)):
+        if not jar.exists():
+            raise SystemExit(f"{label} CLI jar not found: {jar} (pass --{label} <path to core-dates-<v>-cli.jar>)")
     golden = HERE / "golden/trades-2027Q4.csv"
     trades = list(csv.DictReader(golden.open()))
     cals = load_calendars()
-    old = run_cli(OUT / "t1/baseline-cli.jar", golden)
-    new = run_cli(OUT / "t1/migrated-cli.jar", golden)
+    old = run_cli(baseline, golden)
+    new = run_cli(args.migrated, golden)
     rows = [classify(t, old[t["trade_id"]], new[t["trade_id"]], cals) for t in trades]
     divs = dividend_rows(cals)
-    migration = read_json(OUT / "t1/migration-results.json")
-    inventory = read_json(OUT / "t1/inventory.json")
-    bv = migration["results"][0]["attempts"][0]["test_summary"].rsplit(" ", 1)[-1]
-    mv = next((a["strategy"].split("core-dates ")[-1].split(" ")[0] for a in reversed(migration["results"][0]["attempts"]) if a["tests_ok"]), "?")
+    migration = optional_json(OUT / "t1/migration-results.json")
+    inventory = optional_json(OUT / "t1/inventory.json")
+    bv, mv = jar_version(baseline), jar_version(args.migrated)
     summary = {"generated_at": now_iso(), "go_live": GO_LIVE.isoformat(), "baseline": bv, "migrated": mv, "trades": len(rows),
                "changed": sum(bool(r["diffs"]) for r in rows), "expected": sum(r["verdict"] == "expected" for r in rows),
                "unchanged": sum(r["verdict"] == "unchanged" for r in rows), "escalated": sum(r["verdict"] == "ESCALATE" for r in rows),

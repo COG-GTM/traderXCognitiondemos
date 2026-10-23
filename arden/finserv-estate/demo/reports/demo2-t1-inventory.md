@@ -1,14 +1,14 @@
 # T+1 settlement-cycle inventory — SETTLE-4471 (EU/UK/CH T+1, go-live 11 Oct 2027)
 
-Generated 2026-09-25T21:19:32Z by `demo/t1/inventory.py` over 20 repositories in the Arden Capital Markets estate (synthetic). 37 files in 16 repos carry a settlement-cycle assumption; 64 line citations. Every row below is a claim a reviewer can check by opening the file.
+Generated 2026-10-23T02:59:01Z by `demo/t1/inventory.py` over 20 repositories in the Arden Capital Markets estate (synthetic). 37 files in 16 repos carry a settlement-cycle assumption; 62 line citations. Every row below is a claim a reviewer can check by opening the file.
 
 | Repo | File | Line(s) | What | Owners (CODEOWNERS) | Tranche |
 |---|---|---|---|---|---|
 | core-dates | `src/main/java/com/ardencm/posttrade/dates/FixDates.java` | 26, 34 | cycle literal | @ardencm/post-trade-core | 1 |
-| core-dates | `src/main/java/com/ardencm/posttrade/dates/SettlementCycle.java` | 10, 16, 34, 43 | cycle literal | @ardencm/post-trade-core | 1 |
+| core-dates | `src/main/java/com/ardencm/posttrade/dates/SettlementCycle.java` | 6, 7, 13, 28 | cycle literal | @ardencm/post-trade-core | 1 |
 | core-dates | `src/main/java/com/ardencm/posttrade/dates/SettlementDateCli.java` | 11 | cycle literal | @ardencm/post-trade-core | 1 |
 | core-dates | `src/main/java/com/ardencm/posttrade/dates/SettlementDates.java` | — | policy/doc | @ardencm/post-trade-core | 1 |
-| core-dates | `src/test/java/com/ardencm/posttrade/dates/SettlementDatesTest.java` | 21, 64, 65 | cycle literal | @ardencm/post-trade-core | 1 |
+| core-dates | `src/test/java/com/ardencm/posttrade/dates/SettlementDatesTest.java` | 18 | cycle literal | @ardencm/post-trade-core | 1 |
 | iso20022-fix-messages | `README.md` | — | policy/doc | @ardencm/messaging-standards | 1 |
 | iso20022-fix-messages | `mapping/archive/settlement-cycle-pre-t1.yaml` | — | policy/doc | @ardencm/messaging-standards, @ardencm/settlements-core | 1 |
 | iso20022-fix-messages | `mapping/settlement-cycle.yaml` | 2, 3, 4, 9, 10, 11, 12 | cycle literal, wire mapping | @ardencm/messaging-standards, @ardencm/settlements-core | 1 |
@@ -83,10 +83,10 @@ Generated 2026-09-25T21:19:32Z by `demo/t1/inventory.py` over 20 repositories in
 - L34 (cycle literal): `case T_PLUS_2:`
 
 ### core-dates/src/main/java/com/ardencm/posttrade/dates/SettlementCycle.java
-- L10 (cycle literal): `* trades dated before go-live settle T+2, trades dated on or after it settle T+1. Callers must pass the trade`
-- L16 (cycle literal): `T_PLUS_2(2),`
-- L34 (cycle literal): `return tradeDate.isBefore(EU_UK_CH_T1_GO_LIVE) ? T_PLUS_2 : T_PLUS_1;`
-- L43 (cycle literal): `return T_PLUS_2;`
+- L6 (cycle literal): `* <p>US and Canada moved to T+1 on 28 May 2024. EU, UK and Switzerland remain on T+2 and are`
+- L7 (cycle literal): `* scheduled to move on 11 October 2027. Until then {@link #standard()} returns {@link #T_PLUS_2}`
+- L13 (cycle literal): `T_PLUS_2(2),`
+- L28 (cycle literal): `return T_PLUS_2;`
 
 ### core-dates/src/main/java/com/ardencm/posttrade/dates/SettlementDateCli.java
 - L11 (cycle literal): `* java -jar core-dates.jar [--cycle T_PLUS_1|T_PLUS_2] &lt; trades.csv`
@@ -95,9 +95,7 @@ Generated 2026-09-25T21:19:32Z by `demo/t1/inventory.py` over 20 repositories in
 - L6 (cycle literal): `# but XLON-open). Under T+2 these mismatches were absorbed by the extra day; under`
 
 ### core-dates/src/test/java/com/ardencm/posttrade/dates/SettlementDatesTest.java
-- L21 (cycle literal): `// Fri 8 Oct 2027 (T+2) and Mon 11 Oct 2027 (T+1) both settle Tue 12 Oct: the double-settlement day.`
-- L64 (cycle literal): `assertEquals(SettlementCycle.T_PLUS_2, SettlementCycle.standard());`
-- L65 (cycle literal): `assertEquals(SettlementCycle.T_PLUS_2, SettlementCycle.forMarket("XLON"));`
+- L18 (cycle literal): `// Thursday trade -> Monday settlement under T+2`
 
 ### corporate-actions-service/docs/ex-date-policy.md
 - L7 (cycle literal): `| T+2 (EU/UK/CH today) | record date − 1 business day |`
