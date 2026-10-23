@@ -20,7 +20,7 @@ Why: the full 37 files across 16 repos is a long run; tranche 1 is the part that
 |---|---|---|---|
 | 0. Set up (before the room) | | `setup-t1.sh` prints READY with the seed URL | pre-built |
 | 1. The ask | "This is a regulatory date change across a whole estate. Watch Devin find every place the bank assumes two days." Paste prompt 1. | reads AGENTS.md and the playbook, resets the workspace | live |
-| 2. Inventory | "Every row is a file and a line you can open. Devin is citing, not summarising." | greps and reads 20 repos, writes the inventory with CODEOWNERS and tranche per file | live |
+| 2. Inventory | "Every row is a file and a line you can open. Devin is citing, not summarising." Say "dozens of files across most of the estate", not a fixed number. | greps and reads 20 repos, writes the inventory with CODEOWNERS and tranche per file | live |
 | 3. Tranche 1 | "Devin changes only the instruction path: the date library, the instruction service, the FIX/ISO mapping. Date-gated on trade date, so trades booked before go-live still settle T+2." | edits core-dates, bumps the BOM, changes FIX tag 63, keeps tags 64/75 wire format, runs each repo's tests, opens draft PRs | live |
 | 4. Parity | "Thirty golden trades from the Q4 book. Every changed date has to be explained." | runs `parity.py` old jar vs new jar | live |
 | 5. The hard case | "Four trades around Christmas and New Year on Xetra and Euronext Paris: the venue says one date, TARGET2 cash says another. Devin does not pick. Devin names the owner." | escalates ARD-27Q4-0021, 0022, 0027, 0028 to @ardencm/market-ops and the Head of Post-Trade with the evidence | live |

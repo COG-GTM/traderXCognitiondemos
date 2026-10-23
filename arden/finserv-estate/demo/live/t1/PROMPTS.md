@@ -27,12 +27,14 @@ What Devin should come back with (presenter reference, from the kit scripts on t
 
 | Step | Expected |
 |---|---|
-| Inventory | 37 files, 62 citations, 16 of 20 repos; tranche split 13 / 15 / 9 |
+| Inventory | Kit regex reference: 37 files, 62 citations, 16 of 20 repos (tranche split 13 / 15 / 9). Devin's pre-run read wider: 57 files, 105 citations, 17 repos (docs, tests and archives included). |
 | Tranche 1 | 3 draft PRs: core-dates (date-gated cycle, new minor version), settlement-instruction-service (BOM bump + tag 63 change), iso20022-fix-messages (mapping) |
 | Parity | 30 golden trades: 20 changed (16 expected, 4 escalated), 10 unchanged |
 | Escalation | ARD-27Q4-0021, 0022, 0027, 0028 (XETR / XPAR around 24 Dec and 31 Dec: venue calendar vs TARGET2 cash calendar) to @ardencm/market-ops and the Head of Post-Trade, per core-dates/docs/t1-calendar-mismatch.md |
 
-Devin's counts can differ slightly from the reference if Devin cites more lines per file; the file count and the four escalations are the part to hold Devin to.
+Do not promise 37 / 62 on stage: Devin's inventory is broader than the kit's regex and the count varies per run. Hold Devin to a cited row for every file in the 37-file reference list, the three tranche 1 PRs with green tests, and the four escalations by trade ID and owner.
+
+Pre-run (2026-10-23, session https://devin-gtm.devinenterprise.com/sessions/743880ab432043e9965d0ff94418fca0): about 11 minutes from prompt to three draft PRs; parity matched the reference exactly (20 / 16 / 10 / 4, same four trades).
 
 ## Prompt 2 (only if Devin has not escalated by itself)
 

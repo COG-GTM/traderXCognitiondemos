@@ -27,15 +27,23 @@ step "Tools"
 for t in git gh python3; do command -v "$t" >/dev/null || fail "$t not installed"; done
 gh auth status >/dev/null 2>&1 || fail "gh not authenticated"
 
-step "Close open PRs from earlier $TICKET runs"
-for r in "${ESTATE_REPOS[@]}"; do
-  gh pr list -R "$r" --state open --search "$TICKET in:title" --json number,headRefName,title \
-     --jq '.[] | select(.headRefName | startswith("devin/")) | "\(.number) \(.headRefName)"' |
-  while read -r num head; do
-    gh pr close -R "$r" "$num" --delete-branch --comment "Closed by demo/live/t1/seed-t1.sh (reseeding the $TICKET demo)." >/dev/null
-    echo "    closed $r#$num ($head)"
+step "Close open PRs from earlier $TICKET runs (opened after the previous seed)"
+PREV_SEED=""
+if git -C "$GIT_ROOT" fetch -q origin "$T1_SEED" 2>/dev/null; then
+  PREV_SEED=$(git -C "$GIT_ROOT" log -1 --format=%cI FETCH_HEAD)
+fi
+if [[ -z "$PREV_SEED" ]]; then
+  echo "    no previous $T1_SEED: nothing to clean up"
+else
+  for r in "${ESTATE_REPOS[@]}"; do
+    gh pr list -R "$r" --state open --search "$TICKET in:title,body created:>=$PREV_SEED" --json number,headRefName \
+       --jq '.[] | select(.headRefName | startswith("devin/")) | "\(.number) \(.headRefName)"' |
+    while read -r num head; do
+      gh pr close -R "$r" "$num" --delete-branch --comment "Closed by demo/live/t1/seed-t1.sh (reseeding the $TICKET demo)." >/dev/null
+      echo "    closed $r#$num ($head)"
+    done
   done
-done
+fi
 gh pr list -R "$REPO" --base "$T1_SEED" --state open --json number --jq '.[].number' |
 while read -r num; do gh pr close -R "$REPO" "$num" --comment "Closed by seed-t1.sh (reseeding $T1_SEED)." >/dev/null; echo "    closed #$num"; done
 

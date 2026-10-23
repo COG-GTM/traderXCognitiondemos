@@ -55,4 +55,4 @@ If the live run stalls: `arden/finserv-estate/demo/live/t1/fallback-t1.sh` (abou
 
 - Never merge any PR, deploy, or post to a real Slack channel.
 - Do not install this plugin as part of the demo; it is set-up guidance.
-- Reseeding is safe: it only touches `demo/t1-live-before` and open PRs titled `T1-2027` on `devin/*` branches.
+- Reseeding is safe: it only touches `demo/t1-live-before` and open PRs that mention `T1-2027` on `devin/*` branches.
