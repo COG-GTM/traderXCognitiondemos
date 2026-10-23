@@ -83,3 +83,9 @@ Golden file `demo/t1/golden/trades-2027Q4.csv` (30 trades) through core-dates ba
 - Tranche 2 (schedulers, cut-offs, recon, risk, client wording, legacy SQL) is planned per repo in `demo2-t1-migration-plan.md`, not executed.
 - Tranche 3 items (calendar authority, ex-date regime, legacy position keeper, FX funding, GMSLA recall notice) are escalated above and left unchanged.
 - No branch is merged; no BOM pin moved. `core-dates` main still carries the 1.5.0 wire change and needs its own decision before tranche 1 can be forward-ported.
+
+## 6. Frontend check (phase 4)
+
+- Recording: `arden-phase4-edited.mp4` (attached to the Devin session and PR #40 comment).
+- `client-portal` in the workspace is backend-only (`/api/portfolio/valuation`, `/api/settlement/summary`, `/health` → 200; `/trade-blotter`, `/settlement-status` → 404). The UI lives in `client-portal-ui`, which is not in the estate, so loading a pre- and post-go-live trade in the blotter was **not verified**. The Node server does not call core-dates.
+- Stale wording (tranche 2, left unchanged): `/api/settlement/summary` → "Trades settle 2 business days after execution (T+2). US equities settle T+1." — owner @ardencm/client-digital; listed in `demo2-t1-migration-plan.md`.
