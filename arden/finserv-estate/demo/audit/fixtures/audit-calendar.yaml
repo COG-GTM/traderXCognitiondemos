@@ -1,0 +1,9 @@
+# The audit dates the evidence pack is built for. External dates carry a public source; Arden dates are fixtures.
+- name: DORA (EU Digital Operational Resilience Act) ICT risk evidence
+  date: "2025-01-17"
+  kind: regulation applies from
+  source: https://eur-lex.europa.eu/eli/reg/2022/2554/oj
+- name: Arden internal audit, platform controls walkthrough
+  date: "2026-11-16"
+  kind: Arden fixture
+  source: fixture

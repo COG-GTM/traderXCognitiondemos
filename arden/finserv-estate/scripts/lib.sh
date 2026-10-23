@@ -9,7 +9,7 @@ elif [[ -z "${JAVA_HOME:-}" || "$(_java_major "$JAVA_HOME")" -lt 17 ]]; then
     [[ -x "$cand/bin/java" ]] && { export JAVA_HOME="$cand"; break; }
   done
 fi
-export PATH="$JAVA_HOME/bin:$PATH"
+[[ -n "${JAVA_HOME:-}" ]] && export PATH="$JAVA_HOME/bin:$PATH"
 export PYTHONDONTWRITEBYTECODE=1
 
 log()  { printf '\033[1;36m[estate]\033[0m %s\n' "$*"; }

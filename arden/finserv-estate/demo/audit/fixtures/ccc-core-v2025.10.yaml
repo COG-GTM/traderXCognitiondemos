@@ -1,0 +1,21 @@
+# Subset of the FINOS Common Cloud Controls core catalog, copied verbatim (id + title) from the STABLE release.
+# Source: https://github.com/finos/common-cloud-controls/blob/v2025.10/catalogs/core/ccc/controls.yaml
+# Release: https://github.com/finos/common-cloud-controls/releases/tag/v2025.10  (CCC.Core v2025.10, not a pre-release)
+# Do NOT map against the v2026.06-rc* typed catalogs: every one of them is marked Pre-release on the releases page.
+catalog: CCC.Core
+version: v2025.10
+status: stable
+source: https://github.com/finos/common-cloud-controls/blob/v2025.10/catalogs/core/ccc/controls.yaml
+draft_catalogs_not_used:
+  - core/ccc v2026.06-rc1
+  - identity/iam v2026.06-rc1
+  - management/logging v2026.06-rc1
+  - crypto/secrets v2026.06-rc1
+  - networking/vpc v2026.06-rc1
+controls:
+  CCC.Core.CN01: Encrypt Data for Transmission
+  CCC.Core.CN03: Implement Multi-factor Authentication (MFA) for Access
+  CCC.Core.CN04: Log All Access and Changes
+  CCC.Core.CN05: Prevent Access from Untrusted Entities
+  CCC.Core.CN09: Ensure Integrity of Access Logs
+  CCC.Core.CN13: Minimize Lifetime of Encryption and Authentication Certificates
