@@ -10,10 +10,10 @@
 |---|---|---|
 | 1 | [BEFORE portal: valuation](http://localhost:3200/api/portfolio/valuation) (on the setup VM; use the setup session's "BEFORE portal" preview link) | The outage: 500 `valuation_failed` |
 | 2 | [Datadog alert (monitor-webhook.json)](https://github.com/COG-GTM/traderXCognitiondemos/blob/demo/arden-live-before/arden/finserv-estate/demo/incident/fixtures/datadog/monitor-webhook.json) | The alert that blames deploy 31.4.2 |
-| 3 | [Devin home: new session](https://devin-gtm.devinenterprise.com/) | Where you paste the prompt (beat 3) |
+| 3 | **Live Devin session**: the setup session starts it for you as a child (FS incident response playbook, prompt already sent) and posts the link | Beats 3-9 happen here |
 | 4 | [Fallback fix PR #122](https://github.com/COG-GTM/traderXCognitiondemos/pull/122) | Keep it hidden; only for when the live run stalls |
 
-## Prompt (paste into tab 3 as is)
+## Prompt (already sent in tab 3; use this only to restart from [Devin home](https://devin-gtm.devinenterprise.com/))
 
 Starting it with `!fs_incident` attaches the FS incident response playbook for you. If the macro isn't offered, attach [FS incident response](https://devin-gtm.devinenterprise.com/settings/playbooks/abc2582e18fd45558d56838a14101336) by hand and delete the first line.
 
@@ -32,7 +32,7 @@ Investigate with the attached Datadog monitor, logs, APM trace and deploy events
 |---|---|---|---|
 | 0:00 | **1. The outage** | Tab 1: 500 `valuation_failed` | "Clients can see their settlements but not what their portfolio is worth, 48 minutes before the open." |
 | 1:00 | **2. The alert** | Tab 2, the `body` line: "Last deploy: client-portal 31.4.2" | "The alert points at last night's deploy, so everyone wants to roll back. Let's see if Devin agrees." |
-| 1:30 | **3. Hand it to Devin** | Tab 3: paste the prompt | "I haven't told Devin the cause. It gets the same alert, logs and trace the on-call engineer got." |
+| 1:30 | **3. Hand it to Devin** | Tab 3: scroll to the top and show the prompt | "I haven't told Devin the cause. It gets the same alert, logs and trace the on-call engineer got." |
 | 2:00 | **4. Reproduce** | The Devin session's shell: `TypeError: n.px.toFixed is not a function` at [valuation.js line 13](https://github.com/COG-GTM/traderXCognitiondemos/blob/demo/arden-live-before/arden/client-portal/src/valuation/valuation.js#L13) | "Same error as production, reproduced locally before anyone touches code." |
 | 3:00 | **5. Is it the deploy?** | The Devin session: replay on 31.4.1 fails the same way | "The code from before the deploy breaks too, so a rollback would have used up 20 minutes and fixed nothing." Optional follow-up: "Would a rollback to 31.4.1 have fixed this? Show me the replay." |
 | 5:00 | **6. The real cause** | [Vendor notice line 6](https://github.com/COG-GTM/traderXCognitiondemos/blob/demo/arden-live-before/arden/market-data-feed-contracts/ardenfeed/VENDOR-NOTICE-2026-09-11.md#L6) and [consumers.yaml line 8](https://github.com/COG-GTM/traderXCognitiondemos/blob/demo/arden-live-before/arden/market-data-feed-contracts/consumers.yaml#L8) | "The vendor changed the price field at 06:00. The portal was never moved to the new format; the deploy just happened to be there." |
@@ -46,7 +46,7 @@ Investigate with the attached Datadog monitor, logs, APM trace and deploy events
 | Situation | PR |
 |---|---|
 | Live run works (normal case) | The new PR Devin opens in the tab 3 session (beat 7). |
-| Live run stalls or is past 8:00 | [PR #122](https://github.com/COG-GTM/traderXCognitiondemos/pull/122): same fix, ruled-out evidence and tests. Say "this is the fix Devin produced on an earlier run of the same incident." |
+| Live run stalls or is past 8:00 | [PR #122](https://github.com/COG-GTM/traderXCognitiondemos/pull/122): same fix, ruled-out evidence and tests, plus a before/after video in the comments. Say "this is the fix Devin produced on an earlier run of the same incident." |
 | Someone asks for screenshots or "show me it was ruled out" | [PR #118](https://github.com/COG-GTM/traderXCognitiondemos/pull/118): "What was ruled out" section and before/after browser screenshots. |
 
 Both fallback PRs are open, mergeable and green. Do not merge them.
