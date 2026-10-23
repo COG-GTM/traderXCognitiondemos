@@ -45,7 +45,7 @@ Report the seed URL and prompt 1 to the presenter exactly as printed. If you see
 
 Start a Devin session (normal mode) with repos `COG-GTM/traderXCognitiondemos`, `COG-GTM/Securities-Trade-Processing-System`, `COG-GTM/Springboot-BankApp` and paste prompt 1 from `arden/finserv-estate/demo/live/t1/PROMPTS.md` (between the `prompt1` markers). It begins with `@playbook:playbook-cbb39530e1f447758488999e30c93083`; through the API, pass `playbook_id=playbook-cbb39530e1f447758488999e30c93083` instead.
 
-Hold Devin to: 37 files inventoried with citations, tranche 1 draft PRs on core-dates, settlement-instruction-service and iso20022-fix-messages, parity over `demo/t1/golden/*.csv`, and trades ARD-27Q4-0021, 0022, 0027, 0028 escalated to @ardencm/market-ops and the Head of Post-Trade instead of decided. The calendar disagreement is the only hard case.
+Hold Devin to: its own inventory with a file:line citation for every row (no fixed count: runs vary, and Devin reads wider than the kit's regex check), tranche 1 draft PRs on core-dates, settlement-instruction-service and iso20022-fix-messages, parity over `demo/t1/golden/*.csv`, and trades ARD-27Q4-0021, 0022, 0027, 0028 escalated to @ardencm/market-ops and the Head of Post-Trade instead of decided. The calendar disagreement is the only hard case.
 
 ## 4. Fallback
 

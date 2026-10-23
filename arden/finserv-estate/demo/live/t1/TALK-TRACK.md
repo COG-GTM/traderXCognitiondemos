@@ -12,7 +12,7 @@ The settlement cycle is hard-coded across 20 repos in Java, Python, YAML, cron a
 
 Live on stage: inventory, tranche 1 migration (3 repos), parity against the golden trades, and the escalation.
 Pre-built, shown not run: tranches 2 and 3. Devin's own inventory names them and assigns owners; the presenter does not ask Devin to migrate them on stage.
-Why: the full 37 files across 16 repos is a long run; tranche 1 is the part that changes settlement dates on the wire, and parity proves it. The rest is the same work at larger scale.
+Why: migrating every inventoried file across the estate is a long run; tranche 1 is the part that changes settlement dates on the wire, and parity proves it. The rest is the same work at larger scale.
 
 ## Talk track
 
