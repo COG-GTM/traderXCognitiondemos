@@ -58,11 +58,11 @@ def build(chain: dict, ticket: dict, log: dict, label: str | None = None) -> lis
         ("Who asked Devin", f"{started['user_email']} at {ts(started)}" if started else "MISSING",
          f"{label}: Devin audit log create_session" if started else f"{label}: no audit-log record for this session"),
         ("What Devin did", "\n".join(chain["commands_run_by_devin"]),
-         f"session transcript {chain['devin_session']}"),
+         chain["devin_session"]),
         ("The change", f"{chain['commit']} {chain['commit_message']}",
-         f"PR {chain['pr']} ({chain['pr_footer']}); commit {chain['commit_url']}"),
+         f"{chain['pr']} ({chain['pr_footer']}), {chain['commit_url']}"),
         ("CI", st["ci"],
-         f"{snap}: security/snyk commit status on {chain['commit_url']} (Snyk report {chain['ci_status_url']})"),
+         f"{snap}: security/snyk commit status on {chain['commit_url']}, {chain['ci_status_url']}"),
         ("Approved by", st["approved_by"] or f"not approved yet; required: {', '.join(chain['required_reviewers'])}", f"{snap}: reviews"),
         ("Deployed", "yes" if st["deployed"] else "no (not merged, not applied)", f"{snap}: merge state"),
     ]
@@ -88,8 +88,13 @@ def _html_links(text: str, labels: dict[str, str]) -> str:
     for match in re.finditer(r"""https?://[^\s<>"')]+""", text):
         parts.append(html.escape(text[position:match.start()]))
         url = match.group(0)
+        suffix = ""
+        while url and url[-1] in ",.;:" and url not in labels:
+            suffix = url[-1] + suffix
+            url = url[:-1]
         label = html.escape(labels.get(url, url))
         parts.append(f'<a href="{html.escape(url, quote=True)}">{label}</a>')
+        parts.append(html.escape(suffix))
         position = match.end()
     parts.append(html.escape(text[position:]))
     return "".join(parts)

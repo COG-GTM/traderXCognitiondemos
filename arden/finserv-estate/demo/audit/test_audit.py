@@ -283,10 +283,19 @@ def test_html_links_short_labels_ticket_record_and_layout(tmp_path):
     assert f'href="{CHAIN["commit_url"]}">commit 5c73ebc</a>' in trace_html
     assert f'href="{CHAIN["ci_status_url"]}">Snyk report</a>' in trace_html
     assert f'href="{CHAIN["devin_session"]}">Devin session bcd8b23d</a>' in trace_html
+    assert f'<a href="{CHAIN["pr"]}">PR #327</a> (Devin-Org: engineering), ' \
+           f'<a href="{CHAIN["commit_url"]}">commit 5c73ebc</a>' in trace_html
+    assert f'PR snapshot {CHAIN["pr_state_observed"]}; check the live PR: security/snyk commit status on ' \
+           f'<a href="{CHAIN["commit_url"]}">commit 5c73ebc</a>, ' \
+           f'<a href="{CHAIN["ci_status_url"]}">Snyk report</a>' in trace_html
+    assert f'<a href="{CHAIN["devin_session"]}">Devin session bcd8b23d</a></td>' in trace_html
     assert '<a href="../../audit/fixtures/trace/PLAT-1142.json">PLAT-1142 ticket (recorded fixture)</a>' in trace_html
     assert "[PLAT-1142 ticket (recorded fixture)](../../audit/fixtures/trace/PLAT-1142.json)" in trace_md
     assert "└ PLAT-1142 ticket (recorded fixture), reported by internal-audit@ardencm.example" in result.stdout
     assert "[PLAT-1142 ticket" not in result.stdout
+    for url in (CHAIN["pr"], CHAIN["commit_url"], CHAIN["ci_status_url"], CHAIN["devin_session"]):
+        assert f"[{url}]({url})" in trace_md
+        assert url in result.stdout
     assert "<a href='control-map.html'>Back to control map</a>" in trace_html
     trace_text = re.sub(r"""href=['"][^'"]+['"]""", "", trace_html)
     assert "https://" not in trace_text
