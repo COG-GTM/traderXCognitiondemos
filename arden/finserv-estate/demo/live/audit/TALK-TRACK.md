@@ -77,3 +77,9 @@ deterministic control map at `demo/out/audit/control-map.html`, and the same CN0
 | CN05 RISK, no ingress change | PR #333 diff leaves `main.tf` ingress unchanged; risk memo in session | Verified |
 | CN01 PASS, CN04/CN09 GAP with owners | Control map in session | Verified |
 | Org audit log beat | Devin settings audit log, admin view | Not proven in run 1 |
+| Wall time | Prompt 02:54:23 UTC, PLAT-771 found 02:55:46, PR #333 02:58:09, final map 03:03:11 (8m48s) | Verified |
+| Recording | None made for run 1 | Gap |
+
+Run 1 also flagged, unprompted: CVE-2026-82329 on Artifactory 7.111.19 raises the CN05 stakes; `version = local.artifactory_version`
+is invalid Terraform (left alone, CAB pin); PR #333 overlaps #327 (only one should land). PLAT-771 itself was not opened
+(no Jira in the session), and the memo says so. Use these as live talking points.
