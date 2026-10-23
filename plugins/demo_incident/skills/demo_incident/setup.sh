@@ -68,14 +68,21 @@ mkdir -p "$WORK"
 step "Node 20+"
 node_major() { node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0; }
 if (( $(node_major) < 20 )); then
-  sudo -n true 2>/dev/null || fail "Node 20+ missing and sudo needs a password; install Node 20 and rerun"
-  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - >"$WORK/node-install.log" 2>&1
-  sudo apt-get install -y nodejs >>"$WORK/node-install.log" 2>&1
+  if sudo -n true 2>/dev/null; then
+    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - >"$WORK/node-install.log" 2>&1
+    sudo apt-get install -y nodejs >>"$WORK/node-install.log" 2>&1
+  else  # no passwordless sudo: install Node 20 for this user with nvm
+    [[ -s "$HOME/.nvm/nvm.sh" ]] || curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash >"$WORK/node-install.log" 2>&1
+    set +u; source "$HOME/.nvm/nvm.sh"; nvm install 20 >>"$WORK/node-install.log" 2>&1; nvm use 20 >/dev/null; set -u
+  fi
 fi
 (( $(node_major) >= 20 )) || fail "Node $(node -v 2>/dev/null || echo none) is below 20"
 
-step "Checkout $REPO at $CLONE"
-if [[ ! -d "$CLONE/.git" ]]; then
+step "Checkout $REPO"
+KIT_CLONE=$(git -C "$HERE" rev-parse --show-toplevel 2>/dev/null || true)
+if [[ -z "${DEMO_INCIDENT_CLONE:-}" && -n "$KIT_CLONE" ]] && git -C "$KIT_CLONE" ls-remote -q origin HEAD >/dev/null 2>&1; then
+  CLONE="$KIT_CLONE"  # reuse the kit checkout: a pre-cloned ~/repos copy may lack git credentials
+elif [[ ! -d "$CLONE/.git" ]]; then
   mkdir -p "$(dirname "$CLONE")"
   retry gh repo clone "$REPO" "$CLONE" -- -q
 fi
@@ -156,6 +163,7 @@ READY: demo_incident (INC-2026-0925-01, client-portal valuation 5xx before the L
   Devin:         new session on $REPO, playbook $PLAYBOOK_ID (FS incident response)
   Prompt 1 (paste as is; also in $HERE/PROMPTS.md):
 $(prompt1 | sed 's/^/    /')
+  Brief:         https://github.com/$REPO/blob/devin/1792724863-demo-incident-plugin/plugins/demo_incident/skills/demo_incident/PRESENTER-BRIEF.md  (attach and pin it for the presenter)
   Fallback:      bash $HERE/setup.sh --fallback   (serves PR #$FALLBACK_PR on :$FALLBACK_PORT)
                  https://github.com/$REPO/pull/$FALLBACK_PR  and  https://github.com/$REPO/pull/$FALLBACK_PR_ALT
 BANNER

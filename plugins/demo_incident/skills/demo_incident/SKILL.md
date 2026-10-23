@@ -38,3 +38,5 @@ nests `px` as `{ v, ccy }`), open the smallest fix PR and write the incident rec
 
 - Do not run Devin's investigation for the presenter; this skill only sets up the situation.
 - Do not touch PRs #118 and #122 (they are the fallback) or the other Arden demos' files.
+
+Presenter handoff: attach and pin `PRESENTER-BRIEF.md` (goal, beats with links, which PR per beat, the prompt), expose the BEFORE portal (:3200) and the fallback (:3201) as browser previews, and send their links. Don't pre-create the live session: the presenter starts it from Devin home with `!fs_incident` + the prompt.
