@@ -254,3 +254,17 @@ def test_evidence_pack_readme_links_resolve(tmp_path):
     pack = out / "evidence-pack"
     links = [l for l in re.findall(r"\]\(([^)]+)\)", (pack / "README.md").read_text()) if "risk-decision" in l]
     assert links and all((pack / l).exists() for l in links)
+
+
+def test_log_validation_resolves_variable_defaults(tmp_path):
+    def cn09(default):
+        tf_text = BEFORE_TF + ('\nresource "aws_cloudtrail" "audit" {\n  enable_log_file_validation = var.validation_enabled\n}\n'
+                               f'variable "validation_enabled" {{\n  type    = bool\n  default = {default}\n}}\n')
+        return _routes(ccc_map.evaluate(*_estate(tmp_path / default, tf_text), CHAIN))["CCC.Core.CN09"]
+    assert cn09("true") == "PASS" and cn09("false") == "GAP"
+
+
+def test_cloudtrail_module_stays_gap_but_is_named(tmp_path):
+    tf_text = BEFORE_TF + '\nmodule "cloudtrail" {\n  source = "terraform-aws-modules/cloudtrail/aws"\n}\n'
+    cn04 = next(f for f in ccc_map.evaluate(*_estate(tmp_path, tf_text), CHAIN) if f["control"] == "CCC.Core.CN04")
+    assert cn04["route"] == "GAP" and cn04["owner"] and "CloudTrail module" in cn04["evidence"][0]["text"]

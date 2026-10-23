@@ -170,6 +170,21 @@ def _instances(tf: Path, block: list[str]) -> int | None:
     return _var_default(tf, match.group(1))
 
 
+def _var_bool_default(tf: Path, name: str) -> bool | None:
+    for f in tf.glob("**/*.tf"):
+        m = re.search(r'variable\s+"%s"\s*{(.*?)\n}' % re.escape(name), f.read_text(), re.S)
+        d = m and re.search(r'^\s*default\s*=\s*(true|false)\b', m.group(1), re.M)
+        if d:
+            return d.group(1) == "true"
+    return None
+
+
+def _enabled(tf: Path, hit: dict) -> bool:
+    """True only for a literal true, or a var.* whose default resolves to true."""
+    v = re.search(r'=\s*(\S+)', hit["text"]).group(1)
+    return v == "true" or (v.startswith("var.") and _var_bool_default(tf, v[4:]) is True)
+
+
 def token_lifetimes(tf: Path) -> list[dict]:
     """Every token definition with its effective expiry in seconds (None when missing or unresolvable)."""
     out = []
@@ -272,17 +287,22 @@ def evaluate(tf: Path, wf: Path, chain: dict) -> list[dict]:
         ("CCC.Core.CN04", "Every access and change is logged.", r'^\s*resource\s+"aws_cloudtrail"',
          "aws_cloudtrail resource", "Cloud platform owner (@ardencm/platform-eng)",
          "Confirm which account-level trail (for example AWS CloudTrail) covers the Artifactory and scheduler accounts, and attach the trail config"),
-        ("CCC.Core.CN09", "Logs cannot be quietly edited.", r'^\s*(enable_log_file_validation|object_lock_enabled)\s*=\s*true\b',
+        ("CCC.Core.CN09", "Logs cannot be quietly edited.", r'^\s*(enable_log_file_validation|object_lock_enabled)\s*=\s*(true|var\.\w+)\b',
          "enable_log_file_validation = true or object_lock_enabled = true", "Security engineering (@ardencm/security-eng)",
          "Show where those logs are stored and what makes them tamper-evident (for example CloudTrail log file validation or S3 Object Lock)"),
     ]:
-        hits = _hits(tf, "**/*.tf", pattern)  # configured resources only; comments and disabled settings do not count
+        # configured resources only; comments, disabled settings and unresolvable values do not count
+        hits = [h for h in _hits(tf, "**/*.tf", pattern) if cid != "CCC.Core.CN09" or _enabled(tf, h)]
         if hits:
             findings.append({"control": cid, "route": PASS, "evidence": hits, "plain": plain,
                              "finding": f"logging configuration found in {len(hits)} location(s)",
                              "action": f"No action, monitored by {cid}"})
         else:
             note = f"searched platform-terraform, ci-shared-workflows: no {description} found"
+            modules = _hits(tf, "**/*.tf", r'^\s*module\s+"[^"]*cloudtrail[^"]*"') if cid == "CCC.Core.CN04" else []
+            if modules:
+                note += (f"; {len(modules)} CloudTrail module call(s) found, but the module's own configuration is "
+                         "outside this tree, so the owner confirms it")
             findings.append({
                 "control": cid, "route": GAP,
                 "evidence": [
