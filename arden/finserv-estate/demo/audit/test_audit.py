@@ -353,3 +353,9 @@ def test_log_validation_expression_is_not_resolved_as_true(tmp_path):
     tf_text = BEFORE_TF + ('\nresource "aws_cloudtrail" "audit" {\n  enable_log_file_validation = var.validation_enabled && false\n}\n'
                            'variable "validation_enabled" {\n  type    = bool\n  default = true\n}\n')
     assert _routes(ccc_map.evaluate(*_estate(tmp_path, tf_text), CHAIN))["CCC.Core.CN09"] == "GAP"
+
+
+def test_log_validation_comparison_is_not_resolved_as_true(tmp_path):
+    tf_text = BEFORE_TF + ('\nresource "aws_cloudtrail" "audit" {\n  enable_log_file_validation = var.enabled == true\n}\n'
+                           'variable "enabled" {\n  type    = bool\n  default = false\n}\n')
+    assert _routes(ccc_map.evaluate(*_estate(tmp_path, tf_text), CHAIN))["CCC.Core.CN09"] == "GAP"
