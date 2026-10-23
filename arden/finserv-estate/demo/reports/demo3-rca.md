@@ -1,4 +1,4 @@
-# RCA — INC-2026-0925-01: client-portal valuation failures after ArdenFeed v2.3 cutover (DRAFT)
+# RCA: INC-2026-0925-01: client-portal valuation failures after ArdenFeed v2.3 cutover (DRAFT)
 
 ## Summary
 At 06:00 UTC on 25 Sep 2026 ArdenFeed switched its quote schema from 2.2 to 2.3 (`px` number → `{ v, ccy }` object) with no parallel run.
@@ -12,23 +12,23 @@ Datadog paged at 2026-09-25T06:04:30Z. The most recent deploy (31.4.2, memoisati
 - replay market-data-feed-contracts/samples/latest-batch.json through valuePortfolio on main (31.4.2): FAIL TypeError: n.px.toFixed is not a function
 
 ## The lead that was wrong, and how it was ruled out
-- deploy 31.4.2 at 2026-09-24T21:05:12Z by release-bot (PORTAL-3312 feature: memoise valuation rows for positions table perf — commit 9c41f0e — release-bot) — 8.9h before the first error
-- git log -L on the failing line: 40c204d Arden Platform Bot 2026-09-10 feature: PORTAL-3270 settlement status widget — the line predates the deploy, but 31.4.2 rewrote this function (memoisation), so the lead stays plausible until tested
-- checkout pre-deploy commit e0fe2a5 (31.4.1, the release before v31.4.2) and replay the live batch: FAIL TypeError: n.px.toFixed is not a function
+- deploy 31.4.2 at 2026-09-24T21:05:12Z by release-bot (PORTAL-3312 feature: memoise valuation rows for positions table perf: commit 9c41f0e: release-bot): 8.9h before the first error
+- git log -L on the failing line: 5190e57 Arden Platform Bot 2026-09-10 feature: PORTAL-3270 settlement status widget: the line predates the deploy, but 31.4.2 rewrote this function (memoisation), so the lead stays plausible until tested
+- checkout pre-deploy commit 2e30005 (31.4.1, the release before v31.4.2) and replay the live batch: FAIL TypeError: n.px.toFixed is not a function
 - same pre-deploy code with yesterday's batch (schema 2.2): OK [["GB0002634946","12.3400","GBP","148080.00"],["CH0012032048","271.5000","CHF","217200.00"],["US0378331005","231.1200","USD","346680.00"]]
 - 7 healthy 200s on 31.4.2 between 2026-09-24T21:06:11Z and 2026-09-25T05:58:33Z
 
-**RULED OUT — pre-deploy code fails identically on today's batch and works on yesterday's; a rollback would not have fixed it.** A rollback — the standard first move — would have kept the portal down.
+**RULED OUT: pre-deploy code fails identically on today's batch and works on yesterday's; a rollback would not have fixed it.** A rollback: the standard first move: would have kept the portal down.
 
 ## Root cause
 - last healthy request 2026-09-25T05:58:33Z carried feed schema 2.2; first error 2026-09-25T06:00:41Z carries schema 2.3
 - batch diff for GB0002634946: px 12.34 → {"v": 12.41, "ccy": "GBP"}; quote-level ccy present → absent
 - market-data-feed-contracts/ardenfeed/VENDOR-NOTICE-2026-09-11.md: effective 25 Sep 2026 06:00 UTC (no parallel run)
-- market-data-feed-contracts/consumers.yaml: `- repo: client-portal` `schema: "2.2"   # intraday valuation; not updated for 2.3 (MD-1187 scope was EOD only)` — client-portal was never moved to 2.3
-- market-data-feed-contracts history: b7c6869 2026-09-25T06:02:14+00:00 feed-ingest-bot — feature: auto-ingest ArdenFeed schema v2.3 + first live batch sample | d210ca9 2026-09-22T11:05:00+00:00 Arden Platform Bot — feature: MD-1187 eod-pricing-batch moves to ArdenFeed 2.3 | 65a9eeb 2026-09-11T14:22:00+00:00 Tom Okafor — feature: file ArdenFeed v2.3 change notice (effective 25 Sep) | 85bd0e2 2026-06-02T10:00:00+00:00 Arden Platform Bot — feature: ArdenFeed v2.2 schema and consumer register
+- market-data-feed-contracts/consumers.yaml: `- repo: client-portal` `schema: "2.2"   # intraday valuation; not updated for 2.3 (MD-1187 scope was EOD only)`: client-portal was never moved to 2.3
+- market-data-feed-contracts history: b7c6869 2026-09-25T06:02:14+00:00 feed-ingest-bot: feature: auto-ingest ArdenFeed schema v2.3 + first live batch sample | d210ca9 2026-09-22T11:05:00+00:00 Arden Platform Bot: feature: MD-1187 eod-pricing-batch moves to ArdenFeed 2.3 | 65a9eeb 2026-09-11T14:22:00+00:00 Tom Okafor: feature: file ArdenFeed v2.3 change notice (effective 25 Sep) | 85bd0e2 2026-06-02T10:00:00+00:00 Arden Platform Bot: feature: ArdenFeed v2.2 schema and consumer register
 - notice says: 'Internal tracking: MD-1187 (eod-pricing-batch updated 22 Sep). No ticket was raised for client-portal.'
 
-**ROOT CAUSE — ArdenFeed v2.3 went live 06:00 UTC with px as an object; client-portal's normaliser (schema 2.2) passes the object through and toFixed fails.**
+**ROOT CAUSE: ArdenFeed schema 2.3 went live at 06:00 UTC with px as an object; client-portal's schema 2.2 normaliser passes the object through and toFixed fails.**
 
 ## Fix
 - tests before the fix (main): tests 1 pass 1 fail 0
@@ -55,4 +55,4 @@ Rollout is a human decision. The fix fails loudly on any *third* shape rather th
 ## What this RCA does not decide
 Regulatory classification, client communications and whether 31.4.2's memoisation should stay are outside the investigation's remit.
 
-Generated 2026-10-01T14:28:41Z.
+Investigation finished 2026-09-25T06:10:30Z.

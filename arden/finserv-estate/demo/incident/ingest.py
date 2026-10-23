@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Demo 3, step 1 — turn a Datadog monitor alert plus its context (error logs, APM trace, deploy events) into one
+"""Demo 3, step 1: turn a Datadog monitor alert plus its context (error logs, APM trace, deploy events) into one
 normalised incident input.  Swappable source: fixtures (deterministic) or the Datadog API (real).
 
     python3 demo/incident/ingest.py --source fixture                  # demo/incident/fixtures/datadog/*.json
@@ -25,7 +25,7 @@ import sys
 import urllib.request
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
-from estatelib import OUT, log, now_iso, read_json, write_json  # noqa: E402
+from estatelib import OUT, log, read_json, write_json  # noqa: E402
 
 FIX = pathlib.Path(__file__).resolve().parent / "fixtures/datadog"
 
@@ -89,7 +89,7 @@ def from_datadog(alert: dict) -> tuple[dict, dict]:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--source", choices=["fixture", "datadog"], default=os.environ.get("FS_INCIDENT_SOURCE", "fixture"))
-    ap.add_argument("--input", help="webhook body (JSON) — defaults to the fixture")
+    ap.add_argument("--input", help="webhook body (JSON): defaults to the fixture")
     a = ap.parse_args()
     webhook = read_json(pathlib.Path(a.input)) if a.input else read_json(FIX / "monitor-webhook.json")
     alert = normalise_alert(webhook)
@@ -102,7 +102,7 @@ def main() -> None:
         logs_resp, events_resp, trace = read_json(FIX / "logs-search.json"), read_json(FIX / "deploy-events.json"), read_json(FIX / "apm-error-trace.json")
     errors, healthy = normalise_logs(logs_resp)
     deploys = normalise_events(events_resp)
-    out = {"source": a.source, "ingested_at": now_iso(), "alert": alert, "errors": errors, "healthy": healthy, "deploys": deploys, "trace": trace}
+    out = {"source": a.source, "ingested_at": alert["fired_at"], "alert": alert, "errors": errors, "healthy": healthy, "deploys": deploys, "trace": trace}
     write_json(OUT / "incident/incident-input.json", out)
     svc_deploys = [d for d in deploys if d["service"] == alert["service"]]
     log(f"incident input: alert {alert['monitor_id']} fired {alert['fired_at']} · {len(errors)} error logs (first {errors[0]['ts'] if errors else '-'}) · "

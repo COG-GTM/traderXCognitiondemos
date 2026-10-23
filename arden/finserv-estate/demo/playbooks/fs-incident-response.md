@@ -1,8 +1,8 @@
-# Production incident — from monitor alert to root cause, fix branch and incident record
+# Production incident: from monitor alert to root cause, fix branch and incident record
 
 ## Overview
 A Datadog monitor has fired on a customer-facing service. Investigate it the way a good on-call engineer would: reproduce
-first, then treat every candidate cause as a hypothesis with a test — including the obvious one (the latest deploy) — and
+first, then treat every candidate cause as a hypothesis with a test: including the obvious one (the latest deploy): and
 only call something the root cause once the alternative has been ruled out with evidence. Fix on a branch with a regression
 test; never deploy, roll back or change vendor contracts. Leave behind a Slack thread, a timeline, an incident record and an
 RCA whose classification fields are explicitly left to humans. Only ever create the todo list for the current phase.
@@ -39,10 +39,10 @@ RCA whose classification fields are explicitly left to humans. Only ever create 
 <phase name="Test the leads" id="2">
 ## Test the leads
 
-1. Lead A — latest deploy. Check `git log -L` on the failing line; check out the pre-deploy release into a worktree and replay
+1. Lead A: latest deploy. Check `git log -L` on the failing line; check out the pre-deploy release into a worktree and replay
    the same live input. If it fails identically, the deploy is ruled out; record the healthy request count on the new version
-   between deploy and first error as corroboration. If it passes, the deploy is the cause — bisect within it.
-2. Lead B — the input changed. Diff the live input against the last healthy one (shape, schema version, encoding). Look for
+   between deploy and first error as corroboration. If it passes, the deploy is the cause: bisect within it.
+2. Lead B: the input changed. Diff the live input against the last healthy one (shape, schema version, encoding). Look for
    vendor notices, contract repositories, consumer registers and upstream commits around the first-error time.
 3. Any further lead (infra, dependency, config) gets the same treatment: a hypothesis, a test, a verdict with evidence.
 4. Exactly one lead becomes ROOT CAUSE; every other lead is marked RULED OUT with the test that ruled it out.
@@ -50,7 +50,7 @@ RCA whose classification fields are explicitly left to humans. Only ever create 
 <verification>
 - The latest deploy was tested by replay on pre-deploy code, not dismissed or accepted on timing alone
 - The root-cause verdict cites at least two independent pieces of evidence (e.g. input diff + vendor notice + consumer register)
-- Ruled-out leads are kept in the record with their evidence — they are part of the story
+- Ruled-out leads are kept in the record with their evidence: they are part of the story
 </verification>
 </phase>
 
@@ -58,7 +58,7 @@ RCA whose classification fields are explicitly left to humans. Only ever create 
 ## Fix on a branch
 
 1. Create an `incident/<id>-<slug>` branch. Make the smallest change that handles both the old and new input and fails
-   loudly on anything else — never a silent coercion that would turn a 500 into a wrong number.
+   loudly on anything else: never a silent coercion that would turn a 500 into a wrong number.
 2. Add a regression test using the live input, an equivalence test (old ≡ new), and an unknown-shape test.
 3. Run the repository's test and lint commands. Replay both the live input and the last healthy input.
 4. Commit (`bug: <id> …`) and write the PR body: root cause, what changed, what was ruled out and how, verification, what is
@@ -115,6 +115,6 @@ RCA whose classification fields are explicitly left to humans. Only ever create 
 
 ## Forbidden Actions
 - Do not deploy, roll back, toggle feature flags or change vendor/feed configuration
-- Do not coerce unknown input shapes silently — a wrong number is worse than a 500
+- Do not coerce unknown input shapes silently: a wrong number is worse than a 500
 - Do not classify the incident under DORA/SEC/OCC rules or draft the regulatory notification; hand the facts to ops risk
 - Do not @-mention people found via git blame; use CODEOWNERS teams and the alert's routing

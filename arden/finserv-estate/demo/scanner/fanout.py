@@ -53,7 +53,7 @@ def child_prompt(f: dict) -> str:
         f"{PLAYBOOK_MACRO}",
         f"Remediate ONE scanner finding in ardencm/{repo} as part of {INCIDENT_REF}.",
         "",
-        f"Finding: {f['scanner_id']} — {f['title']} (severity {f['severity']}, {', '.join(f['cve']) or 'no CVE'})",
+        f"Finding: {f['scanner_id']}: {f['title']} (severity {f['severity']}, {', '.join(f['cve']) or 'no CVE'})",
         f"Location: {f['path']}",
         f"Kind: {f['kind']}",
     ]
@@ -71,7 +71,7 @@ def child_prompt(f: dict) -> str:
         lines += [
             "Remove the hard-coded Artifactory token from the file, read it from the CI-provided environment instead, and "
             "move the workflow from ci-shared-workflows @v3 (static ARTIFACTORY_TOKEN secret) to @v4 (OIDC exchange). "
-            "Do NOT rotate or revoke the token yourself — record the token fingerprint (first 8 chars) and its file path in "
+            "Do NOT rotate or revoke the token yourself: record the token fingerprint (first 8 chars) and its file path in "
             "the PR description under 'Token revocation required' so security can revoke it in Artifactory.",
         ]
     elif f["kind"] == "iac":
@@ -85,7 +85,7 @@ def child_prompt(f: dict) -> str:
         "",
         f"Build/test: {BUILD_CMDS.get(bs, 'see README')}",
         f"CODEOWNERS for this path: {owners}. Add them as reviewers; do not merge.",
-        "Open a PR titled 'security: <finding id> — <one line>' with a body containing: finding id, CVE, files changed, "
+        "Open a PR titled 'security: <finding id>: <one line>' with a body containing: finding id, CVE, files changed, "
         "test evidence (paste the test summary line), and a 'Residual risk' section. Add label 'cve-2026-82329-response'.",
         "Report back to the parent with: PR URL, status (fixed | fixed-with-deviation | blocked), and one sentence why.",
     ]

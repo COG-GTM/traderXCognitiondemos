@@ -3,7 +3,7 @@
     {
       "id": 991,
       "title": "Deployed client-portal 31.4.2",
-      "text": "PORTAL-3312 feature: memoise valuation rows for positions table perf \u2014 commit 9c41f0e \u2014 release-bot",
+      "text": "PORTAL-3312 feature: memoise valuation rows for positions table perf: commit 9c41f0e: release-bot",
       "date_happened": 1790283912,
       "alert_type": "info",
       "source": "deploy",

@@ -70,7 +70,7 @@ def source_dir(repo: str) -> pathlib.Path:
 def target_line(repo: str) -> str:
     """One PR-body line saying where the real PR lands (scripts/publish-branch.sh pushes there)."""
     h = repo_home(repo)
-    return f"**Lands in:** [{h.github}]({h.url}) under `{h.subdir}/` (base `{h.ref}`) — publish with `scripts/publish-branch.sh {repo} <branch> <patch>`"
+    return f"**Lands in:** [{h.github}]({h.url}) under `{h.subdir}/` (base `{h.ref}`): publish with `scripts/publish-branch.sh {repo} <branch> <patch>`"
 
 
 def log(msg: str) -> None:

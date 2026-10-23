@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Demo 1 step 4 — exposure burn-down dashboard + regulator-mapped remediation report.
+"""Demo 1 step 4: exposure burn-down dashboard + regulator-mapped remediation report.
 
 Reads demo/out/scanner/{findings,fanout-plan,results}.json and writes:
   demo/out/scanner/burndown.html             dark dashboard: exposure by severity over the run, per-repo status, PR list
@@ -20,18 +20,22 @@ from collections import Counter
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from estatelib import OUT, REPORTS, esc, html_page, log, read_json  # noqa: E402
+from scanner.evidence import hard_case_evidence, readable_test_summary  # noqa: E402
 
 SEV_ORDER = ["critical", "high", "medium", "low"]
 SEV_COLOR = {"critical": "#f87171", "high": "#fb923c", "medium": "#fbbf24", "low": "#818cf8"}
 STATUS_PILL = {"fixed": "good", "fixed-with-deviation": "warn", "blocked": "bad", "pending": "info"}
+STATUS_LABEL = {"fixed": "fix ready for review", "fixed-with-deviation": "fix ready with deviation",
+                "blocked": "blocked", "pending": "pending"}
 
 
 def short_summary(s: str) -> str:
-
+    s = readable_test_summary(s)
     m = re.match(r"Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)(.*)", s)
     if m:
         n, f, e, _, rest = m.groups()
-        return f"{n} tests · {int(f) + int(e)} fail" + (" ·" + rest if rest else "")
+        suffix = rest.lstrip(";: ")
+        return f"{n} tests · {int(f) + int(e)} fail" + (f" · {suffix}" if suffix else "")
     return s
 
 
@@ -78,8 +82,8 @@ def svg_burndown(times: list[dt.datetime], series: dict[str, list[int]]) -> str:
         pts = " ".join(f"{x:.1f},{y(v):.1f}" for x, v in zip(xs, cum))
         back = " ".join(f"{x:.1f},{y(v):.1f}" for x, v in zip(reversed(xs), reversed(lower)))
         out.append(f'<polygon points="{pts} {back}" fill="{SEV_COLOR[sev]}" fill-opacity=".55" stroke="{SEV_COLOR[sev]}" stroke-width="1.5"/>')
-    out.append(f'<text x="{pad}" y="{h-10}">{times[0].strftime("%H:%M:%S")}Z — parent session start</text>')
-    out.append(f'<text x="{w-pad}" y="{h-10}" text-anchor="end">{times[-1].strftime("%H:%M:%S")}Z — last child PR</text>')
+    out.append(f'<text x="{pad}" y="{h-10}">{times[0].strftime("%H:%M:%S")}Z: parent session start</text>')
+    out.append(f'<text x="{w-pad}" y="{h-10}" text-anchor="end">{times[-1].strftime("%H:%M:%S")}Z: last child PR</text>')
     legend_x = w - pad - 4 * 90
     for i, sev in enumerate(SEV_ORDER):
         out.append(f'<rect x="{legend_x + i*90}" y="8" width="10" height="10" fill="{SEV_COLOR[sev]}"/>'
@@ -94,17 +98,22 @@ def build_dashboard(findings: list[dict], plan: dict, results: dict[str, dict]) 
     sev = Counter(f["severity"] for f in findings)
     elapsed = (times[-1] - times[0]).total_seconds()
     open_now = sum(v[-1] for v in series.values())
+    ready = statuses["fixed"] + statuses["fixed-with-deviation"]
+    unaddressed_sub = f"{ready} fixes review-ready, none merged"
+    if statuses["blocked"]:
+        unaddressed_sub += f"; {statuses['blocked']} blocked and still need human action"
     cards = [
         ("findings ingested", len(findings), f"{len({f['repo'] for f in findings})} repos · scanner: {findings[0]['scanner']}"),
         ("child sessions", len(plan["children"]), "one per finding · " + plan["parent"]["mode"]),
-        ("PRs ready for review", statuses["fixed"] + statuses["fixed-with-deviation"],
+        ("PRs ready for review", ready,
          f"{statuses['fixed-with-deviation']} with documented deviation"),
-        ("still exposed", open_now, f"{statuses['blocked']} blocked · human owner paged" if open_now else "all findings have a PR"),
+        ("unaddressed findings", f"{open_now} unaddressed", unaddressed_sub),
         ("wall clock", f"{int(elapsed//60)}m {int(elapsed%60)}s", "parent start → last PR"),
         ("critical / high", f"{sev['critical']} / {sev['high']}", f"medium {sev['medium']} · low {sev['low']}"),
     ]
-    body = [f"<h1>Exposure burn-down — {esc(plan['parent']['incident'])}</h1>",
+    body = [f"<h1>Exposure burn-down: {esc(plan['parent']['incident'])}</h1>",
             "<p class='sub'>Devin is the remediation layer: scanner findings in, reviewable PRs out. Nothing here merges without CODEOWNERS approval.</p>",
+            hard_case_panel(findings, results),
             "<div class='grid'>"]
     body += [f"<div class='card'><div class='k'>{esc(k)}</div><div class='v'>{esc(v)}</div><div class='k' style='text-transform:none;letter-spacing:0;margin-top:4px'>{esc(sub)}</div></div>"
              for k, v, sub in cards]
@@ -117,10 +126,10 @@ def build_dashboard(findings: list[dict], plan: dict, results: dict[str, dict]) 
         att = "<br>".join(
             f"{i+1}. {esc(a['strategy'])} → <span class='pill {'good' if a['tests_ok'] else 'bad'}'>{'PASS' if a['tests_ok'] else 'FAIL'}</span>"
             for i, a in enumerate(r["attempts"]))
-        ev = esc(short_summary(r["attempts"][-1]["test_summary"])) if r["attempts"] else "—"
+        ev = esc(short_summary(r["attempts"][-1]["test_summary"])) if r["attempts"] else ": "
         body.append(f"<tr><td class='mono'>{esc(f['repo'])}</td><td class='mono'>{esc(f['scanner_id'])}<br><span style='color:var(--muted)'>{esc(f['title'])}</span></td>"
                     f"<td><span class='pill' style='color:{SEV_COLOR[f['severity']]}'>{f['severity']}</span></td><td>{esc(f['kind'])}</td>"
-                    f"<td><span class='pill {STATUS_PILL[r['status']]}'>{esc(r['status'])}</span></td><td>{att}</td><td class='mono'>{ev}</td>"
+                    f"<td><span class='pill {STATUS_PILL[r['status']]}'>{esc(STATUS_LABEL[r['status']])}</span></td><td>{att}</td><td class='mono'>{ev}</td>"
                     f"<td class='mono'>{esc(' '.join(r.get('owners', [])))}</td></tr>")
     body.append("</table>")
 
@@ -134,6 +143,50 @@ def build_dashboard(findings: list[dict], plan: dict, results: dict[str, dict]) 
                         "the child pinned the security-only patch release, added a compensating wire-format test, and recorded both attempts in the PR.</p></div>")
     return html_page("Exposure burn-down", "".join(body),
                      f"Generated {dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} from demo/out/scanner/results.json · synthetic estate (Arden Capital Markets) · figures are run evidence, not customer data")
+
+
+def hard_case_panel(findings: list[dict], results: dict[str, dict]) -> str:
+    finding = next((f for f in findings if f["repo"] == "settlement-instruction-service"), None)
+    if finding is None:
+        raise ValueError("Demo 1 hard case finding is missing: settlement-instruction-service")
+    result = results.get(finding["id"], {})
+    attempts = result.get("attempts", [])
+    failed = next((a for a in attempts if not a["tests_ok"]), None)
+    passed = next((a for a in reversed(attempts) if a["tests_ok"]), None)
+    if not failed or not passed:
+        raise ValueError("Demo 1 hard case requires both a failed and a passing attempt")
+    evidence = hard_case_evidence(failed, passed)
+    owners = ", ".join(result.get("owners", [])) or "CODEOWNERS reviewer not assigned"
+    summary_html = esc(evidence["full_summary"])
+    tag64 = esc(f"64={evidence['actual_iso']}")
+    summary_html = summary_html.replace(tag64, f"<mark>{tag64}</mark>")
+    test_rows = "".join(
+        f"<li><code>{esc(test['name'])}</code><span>Expected <code>{esc(test['expected'])}</code>; "
+        f"actual <code>{esc(test['actual'])}</code></span></li>"
+        for test in evidence["tests"]
+    )
+    test_file = pathlib.PurePosixPath(evidence["test_file"]).name
+    return (
+        "<style>.hard-case{border:2px solid #f87171;border-radius:18px;padding:20px;margin:10px 0 20px;background:linear-gradient(125deg,rgba(248,113,113,.12),rgba(255,255,255,.02))}"
+        ".hard-case h2{font-size:25px;margin:7px 0 14px}.hard-case .eyebrow{font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:#fca5a5}"
+        ".hard-case .attempt{border-radius:12px;padding:12px 14px;margin:8px 0}.hard-case .failed{border:1px solid #f87171;background:rgba(248,113,113,.08)}"
+        ".hard-case .passed{border:1px solid #34d399;background:rgba(52,211,153,.07)}.hard-case .attempt strong{font-size:19px}"
+        ".hard-case .reason{font-size:23px;line-height:1.35;font-weight:700;margin:10px 0}.hard-case ul{margin:8px 0;padding-left:22px}"
+        ".hard-case li{margin:6px 0}.hard-case li span{display:block;color:var(--muted);font-size:15px}"
+        ".hard-case .step-arrow{text-align:center;color:#fbbf24;font-size:28px;line-height:1;margin:2px 0}"
+        ".hard-case details{margin-top:10px;color:var(--muted)}.hard-case pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}"
+        ".hard-case mark{background:#fbbf24;color:#111827;padding:1px 3px;border-radius:3px}"
+        ".hard-case p{margin:8px 0 0;overflow-wrap:anywhere}.hard-case .reviewer{font-size:18px;margin-top:12px}</style>"
+        "<section class='hard-case'><div class='eyebrow'>Hard case · settlement-instruction-service</div>"
+        "<h2>Devin did what the scanner meant</h2>"
+        f"<div class='attempt failed'><strong>Attempt 1 · {esc(failed['strategy'])} · FAIL</strong>"
+        f"<p class='reason'>{esc(evidence['headline'])}</p><ul>{test_rows}</ul>"
+        f"<details><summary>Full failed test summary</summary><pre>{summary_html}</pre></details></div>"
+        "<div class='step-arrow' aria-hidden='true'>↓</div>"
+        f"<div class='attempt passed'><strong>Attempt 2 · {esc(evidence['attempt2_headline'])} · PASS {evidence['passed']}</strong>"
+        f"<p>Added test file: <code>{esc(test_file)}</code></p></div>"
+        f"<p class='reviewer'>Deviation recorded for human reviewer: <b>{esc(owners)}</b></p></section>"
+    )
 
 
 def build_report(findings: list[dict], plan: dict, results: dict[str, dict]) -> str:
@@ -152,26 +205,26 @@ def build_report(findings: list[dict], plan: dict, results: dict[str, dict]) -> 
         return t.strftime("%Y-%m-%d %H:%M:%S UTC")
 
     L: list[str] = []
-    L.append(f"# Remediation report — {plan['parent']['incident']}")
+    L.append(f"# Remediation report: {plan['parent']['incident']}")
     L.append("")
     L.append("Synthetic estate: Arden Capital Markets (fixture). Generated by `demo/scanner/report.py` from the run artifacts in `demo/out/scanner/`. "
-             "Devin acted on scanner output as the remediation layer; it did not scan, detect, or merge.")
+             "Devin acted on scanner output as the remediation layer. Devin did not scan, detect, or merge.")
     L.append("")
     L.append("## 1. Run summary")
     L.append("")
     L.append("| | |")
     L.append("|---|---|")
     L.append(f"| Scanner input | `{findings[0]['scanner']}` webhook fixture (swappable: `FS_SCANNER_SOURCE=snyk-api` or `sonarqube`) |")
-    L.append(f"| Findings ingested | {len(findings)} across {len(repos)} repos — {', '.join(f'{k} {v}' for k, v in kinds.items())} |")
+    L.append(f"| Findings ingested | {len(findings)} across {len(repos)} repos: {', '.join(f'{k} {v}' for k, v in kinds.items())} |")
     L.append(f"| Severity | critical {sev['critical']} · high {sev['high']} · medium {sev['medium']} · low {sev['low']} |")
     L.append(f"| Fan-out | 1 parent → {len(plan['children'])} child sessions (one per finding), mode `{plan['parent']['mode']}` |")
-    L.append(f"| Outcome | fixed {statuses['fixed']} · fixed-with-deviation {statuses['fixed-with-deviation']} · blocked {statuses['blocked']} |")
+    L.append(f"| Outcome | {statuses['fixed'] + statuses['fixed-with-deviation']} fixes ready for review · {statuses['blocked']} blocked |")
     L.append(f"| Wall clock | {ts(t_start)} → {ts(t_end)} ({int((t_end - t_start).total_seconds())} s) |")
-    L.append(f"| Still exposed at report time | {sum(v[-1] for v in series.values())} finding(s) |")
-    L.append("| Merged / deployed | none — every change is a PR awaiting CODEOWNERS review |")
+    L.append(f"| Unaddressed findings | {sum(v[-1] for v in series.values())} |")
+    L.append("| Merged / deployed | none: every change is a PR awaiting CODEOWNERS review |")
     L.append("")
 
-    L.append("## 2. SEC Form 8-K Item 1.05 — drafting aid")
+    L.append("## 2. SEC Form 8-K Item 1.05: drafting aid")
     L.append("")
     L.append("Item 1.05 requires disclosure within four business days of a *materiality determination*, covering the material aspects of the nature, "
              "scope and timing of the incident and its material (or reasonably likely material) impact. The fields below are pre-filled from run evidence; "
@@ -184,11 +237,11 @@ def build_report(findings: list[dict], plan: dict, results: dict[str, dict]) -> 
     L.append(f"| Scope | {len(repos)} repositories: {', '.join(f'`{r}`' for r in repos)} | populated |")
     L.append(f"| Timing | Scanner findings received {ts(t_detect)}; remediation PRs opened {ts(t_start)}–{ts(t_end)} | populated |")
     L.append("| Material impact / reasonably likely impact | No evidence of exploitation in this run (scanner findings only). Impact assessment requires log review by the SOC | **[analyst to confirm]** |")
-    L.append("| Materiality determination date | — | **[analyst to confirm]** (starts the 4-business-day clock) |")
+    L.append("| Materiality determination date |: | **[analyst to confirm]** (starts the 4-business-day clock) |")
     L.append("| Information not yet determined | Whether any committed token was used outside CI; whether Artifactory ingress from `0.0.0.0/0` was reached | **[analyst to confirm]** |")
     L.append("")
 
-    L.append("## 3. DORA Art. 19 major-incident notification — drafting aid")
+    L.append("## 3. DORA Art. 19 major-incident notification: drafting aid")
     L.append("")
     L.append("Initial notification is due 4 hours after classification as *major* and no later than 24 hours after the entity became aware; "
              "intermediate report within 72 hours; final report within one month. Classification (Art. 18 / RTS criteria) is a human decision.")
@@ -197,7 +250,7 @@ def build_report(findings: list[dict], plan: dict, results: dict[str, dict]) -> 
     L.append("|---|---|---|")
     L.append(f"| Incident reference | {plan['parent']['incident']} | populated |")
     L.append(f"| Date/time of detection | {ts(t_detect)} (scanner webhook) | populated |")
-    L.append("| Date/time of classification as major | — | **[analyst to confirm]** (starts the 4-hour clock) |")
+    L.append("| Date/time of classification as major |: | **[analyst to confirm]** (starts the 4-hour clock) |")
     L.append("| Description | Vulnerable dependency versions and credential/IaC exposures related to an actively exploited Artifactory auth bypass; no confirmed intrusion | populated |")
     L.append("| Classification criteria met | Critical services affected (settlement instruction, custody gateway); data losses / clients affected: none evidenced | **[analyst to confirm]** |")
     L.append("| Discovery | Automated scanner (Snyk) run against all repositories | populated |")
@@ -214,8 +267,8 @@ def build_report(findings: list[dict], plan: dict, results: dict[str, dict]) -> 
     for f in sorted(findings, key=lambda f: (SEV_ORDER.index(f["severity"]), f["repo"])):
         r = results.get(f["id"], {"status": "pending", "attempts": [], "owners": []})
         att = "; ".join(f"{a['strategy']} → {'PASS' if a['tests_ok'] else 'FAIL'}" for a in r["attempts"])
-        ev = r["attempts"][-1]["test_summary"] if r["attempts"] else "—"
-        L.append(f"| `{f['repo']}` | `{f['scanner_id']}` {f['title']} | {f['severity']} | {r['status']} | {att} | `{ev}` | {' '.join(r.get('owners', []))} |")
+        ev = readable_test_summary(r["attempts"][-1]["test_summary"]) if r["attempts"] else ": "
+        L.append(f"| `{f['repo']}` | `{f['scanner_id']}` {f['title']} | {f['severity']} | {STATUS_LABEL[r['status']]} | {att} | `{ev}` | {' '.join(r.get('owners', []))} |")
     L.append("")
 
     if dev:
@@ -226,9 +279,9 @@ def build_report(findings: list[dict], plan: dict, results: dict[str, dict]) -> 
             L.append(f"### `{r['finding_id']}`")
             L.append("")
             for i, a in enumerate(r["attempts"], 1):
-                L.append(f"{i}. **{a['strategy']}** → {'PASS' if a['tests_ok'] else 'FAIL'} — `{a['test_summary']}`")
+                L.append(f"{i}. **{a['strategy']}** → {'PASS' if a['tests_ok'] else 'FAIL'}: `{readable_test_summary(a['test_summary'])}`")
             L.append("")
-            L.append(f"Reason: {why}")
+            L.append(f"Reason: {readable_test_summary(why)}")
             L.append("")
             L.append(f"PR artifact: `{pathlib.Path(r['pr_dir']).relative_to(OUT.parent.parent)}/PR.md`")
             L.append("")
@@ -236,7 +289,7 @@ def build_report(findings: list[dict], plan: dict, results: dict[str, dict]) -> 
         L.append("## 6. Blocked findings (human owner required)")
         L.append("")
         for r in blocked:
-            L.append(f"- `{r['finding_id']}` — {r['attempts'][-1]['test_summary'] if r['attempts'] else 'no attempt recorded'} → {' '.join(r.get('owners', []))}")
+            L.append(f"- `{r['finding_id']}`: {r['attempts'][-1]['test_summary'] if r['attempts'] else 'no attempt recorded'} → {' '.join(r.get('owners', []))}")
         L.append("")
 
     L.append("## 7. Residual risk and next steps")

@@ -1,4 +1,4 @@
-# Arden Capital Markets — incident conventions (synthetic estate; upload as Knowledge, scope "when triaging a Datadog alert for an Arden service")
+# Arden Capital Markets: incident conventions (synthetic estate; upload as Knowledge, scope "when triaging a Datadog alert for an Arden service")
 
 ## Severity matrix
 | Sev | Meaning | Examples | Who joins |

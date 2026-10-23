@@ -1,4 +1,4 @@
-# Automations — how each demo is triggered (bindings, not code; the receivers live in demo/)
+# Automations: how each demo is triggered (bindings, not code; the receivers live in demo/)
 
 | Demo | Event | Receiver in this estate | Devin binding |
 |---|---|---|---|

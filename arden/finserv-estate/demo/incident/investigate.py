@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Demo 3, step 2 — investigate the alert like an on-call engineer would, with every step recorded as evidence.
+"""Demo 3, step 2: investigate the alert like an on-call engineer would, with every step recorded as evidence.
 
     python3 demo/incident/investigate.py        # reads demo/out/incident/incident-input.json, works in the workspace clone
 
@@ -17,14 +17,18 @@ Output: demo/out/incident/investigation.json, demo/out/incident/prs/client-porta
 """
 from __future__ import annotations
 
+import datetime as dt
 import json
+import os
 import pathlib
 import re
+import shutil
 import sys
 import textwrap
+import time
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
-from estatelib import OUT, WORKSPACE, git, log, now_iso, owners_for, read_json, run, target_line, write_json  # noqa: E402
+from estatelib import OUT, WORKSPACE, git, log, owners_for, read_json, run, target_line, write_json  # noqa: E402
 
 PORTAL = WORKSPACE / "client-portal"
 FEEDS = WORKSPACE / "market-data-feed-contracts"
@@ -68,7 +72,7 @@ NORMALIZE_JS = textwrap.dedent("""\
 
 REGRESSION_TEST_JS = textwrap.dedent("""\
 
-    test('values a portfolio from an ArdenFeed v2.3 batch (px is an object) — INC-2026-0925-01', () => {
+    test('values a portfolio from an ArdenFeed v2.3 batch (px is an object): INC-2026-0925-01', () => {
       clearCache();
       const rows = valuePortfolio(positions, quotesFrom('fixtures/ardenfeed-v2.3.json'));
       assert.equal(rows[0].price, '12.4100');
@@ -106,7 +110,14 @@ def main() -> None:
     inp = read_json(OUT / "incident/incident-input.json")
     alert, errors, healthy = inp["alert"], inp["errors"], inp["healthy"]
     steps: list[dict] = []
-    started = now_iso()
+    fired_at = dt.datetime.strptime(alert["fired_at"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=dt.timezone.utc)
+
+    def step_time(minute: int) -> str:
+        return (fired_at + dt.timedelta(minutes=minute)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    pace = float(os.environ.get("DEMO_PACE", "2"))
+    if pace < 0:
+        raise SystemExit("DEMO_PACE must be zero or greater")
     git(PORTAL, "checkout", "-q", "main")
 
     # 1. reproduce ------------------------------------------------------------------------------------------------
@@ -136,13 +147,13 @@ def main() -> None:
     ok_pre_old, out_pre_old = repro(wt, PORTAL / "fixtures/ardenfeed-v2.2.json")
     run(["git", "worktree", "remove", "--force", str(wt)], PORTAL)
     healthy_after_deploy = [h for h in healthy if h["ts"] > latest["at"]]
-    steps.append({"id": 2, "kind": "lead", "title": f"Lead A — latest deploy {latest['version']} ({latest['ticket']}) broke it", "ok": True,
-                  "evidence": [f"deploy {latest['version']} at {latest['at']} by release-bot ({latest['summary']}) — {gap_h:.1f}h before the first error",
-                               f"git log -L on the failing line: {blame} — the line predates the deploy, but 31.4.2 rewrote this function (memoisation), so the lead stays plausible until tested",
+    steps.append({"id": 2, "kind": "lead", "title": f"Lead A: latest deploy {latest['version']} ({latest['ticket']}) broke it", "ok": True,
+                  "evidence": [f"deploy {latest['version']} at {latest['at']} by release-bot ({latest['summary']}): {gap_h:.1f}h before the first error",
+                               f"git log -L on the failing line: {blame}: the line predates the deploy, but 31.4.2 rewrote this function (memoisation), so the lead stays plausible until tested",
                                f"checkout pre-deploy commit {pre} (31.4.1, the release before {', '.join(tags) or 'the deploy'}) and replay the live batch: {out_pre.splitlines()[0]}",
                                f"same pre-deploy code with yesterday's batch (schema 2.2): {out_pre_old.splitlines()[0]}",
                                f"{len(healthy_after_deploy)} healthy 200s on {latest['version']} between {healthy_after_deploy[0]['ts'] if healthy_after_deploy else '-'} and {healthy_after_deploy[-1]['ts'] if healthy_after_deploy else '-'}"],
-                  "verdict": "RULED OUT — pre-deploy code fails identically on today's batch and works on yesterday's; a rollback would not have fixed it",
+                  "verdict": "RULED OUT: pre-deploy code fails identically on today's batch and works on yesterday's; a rollback would not have fixed it",
                   "ruled_out": True})
 
     # 3. lead B: the input changed -------------------------------------------------------------------------------
@@ -155,16 +166,16 @@ def main() -> None:
     consumers = (FEEDS / "consumers.yaml").read_text()
     portal_line = next(l.strip() for l in consumers.splitlines() if "client-portal" in l)
     portal_schema = next(l.strip() for l in consumers.splitlines() if "schema:" in l and consumers.index(l) > consumers.index("client-portal"))
-    feed_commits = git(FEEDS, "log", "--format=%h %ad %an — %s", "--date=iso-strict").stdout.splitlines()
+    feed_commits = git(FEEDS, "log", "--format=%h %ad %an: %s", "--date=iso-strict").stdout.splitlines()
     last_good_schema = healthy[-1]["feed_schema"] if healthy else "?"
-    steps.append({"id": 3, "kind": "lead", "title": "Lead B — the input changed shape", "ok": True,
+    steps.append({"id": 3, "kind": "lead", "title": "Lead B: the input changed shape", "ok": True,
                   "evidence": [f"last healthy request {healthy[-1]['ts']} carried feed schema {last_good_schema}; first error {first_err['ts']} carries schema {first_err['feed_schema']}",
                                f"batch diff for {q_new['isin']}: px {json.dumps(q_old['px'])} → {json.dumps(q_new['px'])}; quote-level ccy {'present' if 'ccy' in q_old else 'absent'} → {'present' if 'ccy' in q_new else 'absent'}",
                                f"{notice.relative_to(WORKSPACE)}: effective {eff}",
-                               f"{FEEDS.name}/consumers.yaml: `{portal_line}` `{portal_schema}` — client-portal was never moved to 2.3",
+                               f"{FEEDS.name}/consumers.yaml: `{portal_line}` `{portal_schema}`: client-portal was never moved to 2.3",
                                "market-data-feed-contracts history: " + " | ".join(feed_commits[:4]),
                                "notice says: 'Internal tracking: MD-1187 (eod-pricing-batch updated 22 Sep). No ticket was raised for client-portal.'"],
-                  "verdict": "ROOT CAUSE — ArdenFeed v2.3 went live 06:00 UTC with px as an object; client-portal's normaliser (schema 2.2) passes the object through and toFixed fails",
+                  "verdict": "ROOT CAUSE: ArdenFeed schema 2.3 went live at 06:00 UTC with px as an object; client-portal's schema 2.2 normaliser passes the object through and toFixed fails",
                   "root_cause": True})
 
     # 4. fix -----------------------------------------------------------------------------------------------------
@@ -181,23 +192,25 @@ def main() -> None:
     ok_r22, out_r22 = repro(PORTAL, PORTAL / "fixtures/ardenfeed-v2.2.json")
     summ = lambda o: " ".join(l.lstrip("#ℹ ").strip() for l in o.splitlines() if l.lstrip("#ℹ ").startswith(("tests ", "pass ", "fail ")))  # noqa: E731
     git(PORTAL, "add", "src/pricing/normalize.js", "test/valuation.test.js")
-    git(PORTAL, "commit", "-q", "-m", f"bug: {INCIDENT} client-portal — accept ArdenFeed v2.3 px object in normaliser, regression test with live batch")
+    git(PORTAL, "commit", "-q", "-m", f"bug: {INCIDENT} client-portal: accept ArdenFeed v2.3 px object in normaliser, regression test with live batch")
     fixed = ok_t and ok_l and ok_r and ok_r22
-    steps.append({"id": 4, "kind": "fix", "title": "Fix — normaliser accepts 2.2 and 2.3, fails loudly on anything else", "ok": fixed,
+    steps.append({"id": 4, "kind": "fix", "title": "Fix: normaliser accepts 2.2 and 2.3, fails loudly on anything else", "ok": fixed,
                   "evidence": [f"tests before the fix (main): {summ(out_t0)}", f"tests after: {summ(out_t)} (3 new: v2.3 batch, 2.2≡2.3, unknown shape throws)",
                                f"npm run lint: {'ok' if ok_l else 'FAILED'}", f"replay live batch (2.3): {out_r.splitlines()[0]}", f"replay yesterday's batch (2.2): {out_r22.splitlines()[0]}",
                                f"branch {BRANCH}, reviewers {', '.join(owners_for(PORTAL, 'src/pricing/normalize.js'))}"],
                   "verdict": "fixed on a branch; deploy/rollout is a human decision (release-bot + @ardencm/client-digital)"})
 
     # 5. process gaps ---------------------------------------------------------------------------------------------
-    steps.append({"id": 5, "kind": "follow-up", "title": "Not fixed here — process gaps for humans", "ok": True,
+    steps.append({"id": 5, "kind": "follow-up", "title": "Not fixed here: process gaps for humans", "ok": True,
                   "evidence": ["Vendor notice reached market-data (11 Sep) and was actioned for eod-pricing-batch only; consumers.yaml listed client-portal as a 2.2 consumer and nobody was told.",
                                "No consumer contract test in market-data-feed-contracts exercises client-portal's parser against the new schema.",
                                "No monitor on quote schema version / parse failures; detection came from the 5xx rate 4 minutes after cutover.",
                                "Vendor gave no parallel run; whether to require one contractually is a vendor-management decision."],
-                  "verdict": "recommendations only — owners: @ardencm/market-data, @ardencm/client-digital, vendor management"})
+                  "verdict": "recommendations only: owners: @ardencm/market-data, @ardencm/client-digital, vendor management"})
 
-    result = {"incident": INCIDENT, "started_at": started, "finished_at": now_iso(), "alert": alert, "branch": BRANCH, "status": "fixed" if fixed else "blocked",
+    for step in steps:
+        step["at"] = step_time(step["id"])
+    result = {"incident": INCIDENT, "started_at": step_time(1), "finished_at": step_time(len(steps) + 1), "alert": alert, "branch": BRANCH, "status": "fixed" if fixed else "blocked",
               "root_cause": steps[2]["verdict"], "false_lead": steps[1]["title"], "steps": steps, "first_error": first_err["ts"], "last_healthy": healthy[-1]["ts"] if healthy else None,
               "latest_deploy": latest, "feed_effective": eff}
     pr_dir = OUT / "incident/prs/client-portal"
@@ -206,27 +219,34 @@ def main() -> None:
     (pr_dir / "PR.md").write_text(pr_body(result))
     result["pr_dir"] = str(pr_dir)
     write_json(OUT / "incident/investigation.json", result)
+    width = max(48, shutil.get_terminal_size((100, 24)).columns)
     for s in steps:
-        log(f"{s['id']}. {s['title'][:70]:70s} → {s['verdict'][:90]}")
+        title = textwrap.fill(f"{s['id']}. {s['title']}", width=width, subsequent_indent="   ")
+        verdict = textwrap.fill(f"Verdict: {s['verdict']}", width=width, initial_indent="   ",
+                                subsequent_indent="            ")
+        log(f"{s['at']} {title}")
+        log(verdict)
+        if pace:
+            time.sleep(pace)
     log(f"{INCIDENT}: {result['status']} · branch {BRANCH} · {pr_dir.relative_to(OUT.parents[1])}/PR.md")
 
 
 def browser_evidence_lines() -> list[str]:
     present = [(label, SCREENS / name) for label, name in BROWSER_EVIDENCE if (SCREENS / name).exists()]
     if not present:
-        return ["## Browser verification", "- not yet recorded — run playbook phase 4 (Verify the frontend) and re-run this step", ""]
+        return ["## Browser verification", "- not yet recorded: run playbook phase 4 (Verify the frontend) and re-run this step", ""]
     return ["## Browser verification", *[f"- {label}: `{path}`" for label, path in present], ""]
 
 
 def pr_body(r: dict) -> str:
     s = {x["id"]: x for x in r["steps"]}
-    lines = [f"# bug: {r['incident']} client-portal valuation 5xx — accept ArdenFeed v2.3 quote shape", "",
+    lines = [f"# bug: {r['incident']} client-portal valuation 5xx: accept ArdenFeed v2.3 quote shape", "",
              f"**Alert:** {r['alert']['title']} · fired {r['alert']['fired_at']} · [monitor]({r['alert']['link']}) · **Branch:** `{r['branch']}` · **Status:** `{r['status']}`",
              target_line("client-portal"), "",
              "## Root cause", f"{s[3]['verdict']}.", "",
              "## What this PR changes", "- `src/pricing/normalize.js`: `px` may be a number (schema 2.2) or `{ v, ccy }` (schema 2.3+); currency prefers `px.ccy`, falls back to quote-level `ccy`; any other shape throws a `TypeError` naming the ISIN instead of surfacing later as `toFixed is not a function` or NaN.",
              "- `test/valuation.test.js`: regression test with the live v2.3 batch, an equivalence test (2.2 ≡ 2.3), and an unknown-shape test.", "",
-             "## What was ruled out", f"- **{s[2]['title']}** — {s[2]['verdict']}.", *[f"  - {e}" for e in s[2]["evidence"]], "",
+             "## What was ruled out", f"- **{s[2]['title']}**: {s[2]['verdict']}.", *[f"  - {e}" for e in s[2]["evidence"]], "",
              "## Verification", *[f"- {e}" for e in s[4]["evidence"]], "",
              *browser_evidence_lines(),
              "## Not in this PR", *[f"- {e}" for e in s[5]["evidence"]], "",

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Scanner webhook receiver — the trigger for Demo 1.
+"""Scanner webhook receiver: the trigger for Demo 1.
 
     python3 demo/scanner/webhook.py --port 8787            # listen
     curl -XPOST localhost:8787/hooks/snyk \\
@@ -45,7 +45,7 @@ def run_parent(payload_path: pathlib.Path) -> None:
         if subprocess.run(s, cwd=ESTATE).returncode != 0:
             log("parent: step failed, stopping")
             return
-    log("parent: done — demo/out/scanner/burndown.html")
+    log("parent: done: demo/out/scanner/burndown.html")
 
 
 class Handler(http.server.BaseHTTPRequestHandler):

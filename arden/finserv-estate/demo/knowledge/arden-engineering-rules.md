@@ -1,4 +1,4 @@
-# Arden Capital Markets — engineering rules Devin must follow (synthetic estate; upload as Knowledge, scope "when working in any Arden repository")
+# Arden Capital Markets: engineering rules Devin must follow (synthetic estate; upload as Knowledge, scope "when working in any Arden repository")
 
 - **Internal artifact mirror only.** Maven/npm/pip resolve through `artifactory.ardencm.internal` (`common-java-bom/pom.xml` `<repositories>`; `ci-shared-workflows/.github/workflows/java-build.yml`). Never add a public repository to a build file.
 - **Approved base images** are the ones referenced by `ci-shared-workflows/.github/workflows/*.yml`. Do not pin an image or runner version that is not used there.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Demo 2, step 2 — execute tranche 1 of the T+1 migration deterministically in the workspace, one branch + PR
+"""Demo 2, step 2: execute tranche 1 of the T+1 migration deterministically in the workspace, one branch + PR
 artifact per repo, with repo tests and consumer contract tests run at every step.
 
     python3 demo/t1/migrate.py --tranche 1
@@ -238,7 +238,7 @@ def java_summary(repo: pathlib.Path) -> str:
             if any(c.tag in ("failure", "error") for c in tc):
                 failed.append(f"{tc.get('classname', '').rsplit('.', 1)[-1]}.{tc.get('name')}")
     s = f"Tests run: {totals['tests']}, Failures: {totals['failures']}, Errors: {totals['errors']}, Skipped: {totals['skipped']}"
-    return s + (" — FAILED: " + ", ".join(failed) if failed else "")
+    return s + (": FAILED: " + ", ".join(failed) if failed else "")
 
 
 def mvn(repo: pathlib.Path, *goals: str) -> tuple[bool, str]:
@@ -295,7 +295,7 @@ def apply_date_gate(repo: pathlib.Path, version: str) -> list[str]:
     readme = repo / "README.md"
     readme.write_text(re.sub(r"core-dates-[\d.]+-cli\.jar", f"core-dates-{version}-cli.jar", readme.read_text()))
     sub(repo / "CHANGELOG.md", "# Changelog\n",
-        f"# Changelog\n\n## {version} — {PROGRAMME} T+1 (EU/UK/CH)\n"
+        f"# Changelog\n\n## {version}: {PROGRAMME} T+1 (EU/UK/CH)\n"
         f"- `SettlementCycle.standard(LocalDate)` / `forMarket(mic, LocalDate)`: T+2 for trade dates before {GO_LIVE}, T+1 from {GO_LIVE}.\n"
         "- `SettlementDates.settlementDate(tradeDate, mic)` and the CLI resolve the cycle from the trade date.\n"
         "- No-arg `standard()` / `forMarket(mic)` deprecated; still return the pre-go-live cycle so unmigrated callers do not change behaviour silently.\n"
@@ -341,7 +341,7 @@ def migrate_core_dates(repo: pathlib.Path) -> tuple[list[dict], str]:
         shutil.copy(repo / "target/core-dates-1.6.0-cli.jar", OUT / "t1/migrated-cli.jar")
         return attempts, branch + "-from-main"
 
-    # attempt 2 (deviation): cut the release from release/1.4 — the line consumers run — with only the date gate on top
+    # attempt 2 (deviation): cut the release from release/1.4: the line consumers run: with only the date gate on top
     git(repo, "checkout", "-q", "release/1.4")
     git(repo, "branch", "-D", branch)
     git(repo, "checkout", "-q", "-b", branch)
@@ -378,7 +378,7 @@ def migrate_settlement_instruction_service(repo: pathlib.Path) -> tuple[list[dic
         " * Per-venue settlement cycle overrides. Anything not listed falls back to {@link SettlementCycle#standard(LocalDate)}.")
     sub(pkg / "InstructionBuilder.java", "SettlementCycle cycle = config.cycleFor(mic);", "SettlementCycle cycle = config.cycleFor(mic, tradeDate);")
     sub(repo / "src/main/resources/application.yml",
-        "    # EU/UK/CH venues: regular way T+2 (CSDR art. 5). Migration to T+1 scheduled 11 Oct 2027 — see SETTLE-4471.\n"
+        "    # EU/UK/CH venues: regular way T+2 (CSDR art. 5). Migration to T+1 scheduled 11 Oct 2027 \u2014 see SETTLE-4471.\n"
         "    XLON: T_PLUS_2\n    XPAR: T_PLUS_2\n    XETR: T_PLUS_2\n    XSWX: T_PLUS_2\n",
         "    # EU/UK/CH venues are intentionally NOT pinned: core-dates resolves T+2 / T+1 from the trade date\n"
         f"    # (go-live {GO_LIVE}, SETTLE-4471). Add a pin here only for a venue that deviates from the market default.\n")
@@ -433,22 +433,22 @@ TRANCHE_1 = [("core-dates", migrate_core_dates), ("settlement-instruction-servic
 def pr_body(repo: str, attempts: list[dict], branch: str, owners: list[str]) -> str:
     final = attempts[-1]
     status = ("migrated" if all(a["tests_ok"] for a in attempts) else "migrated-with-deviation") if final["tests_ok"] else "blocked"
-    lines = [f"# feature: {PROGRAMME} T+1 tranche 1 — {repo}", "",
+    lines = [f"# feature: {PROGRAMME} T+1 tranche 1: {repo}", "",
              f"**Programme:** EU/UK/CH T+1 settlement, go-live {GO_LIVE} · **Branch:** `{branch}` · **Status:** `{status}`",
              target_line(repo), "",
              "Date-gated, not flipped: the cycle is resolved from the trade date, so pre-go-live trades and back-dated corrections keep "
              "settling T+2 and the same build is valid before and after go-live.", "",
              "## What changed", *[f"- `{c}`" for c in final["changes"]], "", "## Steps"]
     for i, a in enumerate(attempts, 1):
-        lines.append(f"{i}. {a['strategy']} → {'PASS' if a['tests_ok'] else 'FAIL'} — `{a['test_summary']}`")
+        lines.append(f"{i}. {a['strategy']} → {'PASS' if a['tests_ok'] else 'FAIL'}: `{a['test_summary']}`")
         if a.get("reason"):
             lines.append(f"   - note: {a['reason']}")
     lines += ["", "## Verification", f"- Repo tests: `{final['test_summary']}`",
               "- Golden-file parity: see `demo/reports/demo2-parity.html` (30 trades, old vs new, every difference classified).",
               "- Wire format: tag 64 stays `yyyyMMdd`; tag 63 becomes `2` only for EU/UK/CH trades dated on/after go-live.", "",
               "## Not in this PR (human decisions, see migration plan §Tranche 3)",
-              "- Venue vs TARGET2 calendar divergence on 2027-12-23/24/30 trades — market-ops + Head of Post-Trade.",
-              "- Ex-date regime for events straddling go-live (CA-2291) — asset-servicing ops.", "",
+              "- Venue vs TARGET2 calendar divergence on 2027-12-23/24/30 trades: market-ops + Head of Post-Trade.",
+              "- Ex-date regime for events straddling go-live (CA-2291): asset-servicing ops.", "",
               f"CODEOWNERS reviewers: {', '.join(owners) or 'see repo CODEOWNERS'}", "", "Devin-Org: engineering"]
     return "\n".join(lines) + "\n"
 
@@ -458,7 +458,7 @@ def migrate_repo(name: str, fn) -> dict:
     started = now_iso()
     attempts, branch = fn(repo)
     git(repo, "add", "-A")
-    git(repo, "commit", "-q", "-m", f"feature: {PROGRAMME} T+1 tranche 1 — {name}")
+    git(repo, "commit", "-q", "-m", f"feature: {PROGRAMME} T+1 tranche 1: {name}")
     patch = git(repo, "format-patch", "-1", "--stdout").stdout
     changed = [l.split("\t")[-1] for l in git(repo, "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD").stdout.splitlines()]
     owners = sorted({o for p in changed for o in owners_for(repo, p)})
