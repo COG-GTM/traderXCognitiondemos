@@ -20,7 +20,7 @@ MIRROR=https://maven-central.storage-download.googleapis.com/maven2/
 STAGE_IDS="settlement-instruction-service:SNYK-JAVA-ORGYAML-3152153 custody-gateway:SNYK-JAVA-ORGAPACHECOMMONS-6254296 fx-funding-service:SNYK-SECRET-ARDEN-0418 platform-terraform:SNYK-CC-ARDEN-TOKENTTL risk-lib:SNYK-CODE-PY-YAMLLOAD-0091"
 DRY_RUN="${DEMO_FLEETWIDE_DRY_RUN:-}"
 # Historical SEC-2026-0912 / audit / swarm PRs (Achal and other demos): never closed, whatever their head branch.
-PROTECTED=" COG-GTM/Securities-Trade-Processing-System#$(seq -s ' COG-GTM/Securities-Trade-Processing-System#' 7 36) \
+PROTECTED=" COG-GTM/Securities-Trade-Processing-System#$(seq -s ' COG-GTM/Securities-Trade-Processing-System#' 5 36) \
 COG-GTM/traderXCognitiondemos#115 COG-GTM/traderXCognitiondemos#116 COG-GTM/traderXCognitiondemos#117 \
 COG-GTM/Springboot-BankApp#$(seq -s ' COG-GTM/Springboot-BankApp#' 316 320) COG-GTM/Springboot-BankApp#327 COG-GTM/Springboot-BankApp#333 "
 HERE=$(cd "$(dirname "$0")" && pwd)
