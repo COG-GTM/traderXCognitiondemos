@@ -20,6 +20,7 @@ from collections import Counter
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from estatelib import OUT, REPORTS, esc, html_page, log, read_json  # noqa: E402
+from scanner.evidence import hard_case_evidence, readable_test_summary  # noqa: E402
 
 SEV_ORDER = ["critical", "high", "medium", "low"]
 SEV_COLOR = {"critical": "#f87171", "high": "#fb923c", "medium": "#fbbf24", "low": "#818cf8"}
@@ -29,7 +30,7 @@ STATUS_LABEL = {"fixed": "fix ready for review", "fixed-with-deviation": "fix re
 
 
 def short_summary(s: str) -> str:
-
+    s = readable_test_summary(s)
     m = re.match(r"Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)(.*)", s)
     if m:
         n, f, e, _, rest = m.groups()
@@ -147,29 +148,43 @@ def build_dashboard(findings: list[dict], plan: dict, results: dict[str, dict]) 
 def hard_case_panel(findings: list[dict], results: dict[str, dict]) -> str:
     finding = next((f for f in findings if f["repo"] == "settlement-instruction-service"), None)
     if finding is None:
-        return ""
+        raise ValueError("Demo 1 hard case finding is missing: settlement-instruction-service")
     result = results.get(finding["id"], {})
     attempts = result.get("attempts", [])
     failed = next((a for a in attempts if not a["tests_ok"]), None)
     passed = next((a for a in reversed(attempts) if a["tests_ok"]), None)
+    if not failed or not passed:
+        raise ValueError("Demo 1 hard case requires both a failed and a passing attempt")
+    evidence = hard_case_evidence(failed, passed)
     owners = ", ".join(result.get("owners", [])) or "CODEOWNERS reviewer not assigned"
-    first_summary = failed.get("test_summary", "No failing test summary was recorded.") if failed else "No failed attempt was recorded."
-    reason = failed.get("reason", first_summary) if failed else first_summary
-    failure_detail = first_summary if reason == first_summary else f"{first_summary}<br><b>Reason:</b> {reason}"
-    second_strategy = passed.get("strategy", "No passing deviation was recorded.") if passed else "No passing deviation was recorded."
-    second_tests = passed.get("test_summary", "") if passed else ""
+    summary_html = esc(evidence["full_summary"])
+    tag64 = esc(f"64={evidence['actual_iso']}")
+    summary_html = summary_html.replace(tag64, f"<mark>{tag64}</mark>")
+    test_rows = "".join(
+        f"<li><code>{esc(test['name'])}</code><span>Expected <code>{esc(test['expected'])}</code>; "
+        f"actual <code>{esc(test['actual'])}</code></span></li>"
+        for test in evidence["tests"]
+    )
+    test_file = pathlib.PurePosixPath(evidence["test_file"]).name
     return (
         "<style>.hard-case{border:2px solid #f87171;border-radius:18px;padding:20px;margin:10px 0 20px;background:linear-gradient(125deg,rgba(248,113,113,.12),rgba(255,255,255,.02))}"
         ".hard-case h2{font-size:25px;margin:7px 0 14px}.hard-case .eyebrow{font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:#fca5a5}"
         ".hard-case .attempt{border-radius:12px;padding:12px 14px;margin:8px 0}.hard-case .failed{border:1px solid #f87171;background:rgba(248,113,113,.08)}"
         ".hard-case .passed{border:1px solid #34d399;background:rgba(52,211,153,.07)}.hard-case .attempt strong{font-size:19px}"
+        ".hard-case .reason{font-size:23px;line-height:1.35;font-weight:700;margin:10px 0}.hard-case ul{margin:8px 0;padding-left:22px}"
+        ".hard-case li{margin:6px 0}.hard-case li span{display:block;color:var(--muted);font-size:15px}"
+        ".hard-case .step-arrow{text-align:center;color:#fbbf24;font-size:28px;line-height:1;margin:2px 0}"
+        ".hard-case details{margin-top:10px;color:var(--muted)}.hard-case pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}"
+        ".hard-case mark{background:#fbbf24;color:#111827;padding:1px 3px;border-radius:3px}"
         ".hard-case p{margin:8px 0 0;overflow-wrap:anywhere}.hard-case .reviewer{font-size:18px;margin-top:12px}</style>"
         "<section class='hard-case'><div class='eyebrow'>Hard case · settlement-instruction-service</div>"
         "<h2>Devin did what the scanner meant</h2>"
-        f"<div class='attempt failed'><strong>Attempt 1 · {esc(failed['strategy'] if failed else 'scanner recommendation unavailable')} · FAIL</strong>"
-        f"<p><b>Failing test and reason:</b> {esc(failure_detail)}</p></div>"
-        f"<div class='attempt passed'><strong>Attempt 2 · {esc(second_strategy)} · PASS</strong>"
-        f"<p>{esc(', '.join(passed.get('changes', [])) if passed else '')}</p><p>{esc(second_tests)}</p></div>"
+        f"<div class='attempt failed'><strong>Attempt 1 · {esc(failed['strategy'])} · FAIL</strong>"
+        f"<p class='reason'>{esc(evidence['headline'])}</p><ul>{test_rows}</ul>"
+        f"<details><summary>Full failed test summary</summary><pre>{summary_html}</pre></details></div>"
+        "<div class='step-arrow' aria-hidden='true'>↓</div>"
+        f"<div class='attempt passed'><strong>Attempt 2 · {esc(evidence['attempt2_headline'])} · PASS {evidence['passed']}</strong>"
+        f"<p>Added test file: <code>{esc(test_file)}</code></p></div>"
         f"<p class='reviewer'>Deviation recorded for human reviewer: <b>{esc(owners)}</b></p></section>"
     )
 
@@ -252,7 +267,7 @@ def build_report(findings: list[dict], plan: dict, results: dict[str, dict]) -> 
     for f in sorted(findings, key=lambda f: (SEV_ORDER.index(f["severity"]), f["repo"])):
         r = results.get(f["id"], {"status": "pending", "attempts": [], "owners": []})
         att = "; ".join(f"{a['strategy']} → {'PASS' if a['tests_ok'] else 'FAIL'}" for a in r["attempts"])
-        ev = r["attempts"][-1]["test_summary"] if r["attempts"] else ": "
+        ev = readable_test_summary(r["attempts"][-1]["test_summary"]) if r["attempts"] else ": "
         L.append(f"| `{f['repo']}` | `{f['scanner_id']}` {f['title']} | {f['severity']} | {STATUS_LABEL[r['status']]} | {att} | `{ev}` | {' '.join(r.get('owners', []))} |")
     L.append("")
 
@@ -264,9 +279,9 @@ def build_report(findings: list[dict], plan: dict, results: dict[str, dict]) -> 
             L.append(f"### `{r['finding_id']}`")
             L.append("")
             for i, a in enumerate(r["attempts"], 1):
-                L.append(f"{i}. **{a['strategy']}** → {'PASS' if a['tests_ok'] else 'FAIL'}: `{a['test_summary']}`")
+                L.append(f"{i}. **{a['strategy']}** → {'PASS' if a['tests_ok'] else 'FAIL'}: `{readable_test_summary(a['test_summary'])}`")
             L.append("")
-            L.append(f"Reason: {why}")
+            L.append(f"Reason: {readable_test_summary(why)}")
             L.append("")
             L.append(f"PR artifact: `{pathlib.Path(r['pr_dir']).relative_to(OUT.parent.parent)}/PR.md`")
             L.append("")

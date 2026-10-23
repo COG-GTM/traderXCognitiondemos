@@ -26,6 +26,7 @@ import xml.etree.ElementTree as ET
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from estatelib import OUT, WORKSPACE, git, log, now_iso, read_json, run, target_line, write_json  # noqa: E402
+from scanner.evidence import readable_test_summary  # noqa: E402
 
 PIN_TEST = textwrap.dedent("""\
     package com.ardencm.settlements.instruction;
@@ -128,7 +129,7 @@ def fix_sca_core_dates(repo: pathlib.Path, f: dict) -> list[dict]:
     attempts.append({"strategy": "deviation: pin core-dates 1.4.1 (SnakeYAML 2.2, no wire change) per ADR 0007 + compensating wire-format test",
                      "changes": ["pom.xml", "src/test/java/com/ardencm/settlements/instruction/Tag64WireFormatPinTest.java"],
                      "tests_ok": ok2, "test_summary": summary2,
-                     "reason": f"core-dates 1.5.0 changes FIX tag 64 from LocalMktDate (yyyyMMdd) to ISO-8601; the custody-gateway contract failed: {summary}"})
+                     "reason": "core-dates 1.5.0 changes FIX tag 64 from LocalMktDate (yyyyMMdd) to ISO-8601; the custody-gateway contract failed its date-format assertions"})
     return attempts
 
 
@@ -238,10 +239,10 @@ def pr_body(f: dict, attempts: list[dict], branch: str) -> str:
              target_line(f["repo"]), "",
              "## What changed", *[f"- `{c}`" for c in final["changes"]], "", "## Attempts"]
     for i, a in enumerate(attempts, 1):
-        lines.append(f"{i}. {a['strategy']} → {'PASS' if a['tests_ok'] else 'FAIL'}: `{a['test_summary']}`")
+        lines.append(f"{i}. {a['strategy']} → {'PASS' if a['tests_ok'] else 'FAIL'}: `{readable_test_summary(a['test_summary'])}`")
         if a.get("reason"):
-            lines.append(f"   - why: {a['reason']}")
-    lines += ["", "## Test evidence", f"`{final['test_summary']}`", ""]
+            lines.append(f"   - why: {readable_test_summary(a['reason'])}")
+    lines += ["", "## Test evidence", f"`{readable_test_summary(final['test_summary'])}`", ""]
     if final.get("revocation_required"):
         r = final["revocation_required"]
         lines += ["## Token revocation required", f"- fingerprint `{r['fingerprint']}` in `{r['file']}`: {r['action']}", ""]

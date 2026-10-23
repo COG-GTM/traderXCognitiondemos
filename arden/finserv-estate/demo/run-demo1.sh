@@ -44,21 +44,24 @@ echo
 python3 - <<'PY'
 import json
 from pathlib import Path
+from scanner.evidence import hard_case_evidence
 
 results = json.load(open("demo/out/scanner/results.json"))
 result = next((r for r in results if r["status"] == "fixed-with-deviation"), None)
-if result:
-    first = next((a for a in result["attempts"] if not a["tests_ok"]), None)
-    second = next((a for a in reversed(result["attempts"]) if a["tests_ok"]), None)
-    print("Hard case: settlement-instruction-service")
-    if first:
-        print(f"  Attempt 1 FAIL: {first['strategy']}")
-        print(f"  Reason: {first.get('reason', first['test_summary'])}")
-    if second:
-        print(f"  Attempt 2 PASS: {second['strategy']}")
-        print(f"  Test evidence: {second['test_summary']}")
-    print(f"  Deviation recorded for human reviewer: {', '.join(result.get('owners', [])) or 'CODEOWNERS owner not found'}")
-else:
-    print("Hard case: no deviation recorded")
+if not result:
+    raise SystemExit("SMOKE FAILED: Demo 1 hard case: fixed-with-deviation result is missing")
+first = next((a for a in result["attempts"] if not a["tests_ok"]), None)
+second = next((a for a in reversed(result["attempts"]) if a["tests_ok"]), None)
+if not first or not second:
+    raise SystemExit("SMOKE FAILED: Demo 1 hard case: failed or passing attempt is missing")
+evidence = hard_case_evidence(first, second)
+print("Hard case: settlement-instruction-service")
+print(f"  Attempt 1 FAIL: {first['strategy']}")
+print(f"  {evidence['headline']}")
+for test in evidence["tests"]:
+    print(f"  {test['name']}: expected {test['expected']}; actual {test['actual']}")
+print(f"  Attempt 2 PASS {evidence['passed']}: {evidence['attempt2_headline']}")
+print(f"  Added test file: {evidence['test_file']}")
+print(f"  Deviation recorded for human reviewer: {', '.join(result.get('owners', [])) or 'CODEOWNERS owner not found'}")
 print(f"  Dashboard: {Path('demo/reports/demo1-burndown.html')}")
 PY

@@ -7,12 +7,18 @@ ESTATE="$(cd "$HERE/.." && pwd)"
 WS="${FS_WORKSPACE:-$HOME/finserv-workspace}"
 
 trap 'status=$?; printf "\033[1;31mRESET FAILED at: %s\033[0m\n" "$BASH_COMMAND" >&2; exit "$status"' ERR
+terraform_zip=""
+cleanup_terraform_zip() {
+  [[ -z "$terraform_zip" ]] || rm -f "$terraform_zip"
+}
+trap cleanup_terraform_zip EXIT
 
 if ! command -v mvn >/dev/null 2>&1; then
   printf '\033[1;31mRESET FAILED at: mvn prerequisite\033[0m\n' >&2
   die "mvn is missing; run demo/setup-demo.sh first"
 fi
-fuser -k 3200/tcp 3210/tcp >/dev/null 2>&1 || true
+fuser -k 3200/tcp >/dev/null 2>&1 || true
+"$ESTATE/demo/portal.sh" stop
 
 log "clearing generated artifacts"
 rm -rf "$ESTATE/demo/out"
@@ -46,8 +52,11 @@ fi
 if ! command -v terraform >/dev/null && [[ ! -x "$HOME/.local/bin/terraform" ]]; then
   log "installing terraform 1.9.8 to ~/.local/bin (platform-terraform fmt check)"
   mkdir -p "$HOME/.local/bin"
-  curl -sSfL -o /tmp/tf.zip https://releases.hashicorp.com/1.9.8/terraform_1.9.8_linux_amd64.zip
-  unzip -o -q /tmp/tf.zip -d "$HOME/.local/bin"
+  terraform_zip="$(mktemp)"
+  curl -sSfL -o "$terraform_zip" https://releases.hashicorp.com/terraform/1.9.8/terraform_1.9.8_linux_amd64.zip
+  unzip -o -q "$terraform_zip" -d "$HOME/.local/bin"
+  rm -f "$terraform_zip"
+  terraform_zip=""
 fi
 if ! python3 -c "import pytest, yaml" 2>/dev/null; then
   python3 -m pip install --user -q pytest PyYAML

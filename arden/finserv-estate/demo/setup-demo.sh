@@ -184,25 +184,11 @@ print(f"SMOKE PASS: Demo 3: {actual}")
 PY
 
 PORTAL="$WS/client-portal"
-git -C "$PORTAL" checkout -q main
-mkdir -p "$HOME/.cache"
-stop_portal() {
-  fuser -k 3210/tcp >/dev/null 2>&1 || true
-}
-trap 'stop_portal' EXIT
-start_portal() {
-  local cwd="$1"
-  (cd "$cwd" && PORT=3210 ARDENFEED_BATCH=../market-data-feed-contracts/samples/latest-batch.json node src/server.js >"$HOME/.cache/arden-portal-smoke.log" 2>&1) &
-  for _ in $(seq 1 40); do
-    curl -fsS http://127.0.0.1:3210/ >/dev/null 2>&1 && return 0
-    sleep 0.25
-  done
-  return 1
-}
-start_portal "$PORTAL"
+"$HERE/portal.sh" before
+trap '"$HERE/portal.sh" stop' EXIT
 page_status="$(curl -sS -o "$HOME/.cache/arden-portal-main.html" -w '%{http_code}' http://127.0.0.1:3210/)"
 api_status="$(curl -sS -o "$HOME/.cache/arden-portal-main-api.json" -w '%{http_code}' http://127.0.0.1:3210/api/portfolio/valuation)"
-stop_portal
+"$HERE/portal.sh" stop
 python3 - "$page_status" "$api_status" "$HOME/.cache/arden-portal-main.html" "$HOME/.cache/arden-portal-main-api.json" <<'PY'
 import pathlib
 import sys
@@ -216,11 +202,9 @@ if actual != expected:
 print(f"SMOKE PASS: portal main: {actual}")
 PY
 
-FIX_WT="$WS/client-portal-fix-smoke"
-git -C "$PORTAL" worktree add -q "$FIX_WT" incident/inc-2026-0925-01-ardenfeed-v23
-start_portal "$FIX_WT"
+"$HERE/portal.sh" after
 fix_api_status="$(curl -sS -o "$HOME/.cache/arden-portal-fix-api.json" -w '%{http_code}' http://127.0.0.1:3210/api/portfolio/valuation)"
-stop_portal
+"$HERE/portal.sh" stop
 python3 - "$fix_api_status" "$HOME/.cache/arden-portal-fix-api.json" <<'PY'
 import json
 import pathlib
@@ -234,7 +218,6 @@ if actual != expected:
     raise SystemExit(1)
 print(f"SMOKE PASS: portal fix: {actual}")
 PY
-git -C "$PORTAL" worktree remove --force "$FIX_WT"
 
 "$scripts/reset.sh"
 trap - EXIT
