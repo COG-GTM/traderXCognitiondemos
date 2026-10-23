@@ -1,0 +1,7 @@
+{
+  "name": "demo_fleetwide",
+  "version": "1.0.0",
+  "description": "FS Golden Demo Bank: Arden fleet-wide CVE remediation (SEC-2026-0912). Sets up the live situation (seed branch, Maven + estate machine prep, tag 64 hard-case proof), prints READY with the seed URL and prompt 1; fallback is the pre-run live session, then the run-demo1.sh replay.",
+  "author": { "name": "Cognition GTM" },
+  "keywords": ["demo", "finserv", "cve", "fleetwide", "snyk", "arden"]
+}
