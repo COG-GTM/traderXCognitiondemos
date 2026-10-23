@@ -127,7 +127,7 @@ def _chain_url_labels(chain: dict) -> dict[str, str]:
 
 def _markdown_action(text: str, chain: dict, base: str = "evidence-pack/") -> str:
     labels = _chain_url_labels(chain)
-    text = re.sub(r"(https?://[^\s)]+)",
+    text = re.sub(r"(https?://[^\s)]*[^\s).,;:])",
                   lambda m: f"[{labels.get(m.group(1), m.group(1))}]({m.group(1)})", text)
     return text.replace("risk-decision-CN05.html", f"[risk-decision-CN05.html]({base}risk-decision-CN05.html)")
 

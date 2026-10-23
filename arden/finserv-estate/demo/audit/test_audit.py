@@ -386,3 +386,13 @@ def test_cloudtrail_module_is_shown_in_rendered_reports(tmp_path):
     for f in (out / "control-map.md", out / "control-map.html", out / "evidence-pack/README.md"):
         text = f.read_text()
         assert "CloudTrail module call" in text and "platform-terraform/artifactory/main.tf:" in text, f.name
+
+
+
+def test_markdown_links_exclude_trailing_punctuation():
+    import re
+    text = trail._markdown_links("see https://github.com/o/r/commit/abc, then https://example.com/x.")
+    assert re.findall(r"\]\(([^)]+)\)", text) == ["https://github.com/o/r/commit/abc", "https://example.com/x"]
+    ci = next(r for q, _, r in trail.build(CHAIN, {"key": "PLAT-1142", "summary": "s", "reporter": "r"}, {"items": []})
+              if q == "CI")
+    assert re.findall(r"\]\(([^)]+)\)", trail._markdown_links(ci)) == [CHAIN["commit_url"], CHAIN["ci_status_url"]]

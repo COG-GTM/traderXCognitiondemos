@@ -69,7 +69,7 @@ def build(chain: dict, ticket: dict, log: dict, label: str | None = None) -> lis
 
 
 def _markdown_links(text: str) -> str:
-    return re.sub(r"(https?://[^\s)]+)", lambda m: f"[{m.group(1)}]({m.group(1)})", text)
+    return re.sub(r"(https?://[^\s)]*[^\s).,;:])", lambda m: f"[{m.group(1)}]({m.group(1)})", text)
 
 
 def _chain_url_labels(chain: dict) -> dict[str, str]:
