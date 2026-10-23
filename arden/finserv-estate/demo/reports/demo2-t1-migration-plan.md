@@ -1,6 +1,6 @@
 # T+1 migration plan — SETTLE-4471 (EU/UK/CH T+1, go-live 11 Oct 2027)
 
-Go-live **2027-10-11** (EU, UK, Switzerland; US/CA already T+1 since 28 May 2024). Plan generated 2026-09-25T21:19:32Z from the inventory in `demo2-t1-inventory.md`. Three tranches: code the instruction path first (that is what counterparties see), then consumers, and park anything that is a business decision until the named owner rules.
+Go-live **2027-10-11** (EU, UK, Switzerland; US/CA already T+1 since 28 May 2024). Plan generated 2026-10-23T02:59:01Z from the inventory in `demo2-t1-inventory.md`. Three tranches: code the instruction path first (that is what counterparties see), then consumers, and park anything that is a business decision until the named owner rules.
 
 Principle: **date-gate, don't flip.** Every change resolves the cycle from the trade date so pre-go-live trades still settle T+2, back-dated corrections keep working, and the same build runs before and after 11 Oct 2027.
 
@@ -11,11 +11,11 @@ Executed by `demo/t1/migrate.py --tranche 1`; verified by the golden-file parity
 ### core-dates
 - `src/main/java/com/ardencm/posttrade/dates/FixDates.java` L26 — No change — hit is the FIX tag 63 code table (3 = T+2), which must keep all values. False positive, kept so the reviewer sees it was considered.  
   owners: @ardencm/post-trade-core
-- `src/main/java/com/ardencm/posttrade/dates/SettlementCycle.java` L10 — Date-gate standard(): T+2 before go-live, T+1 from 11 Oct 2027; add standard(LocalDate) / forMarket(mic, date). Keep the no-arg forms deprecated so the compiler flags remaining callers.  
+- `src/main/java/com/ardencm/posttrade/dates/SettlementCycle.java` L6 — Date-gate standard(): T+2 before go-live, T+1 from 11 Oct 2027; add standard(LocalDate) / forMarket(mic, date). Keep the no-arg forms deprecated so the compiler flags remaining callers.  
   owners: @ardencm/post-trade-core
 - `src/main/java/com/ardencm/posttrade/dates/SettlementDateCli.java` L11 — No change; inherits the date-gated default. Used by the parity harness.  
   owners: @ardencm/post-trade-core
-- `src/test/java/com/ardencm/posttrade/dates/SettlementDatesTest.java` L21 — Existing T+2 expectations become pre-go-live cases; add post-go-live cases incl. the 8→12 Oct double-settlement day.  
+- `src/test/java/com/ardencm/posttrade/dates/SettlementDatesTest.java` L18 — Existing T+2 expectations become pre-go-live cases; add post-go-live cases incl. the 8→12 Oct double-settlement day.  
   owners: @ardencm/post-trade-core
 - `src/main/java/com/ardencm/posttrade/dates/SettlementDates.java` — Resolve cycle from trade date, not a static default.  
   owners: @ardencm/post-trade-core

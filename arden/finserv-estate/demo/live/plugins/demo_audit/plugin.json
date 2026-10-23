@@ -1,0 +1,7 @@
+{
+  "name": "demo_audit",
+  "version": "1.0.0",
+  "description": "FS Golden Demo Bank: Arden FINOS CCC.Core v2025.10 audit readiness. Seeds the live situation, prints READY with the seed URL and prompt 1; fallback is the traderX PR #119 replay.",
+  "author": { "name": "Cognition GTM" },
+  "keywords": ["demo", "finserv", "audit", "finos-ccc", "arden"]
+}

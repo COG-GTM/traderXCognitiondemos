@@ -14,7 +14,7 @@ periods) are escalated to their named owner, never guessed. Only ever create the
 - Names of the decision owners for calendars, corporate actions and securities lending
 
 ## Reference (all phases)
-- Estate helpers: `demo/t1/inventory.py`, `demo/t1/migrate.py`, `demo/t1/parity.py`, `demo/run-demo2.sh`
+- Estate helper: `demo/t1/parity.py` replays `demo/t1/golden/*.csv` through old and new code. The inventory and the migration are yours to produce.
 - Each commit message must contain `feature` or `bug`. Every PR description ends with the line `Devin-Org: engineering`.
 - Wire formats are contracts: FIX tag 64/75 stay `LocalMktDate` (`yyyyMMdd`); tag 63 changes with the cycle (`3` = T+2, `2` = T+1).
 - Consumers pin the date library through the BOM; check what they actually run before choosing a release base.
