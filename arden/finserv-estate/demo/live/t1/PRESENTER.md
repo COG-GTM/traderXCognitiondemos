@@ -1,58 +1,41 @@
-# demo_t1 presenter sheet: T+1 settlement migration (pin this)
+# demo_t1 presenter sheet: T+1 settlement migration
 
-**Goal.** Arden must move EU, UK and CH regular-way trades from T+2 to T+1 for the 2027-10-11 go-live (T1-2027 / SETTLE-4471).
-In about 11 minutes Devin will:
+**Goal.** Arden moves EU, UK and CH regular-way trades from T+2 to T+1 on 2027-10-11 (SETTLE-4471). In one session Devin:
+- finds every T+2 assumption across 20 repos and cites each one;
+- migrates tranche 1 in 3 draft PRs;
+- proves the result with golden-file parity;
+- hands the one business decision, venue calendar vs TARGET2, to its owners.
 
-- find every settlement-cycle assumption across 20 repos, with a file:line citation for each;
-- migrate tranche 1 in 3 draft PRs;
-- show golden-file parity;
-- escalate the 4 trades where the venue calendar and TARGET2 disagree. Devin does not pick a calendar.
+About 15 minutes.
 
-**Who:** a post-trade or operations technology lead. **Length:** about 15 minutes.
+<!-- run-links: the setup session refills this table after each run -->
+## Tabs (this run)
 
-## Tabs to open (in this order)
-
-| Tab | Link | What it is |
+| # | Open | What it shows |
 | --- | --- | --- |
-| 1. Live Devin run | the `Live session` link the setup session sends you (or [Devin home](https://devin-gtm.devinenterprise.com/) + prompt 1) | Prompt 1 is already running. Present from here. |
-| 2. Prompt 1 | [PROMPTS.md, prompt 1](PROMPTS.md#prompt-1-paste-as-is) | If you start your own run: new session, normal mode, repos traderXCognitiondemos + Securities-Trade-Processing-System + Springboot-BankApp, paste prompt 1. |
-| 3. Seed (BEFORE) | [demo/t1-live-before](https://github.com/COG-GTM/traderXCognitiondemos/tree/demo/t1-live-before/arden/finserv-estate/demo/t1) | The golden trades and the parity checker. There is no inventory and no migration yet. |
-| 4. Video (default link) | [STPS #2 description](https://github.com/COG-GTM/Securities-Trade-Processing-System/pull/2) (copy on [kit PR #134](https://github.com/COG-GTM/traderXCognitiondemos/pull/134#issuecomment-6406211177)) | BEFORE parity: 0 changed. AFTER parity: 20 changed, 4 escalated. The reseed never closes either PR. |
-| 5. Reference PRs | [STPS #2 core-dates](https://github.com/COG-GTM/Securities-Trade-Processing-System/pull/2), [#3 settlement-instruction-service](https://github.com/COG-GTM/Securities-Trade-Processing-System/pull/3), [#4 iso20022-fix-messages](https://github.com/COG-GTM/Securities-Trade-Processing-System/pull/4) | Standing tranche-1 PRs, open. `seed-t1.sh` never closes them. |
+| 1 | [Live Devin session](https://devin-gtm.devinenterprise.com/sessions/a1c91077b05e400798db9860b626ed3f) | Setup already started it with prompt 1. You don't paste anything. Present Devin's work and final message from here. |
+| 2 | [BEFORE: T+2 hard-coded](https://github.com/COG-GTM/Securities-Trade-Processing-System/blob/devin/1790864747-arden-finserv-estate/arden/iso20022-fix-messages/mapping/settlement-cycle.yaml#L3) | `default_cycle: T+2` in the FIX mapping. This is one of the 124 places Devin found. |
+| 3 | Live PRs: [#80 core-dates](https://github.com/COG-GTM/Securities-Trade-Processing-System/pull/80), [#81 settlement-instruction-service](https://github.com/COG-GTM/Securities-Trade-Processing-System/pull/81), [#82 iso20022-fix-messages](https://github.com/COG-GTM/Securities-Trade-Processing-System/pull/82) | Devin's tranche-1 drafts from this run. |
+| 4 | [Parity + escalations](https://github.com/COG-GTM/traderXCognitiondemos/blob/devin/1792978494-settle-4471-t1-reports/arden/finserv-estate/demo/reports/demo2-migration-report.md#parity) | This run's golden-file results: 20 changed, 16 expected, 4 escalated. Also: [inventory](https://github.com/COG-GTM/traderXCognitiondemos/blob/devin/1792978494-settle-4471-t1-reports/arden/finserv-estate/demo/reports/demo2-t1-inventory.md). |
 
-## Beats (and the PR or link for each)
+## Beats
 
-1. **The ask (tab 3).** "Twenty repos and one regulatory date. Nobody knows where T+2 is hard-coded."
-   Show the golden trade file, then switch to tab 1.
-2. **Hand it to Devin (tab 1).** Prompt 1 is already in the session.
-   "I haven't told Devin where the T+2 assumptions are. It reads the estate the way a new engineer would."
-3. **Inventory (tab 1).** Open Devin's inventory report. Every row has repo, path, line, CODEOWNERS and tranche.
-   Read the headline counts from Devin's message. **Don't quote a number in advance; it varies between runs.**
-4. **Tranche 1 PRs.** Open the 3 draft PRs Devin posts in tab 1: core-dates, settlement-instruction-service and iso20022-fix-messages.
-   The change is date-gated on trade date, keeps the FIX 64/75 wire format, and the tests are green.
-   **If the live PRs aren't up yet, use tab 5: STPS #2, #3 and #4.**
-   "Devin opens drafts. Your engineers review and merge."
-5. **Parity (tab 4, STPS #2).** Play the video at the top of STPS #2, or show Devin's parity output in tab 1.
-   BEFORE: 30 trades, 0 changed. AFTER: 20 changed, 16 expected, 10 unchanged, 4 escalated.
-   "Every changed row is explained."
-6. **The hard case.** ARD-27Q4-0021, 0022, 0027 and 0028 are Christmas and New Year trades on Xetra and Euronext Paris.
-   The venue calendar gives one settlement date and TARGET2 cash gives another.
-   "Devin doesn't pick. It names the owners, @ardencm/market-ops and the Head of Post-Trade, and attaches the evidence."
-7. **Your own check (optional, terminal).** Run `python3 arden/finserv-estate/demo/t1/parity.py --migrated <jar from Devin's core-dates PR>`.
-   You should get the same 20 / 16 / 10 / 4.
-8. **The rest of the programme.** Tranches 2 and 3 come from Devin's own plan in the inventory report. They are not run live.
+1. **The ask (tab 2).** "Go-live is 2027-10-11, and T+2 is hard-coded across the estate, like this line. Nobody has a full list."
+2. **Hand it to Devin (tab 1).** "One prompt. I didn't tell Devin where to look."
+3. **Inventory (tab 4, inventory link).** Every row has a repo, file:line, owner and tranche.
+   This run: 52 files, 124 citations, 16 of 20 repos. Read the numbers off the report, because they vary between runs.
+4. **Tranche 1 (tab 3).** Open #80, then #81 and #82. "Date-gated on trade date, FIX 64/75 format unchanged, tests green. Drafts only: your engineers merge."
+   Devin's own catch: it cut core-dates from `release/1.4` because `main` breaks the custody-gateway tag 64 contract.
+5. **Parity (tab 4).** "Thirty golden trades: 20 changed, and every change is explained. Sixteen moved one business day earlier, as expected."
+6. **The hard case (tab 4, the ESCALATE rows).** ARD-27Q4-0021, 0022, 0027 and 0028 are Christmas and New Year trades on Xetra and Paris.
+   "The venue calendar and TARGET2 disagree. Devin doesn't pick a calendar. It names @ardencm/market-ops and the Head of Post-Trade."
+7. **What's next.** Tranches 2 and 3 are in Devin's plan, not run live. The BOM stays at 1.4.0 until tranche 2.
 
-**Close.** "One cited inventory, three reviewable PRs, parity on the golden file, and the one business decision sent to the people who own it."
+**Close.** "One cited inventory, three reviewable PRs, parity proven, and the business decision with its owners."
 
-## Fallback
+## Backup (only if the live run fails or its PRs aren't up yet)
 
-- **Live run stalls:** use tab 4 (video) and tab 5 (STPS #2 to #4). Say they are the reference run.
-- **You want fresh reports on the VM:** run `arden/finserv-estate/demo/live/t1/fallback-t1.sh`. It takes about 2 minutes and writes
-  [`demo2-t1-inventory.md`](../../reports/demo2-t1-inventory.md), [`demo2-migration-report.md`](../../reports/demo2-migration-report.md) and `demo2-parity.html`.
-  Say it is the kit's reference run, not Devin's live output.
+Use **[STPS #2](https://github.com/COG-GTM/Securities-Trade-Processing-System/pull/2)**. It's an earlier reference run of the same tranche-1 change, and a BEFORE/AFTER parity video plays at the top of the description.
+[#3](https://github.com/COG-GTM/Securities-Trade-Processing-System/pull/3) and [#4](https://github.com/COG-GTM/Securities-Trade-Processing-System/pull/4) are its siblings. Reseeding never closes them. Say "this is the reference run", not Devin live.
 
-## Rules
-
-- Never merge, deploy or post to real Slack.
-- Don't decide between the venue calendar and TARGET2 for an owner.
-- Rerunning setup (`setup-t1.sh`) closes the live-run PRs from the previous run. It keeps STPS #2 to #4 and kit PR #134.
+Rules: never merge, deploy or post to Slack. Don't decide a calendar for its owner. Re-running setup closes this run's PRs #80 to #82.
