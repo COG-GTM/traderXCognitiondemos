@@ -5,7 +5,8 @@
 #   3. Checks core-dates 1.4.0 embeds snakeyaml 1.33 (1.4.1: 2.2), then proves the hard case locally: settlement-instruction-service is green at BEFORE, red on core-dates 1.5.0
 #      (tag 64 contract), green on 1.4.1.
 #   4. Re-creates demo/arden-live-before with the shared seed-situation.sh and checks the 5 stage findings fan out.
-#   5. Prints READY with the seed URL, prompt 1 and the fallback.
+#   5. Checks the always-open example PRs (demo/fleetwide-example-* heads, never closed here) and reopens any that were closed.
+#   6. Prints READY with the seed URL, prompt 1, the example PRs and the fallback.
 #
 #   arden/finserv-estate/demo/live/fleetwide/setup-fleetwide.sh
 #   DEMO_FLEETWIDE_DRY_RUN=1 ...       # list PRs it would close, do not close or push anything
@@ -23,6 +24,10 @@ DRY_RUN="${DEMO_FLEETWIDE_DRY_RUN:-}"
 PROTECTED=" COG-GTM/Securities-Trade-Processing-System#$(seq -s ' COG-GTM/Securities-Trade-Processing-System#' 5 36) \
 COG-GTM/traderXCognitiondemos#115 COG-GTM/traderXCognitiondemos#116 COG-GTM/traderXCognitiondemos#117 \
 COG-GTM/Springboot-BankApp#$(seq -s ' COG-GTM/Springboot-BankApp#' 316 320) COG-GTM/Springboot-BankApp#327 COG-GTM/Springboot-BankApp#333 "
+# Always-open example PRs the presenter brief links per beat (same commits as the measured live run's PRs).
+EXAMPLES="COG-GTM/Securities-Trade-Processing-System#77:settlement-instruction-service(hard-case,video) \
+COG-GTM/Securities-Trade-Processing-System#78:fx-funding-service COG-GTM/Securities-Trade-Processing-System#79:custody-gateway \
+COG-GTM/traderXCognitiondemos#141:risk-lib COG-GTM/Springboot-BankApp#339:platform-terraform"
 HERE=$(cd "$(dirname "$0")" && pwd)
 ESTATE=$(cd "$HERE/../../.." && pwd)
 GIT_ROOT=$(git -C "$HERE" rev-parse --show-toplevel)
@@ -52,6 +57,17 @@ for host in $HOST_REPOS; do
        --comment "Closed by demo/live/fleetwide/setup-fleetwide.sh: reseeding the demo_fleetwide situation for a new live run." >/dev/null
     echo "    closed $host#$num ($head)"
   done
+done
+
+step "Always-open example PRs"
+EXAMPLE_LINES=""
+for e in $EXAMPLES; do
+  ref=${e%%:*}; host=${ref%#*}; num=${ref#*#}
+  state=$(gh api "repos/$host/pulls/$num" --jq 'if .merged then "merged" else .state end') || fail "example PR $ref not found"
+  [[ "$state" == merged ]] && fail "example PR $ref was merged"
+  if [[ "$state" != open && -z "$DRY_RUN" ]]; then gh pr reopen -R "$host" "$num" >/dev/null; echo "    reopened $ref"; fi
+  echo "    $ref open (${e#*:})"
+  EXAMPLE_LINES+="               https://github.com/$host/pull/$num  ${e#*:}"$'\n'
 done
 
 if [[ -z "${DEMO_FLEETWIDE_SKIP_MACHINE:-}" ]]; then
@@ -139,12 +155,15 @@ cat <<BANNER
 
 READY: demo_fleetwide live situation set up $SEED_LINE
   Seed branch: https://github.com/$REPO/tree/$SEED_BRANCH
-  Where:       a NEW Devin session (web app), repos traderXCognitiondemos, Securities-Trade-Processing-System, Springboot-BankApp
-  Prompt 1 (paste exactly; full 17 variant and prompt 2 in arden/finserv-estate/demo/live/fleetwide/PROMPTS.md):
+  Where:       the setup session starts the live Devin session with prompt 1 as its first message
+               (repos traderXCognitiondemos, Securities-Trade-Processing-System, Springboot-BankApp)
+  Brief:       arden/finserv-estate/demo/live/fleetwide/PRESENTER-BRIEF.md (goal, tabs, beats, which PR per beat)
+  Prompt 1 (full 17 variant and prompt 2 in arden/finserv-estate/demo/live/fleetwide/PROMPTS.md):
 ----------------------------------------------------------------
 $PROMPT1
 ----------------------------------------------------------------
-  Talk track:  arden/finserv-estate/demo/live/fleetwide/TALK-TRACK.md
+  Example PRs (always open, use when the live PR is not up yet):
+$EXAMPLE_LINES  Talk track:  arden/finserv-estate/demo/live/fleetwide/TALK-TRACK.md
   Fallback:    (1) open the pre-run live session in TALK-TRACK.md "Fallback" and walk its burn-down and PRs
                (2) deterministic replay: git checkout $ESTATE_BRANCH && arden/finserv-estate/demo/run-demo1.sh
 BANNER
