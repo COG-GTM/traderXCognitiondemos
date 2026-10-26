@@ -8,6 +8,12 @@
 
 About 15 minutes.
 
+## What you need
+
+- Sign in to Devin (devin-gtm) and GitHub with access to COG-GTM/Securities-Trade-Processing-System and COG-GTM/traderXCognitiondemos. Nothing else to install.
+- Nothing to paste. Setup already started the live session (tab 1) with prompt 1 in it, and it reaches PRs in about 12 min.
+- Open tabs 1 to 5 before you start. If a Live link isn't up yet, use the Backup link in the same row.
+
 <!-- run-links: the setup session refills the Live column after each run -->
 ## Tabs (this run)
 
