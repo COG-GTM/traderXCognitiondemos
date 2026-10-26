@@ -1,0 +1,12 @@
+[[1;31mERROR[m] [1;31mTests [0;1mrun: [0;1m1[m, [1;31mFailures: [0;1;31m1[m, Errors: 0, Skipped: 0, Time elapsed: 0.199 s[1;31m <<< FAILURE![m -- in com.ardencm.settlements.instruction.[1mCustodyGatewayContractTest[m
+[[1;31mERROR[m] com.ardencm.settlements.instruction.CustodyGatewayContractTest.tag64IsLocalMktDate -- Time elapsed: 0.175 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: tag 64 must match ^[0-9]{8}$ but was 2027-10-13 ==> expected: <true> but was: <false>
+[[1;31mERROR[m] [1;31mTests [0;1mrun: [0;1m5[m, [1;31mFailures: [0;1;31m4[m, Errors: 0, Skipped: 0, Time elapsed: 0.024 s[1;31m <<< FAILURE![m -- in com.ardencm.settlements.instruction.[1mInstructionBuilderTest[m
+[[1;31mERROR[m] com.ardencm.settlements.instruction.InstructionBuilderTest.fixMessageCarriesLocalMktDate -- Time elapsed: 0.004 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 8=FIX.4.435=AE571=T-148=GB000263494622=475=2027-10-1163=364=2027-10-13207=XLON ==> expected: <true> but was: <false>
+[[1;31mERROR[m] com.ardencm.settlements.instruction.InstructionBuilderTest.unpinnedEuUkChTradesOnGoLiveSettleTPlusOne -- Time elapsed: 0.007 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: XPAR ==> expected: <20271012> but was: <2027-10-12>
+[[1;31mERROR[m] com.ardencm.settlements.instruction.InstructionBuilderTest.unpinnedLondonTradeBeforeGoLiveSettlesTPlusTwo -- Time elapsed: 0.001 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <20271012> but was: <2027-10-12>
+[[1;31mERROR[m] com.ardencm.settlements.instruction.InstructionBuilderTest.londonInstructionSettlesTPlusTwo -- Time elapsed: 0.001 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <20271013> but was: <2027-10-13>
