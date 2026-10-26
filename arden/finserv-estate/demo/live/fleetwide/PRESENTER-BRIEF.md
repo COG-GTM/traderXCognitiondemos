@@ -34,3 +34,16 @@ Prompt 1 and the full-17 variant: [PROMPTS.md](https://github.com/COG-GTM/trader
 - [ ] It waits for @ardencm/settlements-core sign-off.
 
 **Fallback:** "Here's the run we did while preparing the demo." [Session](https://devin-gtm.devinenterprise.com/sessions/f8d2e3d9c1b44829acd2fa2d9fd95e07) and its PRs, always open: [STPS #77](https://github.com/COG-GTM/Securities-Trade-Processing-System/pull/77) (hard case), [#78](https://github.com/COG-GTM/Securities-Trade-Processing-System/pull/78), [#79](https://github.com/COG-GTM/Securities-Trade-Processing-System/pull/79), [traderX #141](https://github.com/COG-GTM/traderXCognitiondemos/pull/141), [Springboot-BankApp #339](https://github.com/COG-GTM/Springboot-BankApp/pull/339).
+
+## Why this demo
+**The situation.** Arden's Artifactory has an authentication bypass (CVE-2026-82329, SEC-2026-0912) and Snyk reports 17 findings across services in three repos. Every bank security team knows this: a long scanner list, a deadline, and owning teams busy with other work. Today that is weeks of tickets, each a context switch for a different team.
+
+**What Devin does.** One parent Devin hands each finding to its own child session, like a team lead with five engineers. Each child fixes only its finding in the right repo and branch, runs that service's tests and opens one reviewable PR. The parent ends with a burn-down table. Fleet-scale parallel work in under 10 minutes, nothing merged, every change waiting for review.
+
+**The moment that matters.** The scanner says upgrade core-dates to 1.5.0. That clears the CVE but changes FIX tag 64 (settlement date) from `20271013` to `2027-10-13`, which breaks the custody wire contract and would fail real settlements. Devin doesn't take the scanner's word: it sees the contract test fail, pins the security-only 1.4.1 patch, adds a wire-format test and asks @ardencm/settlements-core to sign off. That is the difference between an auto-bump bot and an engineer.
+
+**Takeaways for the room.**
+- Scale: one Devin per finding, in parallel; a 17-item backlog burns down in a sitting, not a sprint.
+- Judgment: Devin checks the scanner's fix against the code's real contracts and deviates with evidence.
+- Control: every change is a tested PR; humans review and merge, and risky changes go to the owning team.
+- Audit trail: fan-out plan, per-child sessions, STATUS lines and burn-down table.
