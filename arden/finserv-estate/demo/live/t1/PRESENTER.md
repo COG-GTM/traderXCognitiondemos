@@ -17,7 +17,7 @@ In about 11 minutes Devin will:
 | 1. Live Devin run | the `Live session` link the setup session sends you (or [Devin home](https://devin-gtm.devinenterprise.com/) + prompt 1) | Prompt 1 is already running. Present from here. |
 | 2. Prompt 1 | [PROMPTS.md, prompt 1](PROMPTS.md#prompt-1-paste-as-is) | If you start your own run: new session, normal mode, repos traderXCognitiondemos + Securities-Trade-Processing-System + Springboot-BankApp, paste prompt 1. |
 | 3. Seed (BEFORE) | [demo/t1-live-before](https://github.com/COG-GTM/traderXCognitiondemos/tree/demo/t1-live-before/arden/finserv-estate/demo/t1) | The golden trades and the parity checker. There is no inventory and no migration yet. |
-| 4. Video (default link) | [PR #134, demo_t1 BEFORE/AFTER video](https://github.com/COG-GTM/traderXCognitiondemos/pull/134#issuecomment-6406211177) | Parity goes from 0 changed to 20 changed with 4 escalated. PR #134 never closes. |
+| 4. Video (default link) | [STPS #2 description](https://github.com/COG-GTM/Securities-Trade-Processing-System/pull/2) (copy on [kit PR #134](https://github.com/COG-GTM/traderXCognitiondemos/pull/134#issuecomment-6406211177)) | BEFORE parity: 0 changed. AFTER parity: 20 changed, 4 escalated. The reseed never closes either PR. |
 | 5. Reference PRs | [STPS #2 core-dates](https://github.com/COG-GTM/Securities-Trade-Processing-System/pull/2), [#3 settlement-instruction-service](https://github.com/COG-GTM/Securities-Trade-Processing-System/pull/3), [#4 iso20022-fix-messages](https://github.com/COG-GTM/Securities-Trade-Processing-System/pull/4) | Standing tranche-1 PRs, open. `seed-t1.sh` never closes them. |
 
 ## Beats (and the PR or link for each)
@@ -32,7 +32,7 @@ In about 11 minutes Devin will:
    The change is date-gated on trade date, keeps the FIX 64/75 wire format, and the tests are green.
    **If the live PRs aren't up yet, use tab 5: STPS #2, #3 and #4.**
    "Devin opens drafts. Your engineers review and merge."
-5. **Parity (tab 4).** Play the video, or show Devin's parity output in tab 1.
+5. **Parity (tab 4, STPS #2).** Play the video at the top of STPS #2, or show Devin's parity output in tab 1.
    BEFORE: 30 trades, 0 changed. AFTER: 20 changed, 16 expected, 10 unchanged, 4 escalated.
    "Every changed row is explained."
 6. **The hard case.** ARD-27Q4-0021, 0022, 0027 and 0028 are Christmas and New Year trades on Xetra and Euronext Paris.
