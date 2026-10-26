@@ -35,3 +35,8 @@ Never merge them.
 - [ ] Record, timeline, RCA attached; nothing posted
 
 **If Devin blames the deploy:** "What is your evidence that 31.4.2 is or is not the cause?"
+
+## Why this demo
+- **The point:** evidence before action. The alert fires minutes after last night's deploy, so everyone's instinct is to roll back. Devin tests that instinct instead of following it: the same data fails on the pre-deploy build, so a rollback would have burned the time before the open and fixed nothing.
+- **The goal:** in about 10 minutes, Devin works as the first responder. It reproduces the outage, rules out the obvious suspect with evidence, follows the failure into the vendor's feed contract, hands engineers the smallest fix to review and writes the paperwork.
+- **The takeaway:** faster root cause, with every conclusion backed by evidence a reviewer or regulator can check. Humans stay in control: nothing is merged, deployed, rolled back or posted without them.
