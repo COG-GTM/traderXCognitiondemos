@@ -44,6 +44,7 @@ cat <<BANNER
 
 READY: demo_t1 (T+1 settlement migration) seeded
   Seed branch: https://github.com/$REPO/tree/$T1_SEED
+  Presenter sheet (pin it): https://github.com/$REPO/blob/devin/1792724600-demo-arden-live/arden/finserv-estate/demo/live/t1/PRESENTER.md
   Open Devin (normal mode), repos traderXCognitiondemos + Securities-Trade-Processing-System + Springboot-BankApp, paste prompt 1:
 ----------------------------------------------------------------------
 $(sed -n '/^<!-- prompt1 -->$/,/^<!-- \/prompt1 -->$/p' "$HERE/PROMPTS.md" | sed '1,2d;$d' | sed '$d')

@@ -10,6 +10,9 @@ SHARED_SEED="${DEMO_ARDEN_SEED_BRANCH:-demo/arden-live-before}"
 T1_SEED="${DEMO_T1_SEED_BRANCH:-demo/t1-live-before}"
 TICKET="${DEMO_T1_TICKET:-T1-2027}"
 ESTATE_REPOS=(COG-GTM/Securities-Trade-Processing-System COG-GTM/traderXCognitiondemos COG-GTM/Springboot-BankApp)
+# Standing reference PRs the presenter shows (PRESENTER.md); never closed by a reseed.
+STPS=COG-GTM/Securities-Trade-Processing-System
+KEEP_PRS=" $STPS#2 $STPS#3 $STPS#4 COG-GTM/traderXCognitiondemos#134 ${DEMO_T1_KEEP_PRS:-} "
 HERE=$(cd "$(dirname "$0")" && pwd)
 KIT=$(cd "$HERE/../../.." && pwd)              # arden/finserv-estate on the kit branch
 GIT_ROOT=$(git -C "$HERE" rev-parse --show-toplevel)
@@ -39,13 +42,14 @@ else
     gh pr list -R "$r" --state open --search "$TICKET in:title,body created:>=$PREV_SEED" --json number,headRefName \
        --jq '.[] | select(.headRefName | startswith("devin/")) | "\(.number) \(.headRefName)"' |
     while read -r num head; do
+      [[ "$KEEP_PRS" == *" $r#$num "* ]] && { echo "    kept $r#$num (reference PR)"; continue; }
       gh pr close -R "$r" "$num" --delete-branch --comment "Closed by demo/live/t1/seed-t1.sh (reseeding the $TICKET demo)." >/dev/null
       echo "    closed $r#$num ($head)"
     done
   done
 fi
 gh pr list -R "$REPO" --base "$T1_SEED" --state open --json number --jq '.[].number' |
-while read -r num; do gh pr close -R "$REPO" "$num" --comment "Closed by seed-t1.sh (reseeding $T1_SEED)." >/dev/null; echo "    closed #$num"; done
+while read -r num; do [[ "$KEEP_PRS" == *" $REPO#$num "* ]] && continue; gh pr close -R "$REPO" "$num" --comment "Closed by seed-t1.sh (reseeding $T1_SEED)." >/dev/null; echo "    closed #$num"; done
 
 step "Fetch $SHARED_SEED"
 if ! git -C "$GIT_ROOT" fetch -q origin "$SHARED_SEED" 2>/dev/null; then
