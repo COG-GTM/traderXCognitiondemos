@@ -5,9 +5,9 @@
 **Say first:** "One parent Devin reads the scanner and hands each finding to its own Devin, like a team lead with five engineers."
 
 ## Tabs
-1. [Live session](CHILD_SESSION_URL): started by the setup session; prompt 1 is already in it.
+1. [Live session](CHILD_SESSION_URL): started by the setup session; prompt 1 is already in it. Open it as soon as you start talking.
 2. [Snyk snapshot (17 findings)](https://github.com/COG-GTM/traderXCognitiondemos/blob/demo/arden-live-before/arden/finserv-estate/demo/scanner/fixtures/snyk-webhook.json)
-3. [Hard-case PR STPS #77, with video](https://github.com/COG-GTM/Securities-Trade-Processing-System/pull/77): always open, your default link.
+3. [Hard-case PR STPS #77](https://github.com/COG-GTM/Securities-Trade-Processing-System/pull/77): always open, your default link. The 94 s video is at the top of its description.
 4. Live PRs (appear from about 6:00): [STPS](https://github.com/COG-GTM/Securities-Trade-Processing-System/pulls?q=is%3Apr+is%3Aopen+head%3Asecurity), [traderX](https://github.com/COG-GTM/traderXCognitiondemos/pulls?q=is%3Apr+is%3Aopen+head%3Asecurity), [Springboot-BankApp](https://github.com/COG-GTM/Springboot-BankApp/pulls?q=is%3Apr+is%3Aopen+head%3Asecurity)
 
 ## Beats
