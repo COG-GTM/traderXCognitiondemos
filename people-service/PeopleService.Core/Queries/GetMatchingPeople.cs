@@ -18,7 +18,12 @@ namespace PeopleService.Core.Queries
             public string? SearchText { get; set; }
 
             /// <summary>
-            /// Returns the specified number of element. (Default is 10)
+            /// Maximum number of people a single request may return.
+            /// </summary>
+            public const int MaxTake = 50;
+
+            /// <summary>
+            /// Returns the specified number of element. (Default is 10, maximum is 50)
             /// </summary>
             public int Take { get; set; } = 10;
         }
@@ -52,6 +57,17 @@ namespace PeopleService.Core.Queries
                             new ValidationFailure(
                                 "",
                                 $"{nameof(Request.SearchText)} must be at least 3 characters long")
+                        });
+                }
+
+                if (context.InstanceToValidate.Take < 1 || context.InstanceToValidate.Take > Request.MaxTake)
+                {
+                    return new ValidationResult(
+                        new[]
+                        {
+                            new ValidationFailure(
+                                "",
+                                $"{nameof(Request.Take)} must be between 1 and {Request.MaxTake}")
                         });
                 }
 

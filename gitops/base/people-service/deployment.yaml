@@ -19,6 +19,25 @@ spec:
       containers:
         - name: people-service
           image: traderx/people-service
+          env:
+            - name: Authentication__ApiKeys
+              valueFrom:
+                secretKeyRef:
+                  name: people-service-auth
+                  key: api-key
+                  optional: true
+            - name: Authentication__Jwt__Authority
+              valueFrom:
+                secretKeyRef:
+                  name: people-service-auth
+                  key: jwt-authority
+                  optional: true
+            - name: Authentication__Jwt__Audience
+              valueFrom:
+                secretKeyRef:
+                  name: people-service-auth
+                  key: jwt-audience
+                  optional: true
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 18089
