@@ -11,7 +11,7 @@ This uses H2 Java-based database as a standalone server and initializes with an 
 ## Credentials
 The admin user is `$DATABASE_DBUSER` (default `sa`) with password `$DATABASE_DBPASS`. There is no default password: `run.sh` exits if `DATABASE_DBPASS` is unset, shorter than 16 characters, has fewer than 8 distinct characters, is `sa`, or equals the user name. Pass the same value to every service that connects to the database.
 
-An existing `_data` database created by an earlier version with the old default password `sa` is switched to `DATABASE_DBPASS` on the next start. If the existing database uses some other password, `run.sh` exits; start it with that password, or delete `_data` to recreate it.
+An existing `_data` database created by an earlier version with the old default password `sa` is switched to `DATABASE_DBPASS` on the next start. To rotate from any other password, set `DATABASE_DBPASS_PREVIOUS` to the current one for that start; otherwise `run.sh` exits without touching the data (or delete `_data` to recreate it).
 
 ```shell
 export DATABASE_DBPASS=$(openssl rand -hex 24)

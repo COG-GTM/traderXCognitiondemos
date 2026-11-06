@@ -66,13 +66,13 @@ echo 'Running schema setup script with log output to stdout below'
 echo '---------------------------------------------------------------------------'
 DATABASE_LOCAL_URL="jdbc:h2:$DATABASE_DATA_DIR/$DATABASE_DBNAME;IFEXISTS=TRUE"
 h2_login() { java -cp "$DATABASE_H2JAR" org.h2.tools.Shell -url "$DATABASE_LOCAL_URL" -user "$DATABASE_DBUSER" -password "$1" -sql "$2" >/dev/null 2>&1; }
-# Databases created by earlier versions use the old default password 'sa': move them to DATABASE_DBPASS.
+# Rotate an existing database from its previous password (DATABASE_DBPASS_PREVIOUS, default: the old default 'sa') to DATABASE_DBPASS.
 if [ -f "$DATABASE_DATA_DIR/$DATABASE_DBNAME.mv.db" ] && ! h2_login "$DATABASE_DBPASS" "SELECT 1"; then
   SQ="'"
-  if h2_login sa "ALTER USER $DATABASE_DBUSER SET PASSWORD '${DATABASE_DBPASS//$SQ/$SQ$SQ}'"; then
-    echo "Changed the password of existing database user $DATABASE_DBUSER from the old default to DATABASE_DBPASS"
+  if h2_login "${DATABASE_DBPASS_PREVIOUS:-sa}" "ALTER USER $DATABASE_DBUSER SET PASSWORD '${DATABASE_DBPASS//$SQ/$SQ$SQ}'"; then
+    echo "Changed the password of existing database user $DATABASE_DBUSER to DATABASE_DBPASS"
   else
-    echo "ERROR: cannot log in to the existing database $DATABASE_DATA_DIR/$DATABASE_DBNAME with DATABASE_DBPASS. Use the password it was created with, or delete $DATABASE_DATA_DIR to recreate it." >&2
+    echo "ERROR: cannot log in to the existing database $DATABASE_DATA_DIR/$DATABASE_DBNAME with DATABASE_DBPASS. Set DATABASE_DBPASS_PREVIOUS to its current password to rotate it, or delete $DATABASE_DATA_DIR to recreate it." >&2
     exit 1
   fi
 fi
