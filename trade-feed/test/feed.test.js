@@ -128,6 +128,15 @@ test('trade-service cannot publish positions; trade-processor cannot publish ord
   assert.strictEqual((await emitAck(processor, 'publish', order)).ok, false);
 });
 
+test('service tokens can only subscribe to their own topics, not account streams', async () => {
+  const tradeService = client({ auth: { token: TRADE_SERVICE_TOKEN } });
+  const processor = client({ auth: { token: TRADE_PROCESSOR_TOKEN } });
+  await Promise.all([connected(tradeService), connected(processor)]);
+  assert.strictEqual((await emitAck(tradeService, 'subscribe', '/accounts/22214/positions')).ok, false);
+  assert.strictEqual((await emitAck(tradeService, 'subscribe', '/trades')).ok, false);
+  assert.strictEqual((await emitAck(processor, 'subscribe', '/accounts/22214/trades')).ok, false);
+});
+
 test('UI viewer from an allowed origin still receives account updates', async () => {
   const viewer = client({ extraHeaders: { Origin: ALLOWED_ORIGIN }, transports: ['polling'] });
   await connected(viewer);

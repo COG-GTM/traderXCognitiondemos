@@ -67,7 +67,7 @@ function authenticate(handshakeAuth, config) {
 
 function canSubscribe(identity, topic) {
   if (typeof topic !== 'string') return false;
-  if (ACCOUNT_TOPIC.test(topic)) return true;
+  if (identity.kind === 'viewer') return ACCOUNT_TOPIC.test(topic);
   return identity.kind === 'service' && SERVICES[identity.name].subscribe.some((re) => re.test(topic));
 }
 

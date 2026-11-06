@@ -11,6 +11,9 @@ param tradeFeedTradeServiceToken string
 @minLength(32)
 param tradeFeedTradeProcessorToken string
 
+@description('Comma-separated browser origins (scheme://host[:port]) allowed to open the trade-feed Socket.IO connection')
+param tradeFeedAllowedOrigins string
+
 resource database 'Applications.Core/containers@2023-10-01-preview' = {
   name: 'database'
   properties: {
@@ -67,6 +70,9 @@ resource tradefeed 'Applications.Core/containers@2023-10-01-preview' = {
         }
         TRADE_FEED_ALLOW_ANONYMOUS_VIEWERS: {
           value: 'true'
+        }
+        TRADE_FEED_ALLOWED_ORIGINS: {
+          value: tradeFeedAllowedOrigins
         }
       }
     }

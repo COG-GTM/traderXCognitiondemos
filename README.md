@@ -191,7 +191,8 @@ Check your cluster is running using the epic tool `k9s` - https://k9scli.io/
 trade-feed only accepts publishers/subscribers that present a service token, so create the secret before deploying:
 
 ```
-kubectl create secret generic trade-feed-tokens \
+kubectl create namespace traderx --dry-run=client -o yaml | kubectl apply -f -
+kubectl -n traderx create secret generic trade-feed-tokens \
   --from-literal=trade-service-token=$(openssl rand -hex 32) \
   --from-literal=trade-processor-token=$(openssl rand -hex 32)
 ```

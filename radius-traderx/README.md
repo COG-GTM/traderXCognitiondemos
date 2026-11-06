@@ -18,7 +18,7 @@ rad init
 
 >Select `Yes` when prompted to setup an application in the current directory
 
-`app.bicep` requires two secure parameters, `tradeFeedTradeServiceToken` and `tradeFeedTradeProcessorToken` (at least 32 random characters each, e.g. `openssl rand -hex 32`), which the trade-feed uses to authenticate trade-service and trade-processor. Pass them with `--parameters` and keep them out of source control.
+`app.bicep` requires two secure parameters, `tradeFeedTradeServiceToken` and `tradeFeedTradeProcessorToken` (at least 32 random characters each, e.g. `openssl rand -hex 32`), which the trade-feed uses to authenticate trade-service and trade-processor, plus `tradeFeedAllowedOrigins` (comma-separated origins the UI is served from, e.g. `https://traderx.example.com`). Pass them with `--parameters` and keep them out of source control.
 
 To deploy and run the app in your local environment:
 ```bash
