@@ -14,7 +14,8 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
 		"spring.datasource.url=jdbc:h2:mem:headerlimit;DB_CLOSE_DELAY=-1",
-		"spring.jpa.hibernate.ddl-auto=create-drop" })
+		"spring.jpa.hibernate.ddl-auto=create-drop",
+		"MAX_HTTP_REQUEST_HEADER_SIZE=64KB" })
 class RequestHeaderSizeLimitTest {
 
 	@LocalServerPort
