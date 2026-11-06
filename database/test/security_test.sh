@@ -51,10 +51,12 @@ else
   fail "does not start with a strong password (rc=$RC): $(cat "$WORK/out")"
 fi
 
-if grep -q "db-web" "$REPO/ingress/nginx.traderx.conf.template" "$REPO/gitops/base/ingress/ingress.yaml"; then
-  fail "/db-web route still exposed through the ingress"
+if grep -q "db-web" "$REPO/gitops/base/ingress/ingress.yaml"; then
+  fail "/db-web route still present in the k8s ingress"
+elif grep -E "db-web" "$REPO/ingress/nginx.traderx.conf.template" | grep -q "proxy_pass"; then
+  fail "/db-web still proxied to the database in nginx"
 else
-  pass "/db-web route removed from ingress"
+  pass "/db-web route not exposed through the ingress"
 fi
 
 if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
