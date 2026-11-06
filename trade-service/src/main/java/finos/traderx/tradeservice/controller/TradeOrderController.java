@@ -1,5 +1,7 @@
 package finos.traderx.tradeservice.controller;
 
+import java.util.regex.Pattern;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +30,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 public class TradeOrderController {
 
 	private static final Logger log = LoggerFactory.getLogger(TradeOrderController.class);
+
+	private static final Pattern TICKER_PATTERN = Pattern.compile("^(?=.{1,10}$)[A-Z0-9]+(\\.[A-Z0-9]+)?$");
 
 	@Autowired
 	private Publisher<TradeOrder> tradePublisher;
@@ -69,12 +73,22 @@ public class TradeOrderController {
 	{
 		// Move whole method to a sperate class that handles all reference data 
 		// so we can mock it and run without this service up.
-		String url = this.referenceDataServiceAddress + "//stocks/" + ticker;
+		if (ticker == null || !TICKER_PATTERN.matcher(ticker).matches()) {
+			log.info("Rejected malformed ticker.");
+			return false;
+		}
+
+		String url = this.referenceDataServiceAddress + "/stocks/{ticker}";
 		ResponseEntity<Security> response = null;
 
 		try {
-			response = this.restTemplate.getForEntity(url, Security.class);
-			log.info("Validate ticker " + response.getBody().toString());
+			response = this.restTemplate.getForEntity(url, Security.class, ticker);
+			Security security = response.getBody();
+			if (security == null || !ticker.equals(security.getTicker())) {
+				log.info(ticker + " does not match the reference data response.");
+				return false;
+			}
+			log.info("Validate ticker " + security.getTicker());
 			return true;
 		}
 		catch (HttpClientErrorException ex) {
