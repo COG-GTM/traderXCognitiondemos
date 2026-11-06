@@ -60,8 +60,8 @@ In order to get things working together, it is recommended to select a range of 
 
 ```bash
 export DATABASE_TCP_PORT=18082
-export DATABASE_PG_PORT=18083
 export DATABASE_WEB_PORT=18084
+export DATABASE_DBPASS='<strong password>'  # required, at least 12 characters, must not be 'sa'
 export REFERENCE_DATA_SERVICE_PORT=18085
 export TRADE_FEED_PORT=18086
 export ACCOUNT_SERVICE_PORT=18088
@@ -101,10 +101,12 @@ To do this
 
 As of writing, personal Github accounts receive 120 free core hours per month for using Codespaces, see the most recent details [here](https://docs.github.com/en/billing/managing-billing-for-github-codespaces/about-billing-for-github-codespaces#monthly-included-storage-and-core-hours-for-personal-accounts) 
 
-Once you have cloned the repository locally or once your Codespace has started, from the root traderX directory run
+Once you have cloned the repository locally or once your Codespace has started, set the database password and, from the root traderX directory, run
 ```
+echo "DATABASE_DBPASS=$(openssl rand -base64 24)" > .env   # .env is gitignored
 docker compose up
 ```
+`DATABASE_DBPASS` is required (Compose and the database refuse to start without it, or if it is `sa` or shorter than 12 characters). The database is only reachable on the internal Compose network; its ports are not published on the host.
 On first run this will build all of the containers from the project specific Dockerfile's and then start them in the correct sequence.
 
 The Docker containers are configured via Docker Compose to connect to a shred virtual network enabling them to communciate whether running on your local computer or via a Codespace.
@@ -187,8 +189,11 @@ This command will build and start all locally built applications and deploy them
 
 ```
 cd ./gitops/local/
+cp traderx/database.env.example traderx/database.env   # gitignored; set a strong DATABASE_DBPASS
 tilt up
 ```
+
+The password is loaded into the `traderx-database` Secret and injected into the database and the services that use it. The H2 web console is not exposed through the ingress; use `kubectl -n traderx port-forward deploy/database-deployment 18084:18084` and open http://localhost:18084 if you need it.
 
 
 # Getting Involved

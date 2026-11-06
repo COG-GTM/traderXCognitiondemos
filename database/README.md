@@ -6,24 +6,25 @@
 
 This is designed to play the role of a SQL database that runs standalone as part of an example environment. The other processes in this environment interact with this via SQL / JDBC drivers and therefore this component can be swapped out in other iterations of this environment and replaced with a robust and productionizable RDBMS.
 
-This uses H2 Java-based database as a standalone server, has NO authentication by default, and initializes with an empty SQL schema every time it is started.
+This uses H2 Java-based database as a standalone server and initializes with an empty SQL schema every time it is started.
+
+A password is required: set `DATABASE_DBPASS` (or `DATABASE_DBPASS_FILE`, the path to a file holding it, e.g. a mounted secret). `run.sh` refuses to start if it is missing, shorter than 12 characters, or is the old default `sa`. The username defaults to `sa` (`DATABASE_DBUSER`).
 
 ## Default Port Numbers
 | Protocol | Port Number |
 | :--- | :--- |
 | TCP | 18082 |
-| PG | 18083 |
-| HTTP | 18084 |
+| HTTP (web console, local only) | 18084 |
  
 ## Connecting to this database remotely
-You can use the `$DATABASE_TCP_PORT`  or `$DATABASE_PG_PORT` and the database URL in JDBC is `jdbc:h2:./_data/traderx`
+The TCP listener (`$DATABASE_TCP_PORT`) accepts connections from other hosts so the services can reach it; in Docker Compose and Kubernetes it is only reachable on the internal network. The PostgreSQL listener is not started. The JDBC URL is `jdbc:h2:tcp://<host>:18082/traderx`.
 
-The default username and password are both *sa*
+Log in with `$DATABASE_DBUSER` / `$DATABASE_DBPASS`.
 
 ## Connecting to the web console
-You can use the `$DATABASE_HTTP_PORT`  or `$DATABASE_PG_PORT` and the database URL in JDBC is `jdbc:h2:traderx` (This is because -baseDir is already set to ./_data) - NOTE you will have to change the default setting in the web console which often uses a home directory path. 
+The web console listens on `$DATABASE_WEB_PORT` and only accepts local connections (no `-webAllowOthers`, no ingress route). Reach it from inside the container or with `kubectl port-forward`. The database URL in JDBC is `jdbc:h2:traderx` (This is because -baseDir is already set to ./_data) - NOTE you will have to change the default setting in the web console which often uses a home directory path. 
 
-The default username and password are both `sa`
+Log in with `$DATABASE_DBUSER` / `$DATABASE_DBPASS`.
 
 The database you want to use in the H2 GUI is `./traderx` (This may not be the default listed in the GUI)
 
@@ -66,10 +67,9 @@ You will see the following output
 ```
 
 Runing startup script
-Web Console server running at http://[your IP]:18084 (others can connect)
+Web Console server running at http://[your IP]:18084 (only local connections)
 finished startup script
 TCP server running at tcp://[your IP]:18082 (others can connect)
-PG server running at pg://[your IP]:18083 (others can connect)
 ```
 
 On my windows PC, it actually doesn't work with the public IP address. Just change the above URLs/Host Addresses to use `localhost`  and they work fine.
@@ -81,5 +81,5 @@ Example: http://localhost:18084
 
 1. Visit http://localhost:18084 or whatever port you run your service on
 2. You should see a web console, prompting you for a username, password, and JDBC URL - Values might not be auto-populated correctly
-3. Username and password should both be `sa` and the JDBC URL should be `jdbc:h2:./traderx` and the Driver should be `Generic H2 Embedded`
+3. Username is `$DATABASE_DBUSER` (default `sa`), password is `$DATABASE_DBPASS`, and the JDBC URL should be `jdbc:h2:./traderx` and the Driver should be `Generic H2 Embedded`
 4. Click `Connect`

@@ -467,3 +467,6 @@ website/.docusaurus
 website/npm-debug.log*
 website/yarn-debug.log*
 website/yarn-error.log*
+
+# Local database secret for gitops/local (see database.env.example)
+gitops/local/traderx/database.env

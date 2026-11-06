@@ -18,6 +18,8 @@ rad init
 
 >Select `Yes` when prompted to setup an application in the current directory
 
+The database password is a required, secure parameter (`databasePassword`, must not be `sa`). Pass it when deploying, e.g. `-p databasePassword=$DATABASE_DBPASS`.
+
 To deploy and run the app in your local environment:
 ```bash
 rad run traderx.bicep

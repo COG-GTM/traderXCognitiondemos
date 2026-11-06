@@ -3,6 +3,10 @@ extension radius
 // Parameters
 param application string
 
+@secure()
+@description('Password for the TraderX H2 database. Must not be the default \'sa\'.')
+param databasePassword string
+
 resource database 'Applications.Core/containers@2023-10-01-preview' = {
   name: 'database'
   properties: {
@@ -13,11 +17,10 @@ resource database 'Applications.Core/containers@2023-10-01-preview' = {
         tcp: {
           containerPort: 18082
         }
-        pg:{
-          containerPort: 18083
-        }
-        web: {
-          containerPort: 18084
+      }
+      env: {
+        DATABASE_DBPASS: {
+          value: databasePassword
         }
       }
     }
@@ -84,6 +87,9 @@ resource accountservice 'Applications.Core/containers@2023-10-01-preview' = {
         DATABASE_TCP_HOST: {
           value: database.name
         }
+        DATABASE_DBPASS: {
+          value: databasePassword
+        }
         PEOPLE_SERVICE_HOST: {
           value: peopleservice.name
         }
@@ -114,6 +120,9 @@ resource positionservice 'Applications.Core/containers@2023-10-01-preview' = {
       env: {
         DATABASE_TCP_HOST: {
           value: database.name
+        }
+        DATABASE_DBPASS: {
+          value: databasePassword
         }
       }
     }
@@ -188,6 +197,9 @@ resource tradeprocessor 'Applications.Core/containers@2023-10-01-preview' = {
       env: {
         DATABASE_TCP_HOST: {
           value: database.name
+        }
+        DATABASE_DBPASS: {
+          value: databasePassword
         }
         TRADE_FEED_HOST: {
           value: tradefeed.name
