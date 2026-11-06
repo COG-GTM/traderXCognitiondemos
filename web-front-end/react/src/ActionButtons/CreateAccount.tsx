@@ -7,7 +7,6 @@ import { style } from "../style";
 import { Environment } from '../env';
 
 export const CreateAccount = () => {
-	const accountId = Math.floor(Math.random() * 10000)
 	const schema: RJSFSchema = {
 		title: 'Create Account',
 		type: 'object',
@@ -41,7 +40,6 @@ export const CreateAccount = () => {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					id: accountId,
 					displayName: accountDetails.displayName
 				}),
 			});

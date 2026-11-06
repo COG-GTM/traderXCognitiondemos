@@ -71,8 +71,9 @@ paths:
       tags:
         - account-controller
       operationId: updateAccount
-      description: "Updates an account"
-
+      description: "Updates the displayName of an existing account (looked up by id). Requires a bearer JWT with the admin role."
+      security:
+        - bearerAuth: []
       requestBody:
         content:
           application/json:
@@ -90,7 +91,9 @@ paths:
       tags:
         - account-controller
       operationId: createAccount
-      description: "Creates an account"
+      description: "Creates an account with a server-generated id (any client id is ignored). Requires a bearer JWT with the admin role."
+      security:
+        - bearerAuth: []
       requestBody:
         content:
           application/json:
@@ -145,6 +148,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Account"
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     AccountList:
       type: array
