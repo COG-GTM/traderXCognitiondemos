@@ -28,7 +28,18 @@ The default username and password are both `sa`
 The database you want to use in the H2 GUI is `./traderx` (This may not be the default listed in the GUI)
 
 ## Using Web Console behind proxy/K8S/Env
-By default, the hostname, localhost, 127.0.0.1 are all valid host headers to access the database. If you wish to connect using another IP, or via some proxy/gateway that's set up through K8S or other environment, you will need to specify the hostname your browser is using to access the web console. This is done by setting the environment variable `$DATABASE_WEB_HOSTNAMES` to the hostname you are using to access the web console. This is a comma-delimited list of fully qualified hostnames.
+The web console is a full database administration tool (default login `sa`/`sa`), so it is intentionally **not** routed through the TraderX ingress (neither the nginx `ingress` container nor the Kubernetes Ingress). Do not add a `/db-web/` route back to either.
+
+To reach it, connect to the database's web port directly from your machine, for example with a port-forward or SSH tunnel:
+
+```shell
+kubectl port-forward svc/database 18084:18084   # Kubernetes
+ssh -L 18084:localhost:18084 <docker-host>       # remote Docker host
+```
+
+then browse to http://localhost:18084.
+
+By default, the hostname, localhost, 127.0.0.1 are all valid host headers to access the database. If you need to connect using another hostname, set the environment variable `$DATABASE_WEB_HOSTNAMES` to the hostname your browser is using. This is a comma-delimited list of fully qualified hostnames.
 
 ## Output Directory
 Data is stored in the local `./_data` directory from where the script is run. This is .gitignore'd 
