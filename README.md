@@ -101,7 +101,12 @@ To do this
 
 As of writing, personal Github accounts receive 120 free core hours per month for using Codespaces, see the most recent details [here](https://docs.github.com/en/billing/managing-billing-for-github-codespaces/about-billing-for-github-codespaces#monthly-included-storage-and-core-hours-for-personal-accounts) 
 
-Once you have cloned the repository locally or once your Codespace has started, from the root traderX directory run
+Once you have cloned the repository locally or once your Codespace has started, generate the service tokens the trade-feed uses to authenticate trade-service and trade-processor (`.env` is git-ignored; never commit it):
+```
+echo "TRADE_FEED_TRADE_SERVICE_TOKEN=$(openssl rand -hex 32)" >> .env
+echo "TRADE_FEED_TRADE_PROCESSOR_TOKEN=$(openssl rand -hex 32)" >> .env
+```
+Then, from the root traderX directory run
 ```
 docker compose up
 ```
@@ -180,6 +185,16 @@ kubectl get pods
 or 
 
 Check your cluster is running using the epic tool `k9s` - https://k9scli.io/  
+
+### Create the trade-feed service tokens
+
+trade-feed only accepts publishers/subscribers that present a service token, so create the secret before deploying:
+
+```
+kubectl create secret generic trade-feed-tokens \
+  --from-literal=trade-service-token=$(openssl rand -hex 32) \
+  --from-literal=trade-processor-token=$(openssl rand -hex 32)
+```
 
 ### Start Tilt
 

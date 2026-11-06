@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 
 import finos.traderx.messaging.PubSubException;
 import finos.traderx.messaging.Publisher;
+import finos.traderx.tradeprocessor.exceptions.InvalidTradeOrderException;
 import finos.traderx.tradeprocessor.model.*;
 import finos.traderx.tradeprocessor.repository.*;
 
@@ -34,6 +35,7 @@ public class TradeService {
     
 	public TradeBookingResult processTrade(TradeOrder order) {
 		log.info("Trade order received : "+order);
+		validate(order);
         Trade t=new Trade();
         t.setAccountId(order.getAccountId());
 
@@ -56,8 +58,7 @@ public class TradeService {
 			position.setSecurity(order.getSecurity());
 			position.setQuantity(0);
 		}
-		int newQuantity=((order.getSide()==TradeSide.Buy)?1:-1)*t.getQuantity();
-		position.setQuantity(position.getQuantity()+newQuantity);
+		position.setQuantity(applyTrade(position.getQuantity(), order.getSide(), order.getQuantity()));
 		log.info("Trade {}",t);
 		tradeRepository.save(t);
 		positionRepository.save(position);
@@ -82,6 +83,33 @@ public class TradeService {
 		}
 		
 		return result;	
+	}
+
+	private static void validate(TradeOrder order) {
+		if (order == null) {
+			throw new InvalidTradeOrderException("Trade order is required");
+		}
+		if (order.getAccountId() == null || order.getAccountId() <= 0) {
+			throw new InvalidTradeOrderException("Trade order accountId must be a positive number");
+		}
+		if (!StringUtils.hasText(order.getSecurity())) {
+			throw new InvalidTradeOrderException("Trade order security is required");
+		}
+		if (order.getSide() == null) {
+			throw new InvalidTradeOrderException("Trade order side must be Buy or Sell");
+		}
+		if (order.getQuantity() == null || order.getQuantity() <= 0) {
+			throw new InvalidTradeOrderException("Trade order quantity must be a positive number");
+		}
+	}
+
+	private static int applyTrade(Integer current, TradeSide side, int quantity) {
+		int base = current == null ? 0 : current;
+		try {
+			return side == TradeSide.Buy ? Math.addExact(base, quantity) : Math.subtractExact(base, quantity);
+		} catch (ArithmeticException e) {
+			throw new InvalidTradeOrderException("Trade order quantity would overflow the position");
+		}
 	}
 
 }

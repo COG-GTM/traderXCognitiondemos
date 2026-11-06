@@ -18,7 +18,7 @@
   <body>
     <ul id="messages"></ul>
     <form id="form" action="">
-      <input title="Send Message" id="input" autocomplete="off" /><button>Send</button>
+      <input title="Topic to subscribe, e.g. /accounts/22214/trades" id="input" autocomplete="off" placeholder="/accounts/22214/trades" /><button>Subscribe</button>
     </form>
     <script src="/socket.io/socket.io.js"></script>
 
@@ -39,7 +39,8 @@
       form.addEventListener('submit', function(e) {
         e.preventDefault();
         if (input.value) {
-          socket.emit(PUBLISH, { topic:'/chat',payload:{message:input.value}});
+          var topic = input.value;
+          socket.emit(SUBSCRIBE, topic, (res) => addMessage('SYSTEM', { subscribe: topic, result: res }));
           input.value = '';
         }
       });
@@ -54,12 +55,9 @@
         addMessage(data.topic||'GENERAL',data);
       });
 
-      socket.emit(SUBSCRIBE,"/*");
-      
-      // Example:
-      // socket.emit(SUBSCRIBE,"/accounts/12345/trades");
-      // socket.emit(SUBSCRIBE,"/chat");
-      // socket.emit(SUBSCRIBE,"/accounts/12345/positions");
+      socket.on('connect_error', (err) => addMessage('SYSTEM', { error: err.message }));
+
+      // Read-only inspector: only /accounts/<id>/trades and /accounts/<id>/positions can be subscribed.
       
       
     </script>

@@ -21,6 +21,7 @@ import finos.traderx.tradeservice.model.Security;
 import finos.traderx.tradeservice.model.TradeOrder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.validation.Valid;
 
 @CrossOrigin("*")
 @RestController
@@ -42,7 +43,7 @@ public class TradeOrderController {
 
 	@Operation(description = "Submit a new trade order")
 	@PostMapping("/")
-	public ResponseEntity<TradeOrder> createTradeOrder(@Parameter(description = "the intendeded trade order") @RequestBody TradeOrder tradeOrder) {
+	public ResponseEntity<TradeOrder> createTradeOrder(@Parameter(description = "the intendeded trade order") @Valid @RequestBody TradeOrder tradeOrder) {
 		log.info("Called createTradeOrder");
 		
 		if (!validateTicker(tradeOrder.getSecurity())) 
