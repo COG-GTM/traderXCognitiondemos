@@ -38,7 +38,7 @@ export class EditAccountComponent {
             this.reset();
         }, (err) => {
             console.error(err);
-            this.accountResponse = { success: err, msg: `There is some error!` };
+            this.accountResponse = { success: false, msg: `There is some error!` };
         });
     }
 

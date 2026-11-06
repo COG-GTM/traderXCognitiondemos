@@ -80,11 +80,12 @@ class AccountControllerSecurityTest {
 	}
 
 	@Test
-	void forgedOrExpiredTokensAreRejected() throws Exception {
+	void forgedExpiredOrNonExpiringTokensAreRejected() throws Exception {
 		String forged = token("some-other-secret-that-is-at-least-32-bytes-long", adminClaims(), Instant.now().plusSeconds(300));
 		String expired = token(SECRET, adminClaims(), Instant.now().minusSeconds(600));
+		String nonExpiring = token(SECRET, adminClaims(), null);
 
-		for (String token : List.of(forged, expired)) {
+		for (String token : List.of(forged, expired, nonExpiring)) {
 			mvc.perform(bearer(json(put("/account/"), body(aliceAccountId, "Mallory")), token))
 					.andExpect(status().isUnauthorized());
 		}
@@ -176,7 +177,7 @@ class AccountControllerSecurityTest {
 		JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
 				.subject("subject")
 				.issueTime(Date.from(Instant.now().minusSeconds(60)))
-				.expirationTime(Date.from(expiry));
+				.expirationTime(expiry == null ? null : Date.from(expiry));
 		claims.forEach(builder::claim);
 		SignedJWT jwt = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), builder.build());
 		jwt.sign(new MACSigner(secret.getBytes(StandardCharsets.UTF_8)));

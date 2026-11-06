@@ -1,9 +1,11 @@
 package finos.traderx.accountservice.security;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import javax.crypto.spec.SecretKeySpec;
 
@@ -94,6 +96,8 @@ public class SecurityConfig {
 		validators.add(StringUtils.hasText(properties.getIssuer())
 				? JwtValidators.createDefaultWithIssuer(properties.getIssuer())
 				: JwtValidators.createDefault());
+		// The default timestamp validator only checks exp when present; never accept non-expiring tokens.
+		validators.add(new JwtClaimValidator<Instant>(JwtClaimNames.EXP, Objects::nonNull));
 		if (StringUtils.hasText(properties.getAudience())) {
 			String audience = properties.getAudience();
 			validators.add(new JwtClaimValidator<List<String>>(JwtClaimNames.AUD,
