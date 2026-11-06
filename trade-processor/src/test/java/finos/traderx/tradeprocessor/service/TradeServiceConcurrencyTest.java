@@ -2,6 +2,10 @@ package finos.traderx.tradeprocessor.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import finos.traderx.messaging.Publisher;
 import finos.traderx.messaging.Subscriber;
@@ -47,6 +53,9 @@ class TradeServiceConcurrencyTest {
 
 	@Autowired
 	TradeRepository tradeRepository;
+
+	@Autowired
+	PlatformTransactionManager transactionManager;
 
 	@MockBean(name = "tradePublisher")
 	Publisher<Trade> tradePublisher;
@@ -85,6 +94,26 @@ class TradeServiceConcurrencyTest {
 		assertTrue(booked > 0);
 		assertEquals(booked, positionRepository.findById(position()).orElseThrow().getQuantity());
 		assertEquals(booked, tradeRepository.count());
+	}
+
+	@Test
+	void rolledBackBookingIsNotPublished() throws Exception {
+		new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+			tradeService.processTrade(new TradeOrder(null, ACCOUNT, SECURITY, TradeSide.Buy, 1));
+			status.setRollbackOnly();
+		});
+
+		verify(tradePublisher, never()).publish(anyString(), any());
+		verify(positionPublisher, never()).publish(anyString(), any());
+		assertEquals(0, tradeRepository.count());
+	}
+
+	@Test
+	void committedBookingIsPublished() throws Exception {
+		tradeService.processTrade(new TradeOrder(null, ACCOUNT, SECURITY, TradeSide.Buy, 1));
+
+		verify(tradePublisher).publish(anyString(), any());
+		verify(positionPublisher).publish(anyString(), any());
 	}
 
 	private int runConcurrentBuys(boolean failOnError) throws Exception {
