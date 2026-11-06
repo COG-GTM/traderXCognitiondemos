@@ -28,6 +28,8 @@ Or you can use command line arguments:
    
 The app by default runs on port 18091
 
+Trade orders are only accepted from the trade-feed `/trades` topic. The service exposes no trade-booking REST endpoint, and it is not routed through the ingress or published on a host port.
+
 ## Trade Feed Location
 
 You can either specify `TRADE_FEED_ADDRESS` as an environment variable (should be a URL in the current SocketIO implementation) or specify the app property per below
