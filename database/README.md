@@ -6,24 +6,35 @@
 
 This is designed to play the role of a SQL database that runs standalone as part of an example environment. The other processes in this environment interact with this via SQL / JDBC drivers and therefore this component can be swapped out in other iterations of this environment and replaced with a robust and productionizable RDBMS.
 
-This uses H2 Java-based database as a standalone server, has NO authentication by default, and initializes with an empty SQL schema every time it is started.
+This uses H2 Java-based database as a standalone server and initializes with an empty SQL schema every time it is started.
+
+## Credentials
+`run.sh` refuses to start unless `$DATABASE_DBPASS` is set to a strong, randomly generated password (at least 16 characters, no well-known words such as `sa`/`password`/`admin`; existing database files still using the legacy `sa` password are rotated automatically on start). The same value must be passed to every service that connects (account-service, position-service, trade-processor). Generate one with:
+
+```shell
+export DATABASE_DBPASS=$(openssl rand -hex 24)
+```
+
+The admin user name defaults to `sa` and can be overridden with `$DATABASE_DBUSER`.
 
 ## Default Port Numbers
-| Protocol | Port Number |
-| :--- | :--- |
-| TCP | 18082 |
-| PG | 18083 |
-| HTTP | 18084 |
+| Protocol | Port Number | Enabled |
+| :--- | :--- | :--- |
+| TCP | 18082 | always |
+| PG | 18083 | only if `DATABASE_ENABLE_PG=true` |
+| HTTP (web console) | 18084 | only if `DATABASE_ENABLE_WEB_CONSOLE=true` |
+
+The server runs with `-ifExists`, so remote clients cannot create new databases. The PG listener and the web console are disabled by default; enable them only for local development. Docker Compose and the Kubernetes manifests do not publish the database ports outside the internal network.
  
 ## Connecting to this database remotely
 You can use the `$DATABASE_TCP_PORT`  or `$DATABASE_PG_PORT` and the database URL in JDBC is `jdbc:h2:./_data/traderx`
 
-The default username and password are both *sa*
+Log in with `$DATABASE_DBUSER` (default `sa`) and `$DATABASE_DBPASS`.
 
 ## Connecting to the web console
 You can use the `$DATABASE_HTTP_PORT`  or `$DATABASE_PG_PORT` and the database URL in JDBC is `jdbc:h2:traderx` (This is because -baseDir is already set to ./_data) - NOTE you will have to change the default setting in the web console which often uses a home directory path. 
 
-The default username and password are both `sa`
+The web console must be enabled with `DATABASE_ENABLE_WEB_CONSOLE=true`. Log in with `$DATABASE_DBUSER` and `$DATABASE_DBPASS`.
 
 The database you want to use in the H2 GUI is `./traderx` (This may not be the default listed in the GUI)
 
@@ -49,7 +60,7 @@ Currently the run script has environment variables defined for versions of H2 an
 
 To launch, all that should be needed is running:
 ```shell
-$> run.sh
+$> DATABASE_DBPASS=$(openssl rand -hex 24) ./run.sh
 ```
 
 ## Running from your local Win10 Machine
@@ -81,5 +92,5 @@ Example: http://localhost:18084
 
 1. Visit http://localhost:18084 or whatever port you run your service on
 2. You should see a web console, prompting you for a username, password, and JDBC URL - Values might not be auto-populated correctly
-3. Username and password should both be `sa` and the JDBC URL should be `jdbc:h2:./traderx` and the Driver should be `Generic H2 Embedded`
+3. Username is `$DATABASE_DBUSER` (default `sa`), password is `$DATABASE_DBPASS`, the JDBC URL should be `jdbc:h2:./traderx` and the Driver should be `Generic H2 Embedded`
 4. Click `Connect`

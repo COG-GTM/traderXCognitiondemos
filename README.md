@@ -62,6 +62,7 @@ In order to get things working together, it is recommended to select a range of 
 export DATABASE_TCP_PORT=18082
 export DATABASE_PG_PORT=18083
 export DATABASE_WEB_PORT=18084
+export DATABASE_DBPASS=$(openssl rand -hex 24)  # required by database and the Java services
 export REFERENCE_DATA_SERVICE_PORT=18085
 export TRADE_FEED_PORT=18086
 export ACCOUNT_SERVICE_PORT=18088
@@ -101,10 +102,12 @@ To do this
 
 As of writing, personal Github accounts receive 120 free core hours per month for using Codespaces, see the most recent details [here](https://docs.github.com/en/billing/managing-billing-for-github-codespaces/about-billing-for-github-codespaces#monthly-included-storage-and-core-hours-for-personal-accounts) 
 
-Once you have cloned the repository locally or once your Codespace has started, from the root traderX directory run
+Once you have cloned the repository locally or once your Codespace has started, from the root traderX directory generate a database password (stored in the git-ignored `.env` file, which Docker Compose reads automatically) and start the stack:
 ```
+echo "DATABASE_DBPASS=$(openssl rand -hex 24)" > .env
 docker compose up
 ```
+The database refuses to start without a strong `DATABASE_DBPASS`, and its ports are only reachable on the internal Compose network.
 On first run this will build all of the containers from the project specific Dockerfile's and then start them in the correct sequence.
 
 The Docker containers are configured via Docker Compose to connect to a shred virtual network enabling them to communciate whether running on your local computer or via a Codespace.
@@ -188,6 +191,12 @@ This command will build and start all locally built applications and deploy them
 ```
 cd ./gitops/local/
 tilt up
+```
+
+The Tiltfile creates a `traderx-database` Secret holding a randomly generated `DATABASE_DBPASS` (reused across `tilt up` runs). When applying the kustomize manifests without Tilt, create the Secret yourself first:
+
+```
+kubectl -n traderx create secret generic traderx-database --from-literal=password=$(openssl rand -hex 24)
 ```
 
 

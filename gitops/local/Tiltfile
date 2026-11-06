@@ -7,6 +7,20 @@ docker_build('traderx/trade-feed', './../../trade-feed/.')
 docker_build('traderx/trade-processor', './../../trade-processor/.')
 docker_build('traderx/trade-service', './../../trade-service/.')
 docker_build('traderx/web-front-end-angular', './../../web-front-end/angular/.')
+# Reuse the existing database password secret if present, otherwise generate a random one.
+db_password = str(local(
+    "kubectl -n traderx get secret traderx-database -o jsonpath='{.data.password}' 2>/dev/null | base64 -d" +
+    " || true", quiet=True, echo_off=True)).strip()
+if not db_password:
+    db_password = str(local('openssl rand -hex 24', quiet=True, echo_off=True)).strip()
+k8s_yaml(blob(encode_json({
+    'apiVersion': 'v1',
+    'kind': 'Secret',
+    'metadata': {'name': 'traderx-database', 'namespace': 'traderx'},
+    'type': 'Opaque',
+    'stringData': {'password': db_password},
+})))
+
 yaml = kustomize(('./traderx'))
 print(yaml)
 k8s_yaml(yaml)
