@@ -73,6 +73,12 @@ export WEB_SERVICE_ANGULAR_PORT=18093  #Angular
 export WEB_SERVICE_REACT_PORT=18094  #React
 ```
 
+The database and the Java services that use it (account-service, position-service, trade-processor) also need the same database password. There is no default; the database refuses to start without one (or with `sa`):
+
+```bash
+export DATABASE_DBPASS=$(openssl rand -hex 24)
+```
+
 The recommended starting sequence to let everything find what it needs is:
 
 ```bash
@@ -101,10 +107,12 @@ To do this
 
 As of writing, personal Github accounts receive 120 free core hours per month for using Codespaces, see the most recent details [here](https://docs.github.com/en/billing/managing-billing-for-github-codespaces/about-billing-for-github-codespaces#monthly-included-storage-and-core-hours-for-personal-accounts) 
 
-Once you have cloned the repository locally or once your Codespace has started, from the root traderX directory run
+Once you have cloned the repository locally or once your Codespace has started, from the root traderX directory generate a database password and run
 ```
+export DATABASE_DBPASS=$(openssl rand -hex 24)   # or put DATABASE_DBPASS=... in a .env file
 docker compose up
 ```
+The database is only reachable from the other containers on the Compose network; its ports are not published on the host.
 On first run this will build all of the containers from the project specific Dockerfile's and then start them in the correct sequence.
 
 The Docker containers are configured via Docker Compose to connect to a shred virtual network enabling them to communciate whether running on your local computer or via a Codespace.
@@ -188,6 +196,12 @@ This command will build and start all locally built applications and deploy them
 ```
 cd ./gitops/local/
 tilt up
+```
+
+The database and the services that use it read `DATABASE_DBPASS` from the `traderx-database` Secret. The Tiltfile creates it from `$DATABASE_DBPASS`, or from a random password stored in the git-ignored `gitops/local/.database-password`. When deploying `gitops/base` some other way, create the Secret first:
+
+```
+kubectl -n traderx create secret generic traderx-database --from-literal=password=$(openssl rand -hex 24)
 ```
 
 
