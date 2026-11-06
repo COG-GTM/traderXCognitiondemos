@@ -127,7 +127,7 @@ class PositionServiceSecurityTest {
 	}
 
 	@Test
-	void forgedExpiredAndUnsignedTokensAreRejected() throws Exception {
+	void forgedExpiredExpiryFreeAndUnsignedTokensAreRejected() throws Exception {
 		Map<String, Object> claims = Map.of("preferred_username", "user01", "roles", List.of("traderx-admin"));
 
 		String forged = token("attacker-chosen-secret-that-is-long-enough!!", claims);
@@ -135,6 +135,9 @@ class PositionServiceSecurityTest {
 
 		String expired = token(SECRET, claims, Instant.now().minusSeconds(3600));
 		mvc.perform(withToken(get("/positions/"), expired)).andExpect(status().isUnauthorized());
+
+		String noExpiry = token(SECRET, claims, null);
+		mvc.perform(withToken(get("/positions/"), noExpiry)).andExpect(status().isUnauthorized());
 
 		String unsigned = b64("{\"alg\":\"none\"}") + "."
 				+ b64("{\"preferred_username\":\"user01\",\"roles\":[\"traderx-admin\"]}") + ".";
@@ -171,9 +174,10 @@ class PositionServiceSecurityTest {
 	}
 
 	static String token(String secret, Map<String, Object> claims, Instant expiresAt) throws Exception {
-		JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
-				.issueTime(Date.from(expiresAt.minusSeconds(7200)))
-				.expirationTime(Date.from(expiresAt));
+		JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder();
+		if (expiresAt != null) {
+			builder.issueTime(Date.from(expiresAt.minusSeconds(7200))).expirationTime(Date.from(expiresAt));
+		}
 		claims.forEach(builder::claim);
 		SignedJWT jwt = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), builder.build());
 		jwt.sign(new MACSigner(secret.getBytes(StandardCharsets.UTF_8)));
