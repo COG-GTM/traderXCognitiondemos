@@ -29,7 +29,7 @@ Settings live under `Authentication` (environment variables use the `Authenticat
 | --- | --- |
 | `Authentication__Jwt__Authority` | OIDC authority used to validate bearer tokens (signing keys are fetched from its JWKS). |
 | `Authentication__Jwt__Audience` | Required `aud` claim. Bearer tokens are rejected when this is not set. |
-| `Authentication__Jwt__Issuer` | Expected `iss` claim (optional when an authority is set). |
+| `Authentication__Jwt__Issuer` | Expected `iss` claim. Required with `SigningKey` (tokens are rejected without it); taken from the authority metadata otherwise. |
 | `Authentication__Jwt__SigningKey` | Shared HS256 key (at least 32 bytes) instead of an authority. |
 | `Authentication__ApiKeys` | Comma-separated API keys accepted in the `X-Api-Key` header (service-to-service callers such as account-service, which sends `PEOPLE_SERVICE_API_KEY`). |
 | `Authentication__AllowAnonymous` | `true` turns off the authentication requirement. Use it only for local development. |

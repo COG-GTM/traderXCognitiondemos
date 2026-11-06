@@ -49,13 +49,13 @@ namespace PeopleService.WebApi.Tests
             ["Authentication:Jwt:Issuer"] = Issuer,
         });
 
-        private static string CreateToken(string signingKey = SigningKey, string audience = Audience, DateTime? expires = null)
+        private static string CreateToken(string signingKey = SigningKey, string audience = Audience, DateTime? expires = null, string issuer = Issuer)
         {
             var now = DateTime.UtcNow;
             return new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] { new Claim("sub", "user01") }),
-                Issuer = Issuer,
+                Issuer = issuer,
                 Audience = audience,
                 NotBefore = now.AddMinutes(-10),
                 IssuedAt = now.AddMinutes(-10),
@@ -120,6 +120,29 @@ namespace PeopleService.WebApi.Tests
             var client = CreateSecuredClient();
             var token = CreateToken(signingKey, audience, expired ? DateTime.UtcNow.AddMinutes(-5) : null);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var response = await client.GetAsync("/People/GetPerson?LogonId=user01");
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Bearer_token_from_other_issuer_is_rejected()
+        {
+            var client = CreateSecuredClient();
+            var token = CreateToken(issuer: "https://other-service.example.test");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var response = await client.GetAsync("/People/GetPerson?LogonId=user01");
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Bearer_token_is_rejected_when_signing_key_has_no_issuer()
+        {
+            var client = CreateClient(new Dictionary<string, string?>
+            {
+                ["Authentication:Jwt:SigningKey"] = SigningKey,
+                ["Authentication:Jwt:Audience"] = Audience,
+            });
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", CreateToken());
             var response = await client.GetAsync("/People/GetPerson?LogonId=user01");
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }

@@ -15,7 +15,7 @@ namespace PeopleService.WebApi.Authentication
     /// Configuration (section "Authentication", env vars use "Authentication__" prefix):
     ///   Jwt:Authority    OIDC authority used to discover signing keys (JWKS)
     ///   Jwt:Audience     Expected "aud" claim
-    ///   Jwt:Issuer       Expected "iss" claim (optional when Authority is set)
+    ///   Jwt:Issuer       Expected "iss" claim (required with SigningKey; taken from Authority metadata otherwise)
     ///   Jwt:SigningKey   Shared HS256 key (at least 32 bytes) when no Authority is used
     ///   ApiKeys          Comma-separated list of accepted service API keys
     ///   AllowAnonymous   Local development only: disables the authentication requirement
@@ -74,6 +74,11 @@ namespace PeopleService.WebApi.Authentication
                 throw new InvalidOperationException($"Authentication:Jwt:SigningKey must be at least {MinSigningKeyBytes} bytes.");
             }
 
+            if (!string.IsNullOrWhiteSpace(signingKey) && string.IsNullOrWhiteSpace(jwt["Authority"]) && string.IsNullOrWhiteSpace(jwt["Issuer"]))
+            {
+                app.Logger.LogWarning("Authentication:Jwt:SigningKey is set without Authentication:Jwt:Issuer; all bearer tokens will be rejected.");
+            }
+
             if (IsAnonymousAllowed(app.Configuration))
             {
                 app.Logger.LogWarning("Authentication:AllowAnonymous is enabled; the people directory is readable without credentials. Use for local development only.");
@@ -94,7 +99,8 @@ namespace PeopleService.WebApi.Authentication
             options.MapInboundClaims = false;
             options.TokenValidationParameters = new TokenValidationParameters
             {
-                ValidateIssuer = !string.IsNullOrWhiteSpace(issuer) || !string.IsNullOrWhiteSpace(authority),
+                // Issuer is always validated; with a shared SigningKey and no Jwt:Issuer every token is rejected.
+                ValidateIssuer = true,
                 ValidIssuer = string.IsNullOrWhiteSpace(issuer) ? null : issuer,
                 // Audience is always validated; without Jwt:Audience every token is rejected.
                 ValidateAudience = true,
