@@ -49,6 +49,8 @@ describe('Account add/update tests', () => {
 
   it('should add update account and show success message', () => {
     spyOn(comp.update, 'emit');
+    spyOn((<any>comp).accountService, 'addAccount').and.callThrough();
+    spyOn((<any>comp).accountService, 'updateAccount').and.callThrough();
     comp.account =  testAccount;
     fixture.detectChanges();
     comp.add();
@@ -56,6 +58,8 @@ describe('Account add/update tests', () => {
     expect(comp.accountResponse.success).toBe(true);
     expect(comp.accountResponse.msg).toBe('Account updated successfully!');
     expect(comp.update.emit).toHaveBeenCalled();
+    expect((<any>comp).accountService.updateAccount).toHaveBeenCalledWith(testAccount.id, jasmine.anything());
+    expect((<any>comp).accountService.addAccount).not.toHaveBeenCalled();
   });
 
   it('should return if displayName is undefined or empty', () => {
