@@ -1,7 +1,9 @@
 package finos.traderx.accountservice.controller;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
+import finos.traderx.accountservice.exceptions.InvalidUsernameException;
 import finos.traderx.accountservice.exceptions.ResourceNotFoundException;
 import finos.traderx.accountservice.model.AccountUser;
 import finos.traderx.accountservice.model.Person;
@@ -32,6 +34,9 @@ public class AccountUserController {
 
 	private static final Logger logger = LoggerFactory.getLogger(AccountUserController.class);
 
+	// Matches the AccountUsers.Username VARCHAR(15) column.
+	static final Pattern USERNAME_PATTERN = Pattern.compile("^[A-Za-z0-9._-]{1,15}$");
+
 	private RestTemplate restTemplate = new RestTemplate();
 
 	@Autowired
@@ -48,16 +53,13 @@ public class AccountUserController {
 
 	@PostMapping("/")
 	public ResponseEntity<AccountUser> createAccountUser(@RequestBody AccountUser accountUser) {
-		if (validatePerson(accountUser.getUsername())) {
-			return ResponseEntity.ok(this.accountUserService.upsertAccountUser(accountUser));
-		}
-		else {
-			throw new ResourceNotFoundException(accountUser.getUsername() + " not found in People service.");
-		}
+		requireValidPerson(accountUser.getUsername());
+		return ResponseEntity.ok(this.accountUserService.upsertAccountUser(accountUser));
 	}
 
 	@PutMapping("/")
 	public ResponseEntity<AccountUser> updateAccountUser(@RequestBody AccountUser accountUser) {
+		requireValidPerson(accountUser.getUsername());
 		return ResponseEntity.ok(this.accountUserService.upsertAccountUser(accountUser));
 	}
 
@@ -66,13 +68,26 @@ public class AccountUserController {
 		return ResponseEntity.ok(this.accountUserService.getAllAccountUsers());
 	}
 
+	private void requireValidPerson(String username) {
+		if (username == null || !USERNAME_PATTERN.matcher(username).matches()) {
+			throw new InvalidUsernameException("username must be 1-15 characters of letters, digits, '.', '_' or '-'");
+		}
+		if (!validatePerson(username)) {
+			throw new ResourceNotFoundException(username + " not found in People service.");
+		}
+	}
+
 	private boolean validatePerson(String username) {
-		String url = this.peopleServiceAddress + "/People/GetPerson" + "?LogonId=" + username;
-		ResponseEntity<Person> response = null;
+		String url = this.peopleServiceAddress + "/People/GetPerson?LogonId={logonId}";
 
 		try {
-			response = this.restTemplate.getForEntity(url, Person.class);
-			logger.info("Validaded person " + response.getBody().toString());
+			ResponseEntity<Person> response = this.restTemplate.getForEntity(url, Person.class, username);
+			Person person = response.getBody();
+			if (person == null || !username.equals(person.getLogonId())) {
+				logger.info(username + " not returned by People service.");
+				return false;
+			}
+			logger.info("Validated person " + person);
 			return true;
 		}
 		catch (HttpClientErrorException ex) {
@@ -84,6 +99,11 @@ public class AccountUserController {
 			}
 			return false;
 		}
+	}
+
+	@ExceptionHandler(InvalidUsernameException.class)
+	public ResponseEntity<String> invalidUsernameExceptionMapper(InvalidUsernameException e) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
 	}
 
 	@ExceptionHandler(ResourceNotFoundException.class)
