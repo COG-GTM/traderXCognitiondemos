@@ -7,9 +7,17 @@ docker_build('traderx/trade-feed', './../../trade-feed/.')
 docker_build('traderx/trade-processor', './../../trade-processor/.')
 docker_build('traderx/trade-service', './../../trade-service/.')
 docker_build('traderx/web-front-end-angular', './../../web-front-end/angular/.')
-# Random per-run account-service credentials (account-service users + trade-service reader); never committed.
-def random_secret():
-    return str(local('openssl rand -hex 24', quiet=True, echo_off=True)).strip()
+# Account-service credentials: generated once into a git-ignored file and reused on every Tilt
+# reload, so account-service and trade-service always share the same reader password.
+CREDENTIALS_FILE = '.account-service-credentials'
+if not os.path.exists(CREDENTIALS_FILE):
+    local('umask 077 && printf "admin-password=%s\\nreader-password=%s\\n" "$(openssl rand -hex 24)" "$(openssl rand -hex 24)" > ' + CREDENTIALS_FILE,
+          quiet=True, echo_off=True)
+credentials = {}
+for line in str(read_file(CREDENTIALS_FILE)).splitlines():
+    if '=' in line:
+        key, value = line.split('=', 1)
+        credentials[key.strip()] = value.strip()
 
 k8s_yaml(blob('''apiVersion: v1
 kind: Secret
@@ -22,7 +30,7 @@ stringData:
   admin-password: %s
   reader-username: account-reader
   reader-password: %s
-''' % (random_secret(), random_secret())))
+''' % (credentials['admin-password'], credentials['reader-password'])))
 
 yaml = kustomize(('./traderx'))
 print(yaml)
