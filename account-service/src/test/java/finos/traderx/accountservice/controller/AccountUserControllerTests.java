@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -176,7 +177,8 @@ class AccountUserControllerTests {
 
 		this.mockMvc.perform(json(post("/accountuser/"), "{\"accountId\":22214,\"username\":\"user01\"}")
 				.header(HttpHeaders.AUTHORIZATION, ADMIN))
-				.andExpect(status().isConflict());
+				.andExpect(status().isConflict())
+				.andExpect(jsonPath("$.error").value("user01 is already mapped to account 22214"));
 	}
 
 	@Test
@@ -191,7 +193,9 @@ class AccountUserControllerTests {
 	void listAllWithoutTokenIsRejectedWithoutReadingMappings() throws Exception {
 		this.mockMvc.perform(get("/accountuser/"))
 				.andExpect(status().isUnauthorized())
-				.andExpect(header().string(HttpHeaders.WWW_AUTHENTICATE, "Bearer"));
+				.andExpect(header().string(HttpHeaders.WWW_AUTHENTICATE, "Bearer"))
+				.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+				.andExpect(jsonPath("$.error").value("Admin bearer token required"));
 		verifyNoInteractions(this.accountUserService);
 	}
 

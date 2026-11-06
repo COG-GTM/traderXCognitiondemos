@@ -2,6 +2,7 @@ package finos.traderx.accountservice.controller;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import finos.traderx.accountservice.exceptions.AccountUserConflictException;
@@ -128,32 +129,36 @@ public class AccountUserController {
 		return person.getLogonId();
 	}
 
+	private static Map<String, String> error(Exception e) {
+		return Map.of("error", String.valueOf(e.getMessage()));
+	}
+
 	@ExceptionHandler(AdminAccessDeniedException.class)
-	public ResponseEntity<String> adminAccessDeniedMapper(AdminAccessDeniedException e) {
+	public ResponseEntity<Map<String, String>> adminAccessDeniedMapper(AdminAccessDeniedException e) {
 		ResponseEntity.BodyBuilder response = ResponseEntity.status(e.getStatus());
 		if (e.getStatus() == HttpStatus.UNAUTHORIZED) {
 			response.header(HttpHeaders.WWW_AUTHENTICATE, "Bearer");
 		}
-		return response.body(e.getMessage());
+		return response.body(error(e));
 	}
 
 	@ExceptionHandler(InvalidAccountUserException.class)
-	public ResponseEntity<String> invalidAccountUserMapper(InvalidAccountUserException e) {
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+	public ResponseEntity<Map<String, String>> invalidAccountUserMapper(InvalidAccountUserException e) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error(e));
 	}
 
 	@ExceptionHandler(AccountUserConflictException.class)
-	public ResponseEntity<String> accountUserConflictMapper(AccountUserConflictException e) {
-		return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+	public ResponseEntity<Map<String, String>> accountUserConflictMapper(AccountUserConflictException e) {
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(error(e));
 	}
 
 	@ExceptionHandler(ResourceNotFoundException.class)
-	public ResponseEntity<String> resourceNotFoundExceptionMapper(ResourceNotFoundException e) {
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+	public ResponseEntity<Map<String, String>> resourceNotFoundExceptionMapper(ResourceNotFoundException e) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error(e));
 	}
 
 	@ExceptionHandler(Exception.class)
-	public ResponseEntity<String> generalError(Exception e) {
-		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+	public ResponseEntity<Map<String, String>> generalError(Exception e) {
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error(e));
 	}
 }
