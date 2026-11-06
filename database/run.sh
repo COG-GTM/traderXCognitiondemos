@@ -47,8 +47,12 @@ if [ -f "$DATABASE_DATA_DIR/$DATABASE_DBNAME.mv.db" ] && \
   # rotate the admin password to DATABASE_DBPASS before continuing.
   echo "Existing database does not accept DATABASE_DBPASS; attempting to rotate the legacy default password"
   ESCAPED_PASS=${DATABASE_DBPASS//\'/\'\'}
+  ESCAPED_USER=${DATABASE_DBUSER^^}
+  ESCAPED_USER=${ESCAPED_USER//\"/\"\"}
+  # Shell exits 0 on SQL errors, so verify the new password actually works afterwards.
   if ! java -cp "$DATABASE_H2JAR" org.h2.tools.Shell -url "$DB_URL" -user "$DATABASE_DBUSER" -password sa \
-       -sql "ALTER USER \"${DATABASE_DBUSER^^}\" SET PASSWORD '$ESCAPED_PASS'" >/dev/null 2>&1; then
+       -sql "ALTER USER \"$ESCAPED_USER\" SET PASSWORD '$ESCAPED_PASS'" >/dev/null 2>&1 || \
+     ! java -cp "$DATABASE_H2JAR" org.h2.tools.Shell -url "$DB_URL" -user "$DATABASE_DBUSER" -password "$DATABASE_DBPASS" -sql "SELECT 1" >/dev/null 2>&1; then
     echo "ERROR: Existing database in $DATABASE_DATA_DIR rejects DATABASE_DBPASS and the legacy default. Use the password it was created with, or delete $DATABASE_DATA_DIR/$DATABASE_DBNAME.* (the schema is recreated on every start)." >&2
     exit 1
   fi
