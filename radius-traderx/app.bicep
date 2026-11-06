@@ -17,6 +17,22 @@ param accountServiceAdminUsername string = 'account-admin'
 @description('Password for accountServiceAdminUsername (generate a random value per environment)')
 param accountServiceAdminPassword string
 
+resource accountServiceCredentials 'Applications.Core/secretStores@2023-10-01-preview' = {
+  name: 'account-service-credentials'
+  properties: {
+    application: application
+    type: 'generic'
+    data: {
+      'admin-password': {
+        value: accountServiceAdminPassword
+      }
+      'reader-password': {
+        value: accountServiceReaderPassword
+      }
+    }
+  }
+}
+
 resource database 'Applications.Core/containers@2023-10-01-preview' = {
   name: 'database'
   properties: {
@@ -105,13 +121,23 @@ resource accountservice 'Applications.Core/containers@2023-10-01-preview' = {
           value: accountServiceAdminUsername
         }
         ACCOUNT_SERVICE_ADMIN_PASSWORD: {
-          value: accountServiceAdminPassword
+          valueFrom: {
+            secretRef: {
+              source: accountServiceCredentials.id
+              key: 'admin-password'
+            }
+          }
         }
         ACCOUNT_SERVICE_READER_USERNAME: {
           value: accountServiceReaderUsername
         }
         ACCOUNT_SERVICE_READER_PASSWORD: {
-          value: accountServiceReaderPassword
+          valueFrom: {
+            secretRef: {
+              source: accountServiceCredentials.id
+              key: 'reader-password'
+            }
+          }
         }
       }
     }
@@ -176,7 +202,12 @@ resource tradeservice 'Applications.Core/containers@2023-10-01-preview' = {
           value: accountServiceReaderUsername
         }
         ACCOUNT_SERVICE_PASSWORD: {
-          value: accountServiceReaderPassword
+          valueFrom: {
+            secretRef: {
+              source: accountServiceCredentials.id
+              key: 'reader-password'
+            }
+          }
         }
         REFERENCE_DATA_HOST: {
           value: referencedata.name
