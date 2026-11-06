@@ -28,6 +28,11 @@ spec:
               value: reference-data
             - name: TRADE_FEED_HOST
               value: trade-feed
+            - name: TRADE_FEED_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: trade-feed-auth
+                  key: trade-service-token
           image: traderx/trade-service
           imagePullPolicy: IfNotPresent
           name: trade-service

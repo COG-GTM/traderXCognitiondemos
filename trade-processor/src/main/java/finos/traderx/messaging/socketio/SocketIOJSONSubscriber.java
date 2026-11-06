@@ -32,8 +32,19 @@ public abstract class SocketIOJSONSubscriber<T> implements Subscriber<T>, Initia
         this.objectType = typeClass;
     }
 
+    private String authToken;
+
+    /** Service token presented in the Socket.IO handshake ({@code auth.token}). */
+    public void setAuthToken(String token) {
+        authToken = token;
+    }
+
     protected IO.Options getIOOptions() {
-        return new IO.Options();
+        IO.Options options = new IO.Options();
+        if (authToken != null && !authToken.isBlank()) {
+            options.auth = java.util.Map.of("token", authToken);
+        }
+        return options;
     }
 
     final JavaType envelopeType;
@@ -56,6 +67,20 @@ public abstract class SocketIOJSONSubscriber<T> implements Subscriber<T>, Initia
         socketAddress = addr;
     }
 
+    private java.util.Set<String> trustedPublishers = java.util.Set.of();
+
+    /**
+     * Sender identities (the server-stamped envelope {@code from}) whose messages are accepted.
+     * When empty, typed messages are accepted from any sender.
+     */
+    public void setTrustedPublishers(java.util.Set<String> publishers) {
+        trustedPublishers = publishers == null ? java.util.Set.of() : java.util.Set.copyOf(publishers);
+    }
+
+    boolean isTrustedSender(Object from) {
+        return trustedPublishers.isEmpty() || (from instanceof String && trustedPublishers.contains(from));
+    }
+
     private String defaultTopic = "/default";
     public void setDefaultTopic(String topic) {
         defaultTopic = topic;
@@ -71,7 +96,7 @@ public abstract class SocketIOJSONSubscriber<T> implements Subscriber<T>, Initia
 
     @Override
     public void unsubscribe(String topic) throws PubSubException {
-        socket.emit("unsubscribe", "topic");
+        socket.emit("unsubscribe", topic);
     }
 
     @Override
@@ -124,8 +149,10 @@ public abstract class SocketIOJSONSubscriber<T> implements Subscriber<T>, Initia
                 try {
                     JSONObject json = (JSONObject) args[0]; 
                     log.info("Raw Payload " + args[0].toString());
-                    if(! objectType.getSimpleName().equals(json.get("type"))){
+                    if(! objectType.getSimpleName().equals(json.opt("type"))){
                         log.info("System Message>>>>> " + args[0].toString());
+                    } else if (!isTrustedSender(json.opt("from"))) {
+                        log.warn("Dropping {} from untrusted sender {}", objectType.getSimpleName(), json.opt("from"));
                     } else {
                         SocketIOEnvelope<T> envelope = (SocketIOEnvelope<T>) objectMapper.readValue(json.toString(),  envelopeType);
                         log.info("Incoming Payload: " + envelope.getPayload());
@@ -136,7 +163,6 @@ public abstract class SocketIOJSONSubscriber<T> implements Subscriber<T>, Initia
                 } catch (Exception x) {
                     log.error("Threw exception while handling incoming message", x);
                 }
-                log.info("Connection Error");
             }
         });
         s.connect();

@@ -1,15 +1,6 @@
-const sockio = require("socket.io");
-const app = require('express')();
 const winston = require('winston');
-const http = require('http').createServer(app);
-
-const io = new sockio.Server(http, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
-});
-const port = process.env.TRADE_FEED_PORT || 18086;
+const { loadConfig } = require('./auth');
+const { createFeedServer } = require('./server');
 
 const log = winston.createLogger({
   transports: [
@@ -17,57 +8,20 @@ const log = winston.createLogger({
   ]
 });
 
-// command names
-const SUBSCRIBE = "subscribe";
-const UNSUBSCRIBE = "unusbscribe";
-const PUBLISH = "publish";
-
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
-});
-
-function wrapMessage( sender, topic, payloadType, payload){
-  return {
-    type: payloadType || "message",
-    from: sender,
-    topic: topic,
-    date: new Date().getTime(),
-    payload: payload
-  }
+let config;
+try {
+  config = loadConfig(process.env);
+} catch (e) {
+  log.error(`Invalid trade-feed configuration: ${e.message}`);
+  process.exit(1);
 }
 
-function joinMessage(user,topic){
-  return wrapMessage('System',topic,'message',{message: `New Joiner ${user} to topic ${topic}`});
+if (config.allowAnonymousViewers) {
+  log.warn('TRADE_FEED_ALLOW_ANONYMOUS_VIEWERS=true: unauthenticated clients may read any /accounts/<id>/(trades|positions) topic');
 }
 
-function leaveMessage(user,topic){
-  return wrapMessage('System',topic,'message',{message: `${user} has left ${topic}`});
-}
+const { http } = createFeedServer(config, log);
 
-function broadcast(from, data) {
-  var message=wrapMessage(from,data.topic,data.type,data.payload);
-  log.info(`Publish ${data.topic} -> ${JSON.stringify(message)}`);
-  io.sockets.in([data.topic, "/*"]).emit(PUBLISH, message);
-}
-
-io.on('connection', (socket) => {
-  log.info(`New Connection from ${socket.id}`);
-  socket.on(SUBSCRIBE, (topic) => {
-    log.info(`Subscribe ${topic}`);
-    socket.join(topic);
-    broadcast('System', joinMessage(socket.id,topic));
-  });
-  socket.on(UNSUBSCRIBE, (topic) => {
-    log.info(`Unsubscribe ${topic}`);
-    broadcast('System', leaveMessage(socket.id,topic));
-    socket.leave(topic);
-  });
-  socket.on(PUBLISH, (data) => {
-    broadcast(socket.id, data);
-  });
-});
-
-
-http.listen(port, () => {
-  log.info(`Socket.IO server running at http://localhost:${port}/`);
+http.listen(config.port, () => {
+  log.info(`Socket.IO server running at http://localhost:${config.port}/`);
 });
