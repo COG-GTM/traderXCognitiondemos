@@ -119,6 +119,10 @@ public class TradeOrderController {
 			if (ex.getRawStatusCode() == 404) {
 				log.info("Account" + id + " not found in account service.");				
 			}
+			else if (ex.getRawStatusCode() == 401 || ex.getRawStatusCode() == 403) {
+				log.error("Account service rejected trade-service credentials (HTTP " + ex.getRawStatusCode()
+						+ "); set ACCOUNT_SERVICE_USERNAME/ACCOUNT_SERVICE_PASSWORD to an account reader.");
+			}
 			else {
 				log.error(ex.getMessage());
 			}
