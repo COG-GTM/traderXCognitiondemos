@@ -104,6 +104,7 @@ io.on('connection', (socket) => {
 
 process.on('uncaughtException', (err) => {
   log.error(`Uncaught exception: ${err && err.stack || err}`);
+  process.exit(1);
 });
 
 
