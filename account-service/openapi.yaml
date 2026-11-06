@@ -36,6 +36,10 @@ paths:
             "application/json":
               schema:
                 $ref: "#/components/schemas/AccountUser"
+        "400":
+          description: Username is not 1-15 characters of letters, digits, '.', '_' or '-'
+        "404":
+          description: Username not found in People service, or account not found
     post:
       tags:
         - account-user-controller
@@ -54,6 +58,10 @@ paths:
             "application/json":
               schema:
                 $ref: "#/components/schemas/AccountUser"
+        "400":
+          description: Username is not 1-15 characters of letters, digits, '.', '_' or '-'
+        "404":
+          description: Username not found in People service, or account not found
   /account/:
     get:
       tags:
