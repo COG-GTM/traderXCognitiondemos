@@ -25,3 +25,7 @@ spec:
           value: database
         - name: TRADE_FEED_HOST
           value: trade-feed
+        - name: ACCOUNT_SERVICE_URL
+          value: http://account-service:8080
+        - name: REFERENCE_DATA_SERVICE_URL
+          value: http://reference-data:8080
