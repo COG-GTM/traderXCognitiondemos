@@ -4,6 +4,8 @@ info:
   version: 0.1.0
 servers:
   - url: ''
+security:
+  - bearerAuth: []
 paths:
   /trade/:
     post:
@@ -23,7 +25,16 @@ paths:
             'application/json':
               schema:
                 $ref: '#/components/schemas/TradeOrder'
+        '401':
+          description: Missing, invalid or expired bearer token
+        '403':
+          description: Caller is not mapped to the order's account in AccountUsers
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     TradeOrder:
       type: object

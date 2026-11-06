@@ -21,6 +21,22 @@ so no need to override them if you are happy with these values!
    $ export REFERENCE_DATA_SERVICE_URL=http://HOSTPORT
    $ export TRADE_FEED_ADDRESS=HOSTPORT
 
+## Authentication
+
+`POST /trade/` requires a JWT bearer token (for example forwarded by an OIDC proxy).
+The caller's username claim must be mapped to the order's `accountId` in the
+`AccountUsers` table (read from the shared H2 database); otherwise the order is
+rejected with `403` and nothing is published. Requests without a valid token get `401`.
+
+   $ export TRADE_SERVICE_JWT_JWK_SET_URI=https://idp.example.com/.well-known/jwks.json   # preferred
+   $ export TRADE_SERVICE_JWT_AUDIENCE=traderx                # required with a JWK set URI
+   $ export TRADE_SERVICE_JWT_ISSUER=https://idp.example.com  # optional
+   $ export TRADE_SERVICE_JWT_HMAC_SECRET=...                 # alternative: HS256 secret, >= 32 bytes
+   $ export TRADE_SERVICE_JWT_USERNAME_CLAIM=preferred_username
+   $ export TRADE_SERVICE_CORS_ALLOWED_ORIGINS=http://localhost:18093
+
+With no verification key configured, every trade order is rejected.
+
 Or you can also use command line arguments:
     
    $ gradlew bootRun --args='--TRADING_SERVICE_PORT=XXXX'
@@ -61,6 +77,7 @@ You can then try out your requests against the mock service as follows: (or from
 curl -X 'POST' \
   'http://localhost:18092/trade/' \
   -H 'accept: */*' \
+  -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{
   "security": "ADBE",

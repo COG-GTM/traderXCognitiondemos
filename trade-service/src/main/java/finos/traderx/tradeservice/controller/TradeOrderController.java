@@ -4,14 +4,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import finos.traderx.messaging.PubSubException;
 import finos.traderx.messaging.Publisher;
@@ -19,10 +22,10 @@ import finos.traderx.tradeservice.exceptions.ResourceNotFoundException;
 import finos.traderx.tradeservice.model.Account;
 import finos.traderx.tradeservice.model.Security;
 import finos.traderx.tradeservice.model.TradeOrder;
+import finos.traderx.tradeservice.security.TradeAccountAuthorizer;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 
-@CrossOrigin("*")
 @RestController
 @RequestMapping(value="/trade", produces = "application/json")
 public class TradeOrderController {
@@ -31,6 +34,9 @@ public class TradeOrderController {
 
 	@Autowired
 	private Publisher<TradeOrder> tradePublisher;
+
+	@Autowired
+	private TradeAccountAuthorizer tradeAccountAuthorizer;
 	
 	private RestTemplate restTemplate = new RestTemplate();
 
@@ -42,8 +48,14 @@ public class TradeOrderController {
 
 	@Operation(description = "Submit a new trade order")
 	@PostMapping("/")
-	public ResponseEntity<TradeOrder> createTradeOrder(@Parameter(description = "the intendeded trade order") @RequestBody TradeOrder tradeOrder) {
+	public ResponseEntity<TradeOrder> createTradeOrder(@Parameter(description = "the intendeded trade order") @RequestBody TradeOrder tradeOrder,
+			@AuthenticationPrincipal Jwt caller) {
 		log.info("Called createTradeOrder");
+
+		if (!tradeAccountAuthorizer.canTrade(caller, tradeOrder.getAccountId()))
+		{
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized to trade this account");
+		}
 		
 		if (!validateTicker(tradeOrder.getSecurity())) 
 		{
