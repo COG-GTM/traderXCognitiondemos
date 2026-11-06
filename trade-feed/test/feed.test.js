@@ -67,6 +67,7 @@ test('config requires service tokens', () => {
   assert.throws(() => auth.loadConfig({}), /TRADE_FEED_SERVICE_TOKENS/);
   assert.throws(() => auth.loadConfig({ TRADE_FEED_SERVICE_TOKENS: 'trade-service=short' }), /at least 32/);
   assert.throws(() => auth.loadConfig({ TRADE_FEED_SERVICE_TOKENS: `evil=${'x'.repeat(40)}` }), /unknown service/);
+  assert.throws(() => auth.loadConfig({ TRADE_FEED_SERVICE_TOKENS: `trade-service=${'d'.repeat(40)},trade-processor=${'d'.repeat(40)}` }), /different tokens/);
 });
 
 test('user tokens: signature, alg, expiry and accounts are enforced', () => {

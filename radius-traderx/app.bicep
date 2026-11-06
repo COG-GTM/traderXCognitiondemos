@@ -11,6 +11,9 @@ param tradeFeedTradeServiceToken string
 @description('Token trade-processor uses to consume orders and publish trades/positions (32+ chars)')
 param tradeFeedTradeProcessorToken string
 
+@description('Comma-separated browser origins allowed to connect to the trade-feed (the public UI/ingress URL)')
+param tradeFeedAllowedOrigins string = 'http://localhost:8080'
+
 resource database 'Applications.Core/containers@2023-10-01-preview' = {
   name: 'database'
   properties: {
@@ -64,6 +67,9 @@ resource tradefeed 'Applications.Core/containers@2023-10-01-preview' = {
         }
         TRADE_FEED_ALLOW_ANONYMOUS_VIEWERS: {
           value: 'true'
+        }
+        TRADE_FEED_ALLOWED_ORIGINS: {
+          value: tradeFeedAllowedOrigins
         }
       }
     }

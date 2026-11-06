@@ -78,11 +78,17 @@ function createFeedServer(config, log) {
     log.info(`New Connection from ${socket.id} as ${identity.kind}:${identity.name}`);
     if (identity.expiresAt) {
       // Drop the socket when the user token expires; the client must reconnect with a fresh token.
-      const msLeft = Math.min(identity.expiresAt * 1000 - Date.now(), MAX_TIMER_MS);
-      const expiry = setTimeout(() => {
+      let expiry;
+      const scheduleExpiry = () => {
+        const msLeft = identity.expiresAt * 1000 - Date.now();
+        if (msLeft > 0) {
+          expiry = setTimeout(scheduleExpiry, Math.min(msLeft, MAX_TIMER_MS));
+          return;
+        }
         log.info(`Token expired for ${identity.kind}:${identity.name}, disconnecting ${socket.id}`);
         socket.disconnect(true);
-      }, Math.max(msLeft, 0));
+      };
+      scheduleExpiry();
       socket.on('disconnect', () => clearTimeout(expiry));
     }
     socket.on(SUBSCRIBE, (topic, ack) => {

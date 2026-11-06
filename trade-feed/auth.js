@@ -33,6 +33,11 @@ function parseServiceTokens(value) {
     if (token.length < 32) {
       throw new Error(`TRADE_FEED_SERVICE_TOKENS: token for "${name}" must be at least 32 characters`);
     }
+    for (const [other, existing] of tokens) {
+      if (other !== name && existing === token) {
+        throw new Error(`TRADE_FEED_SERVICE_TOKENS: "${name}" and "${other}" must use different tokens`);
+      }
+    }
     tokens.set(name, token);
   }
   return tokens;
