@@ -4,8 +4,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 
 @Configuration
@@ -23,7 +26,12 @@ public class OpenApiConfig {
 
         OpenAPI api = new OpenAPI()
                 .addServersItem(serverInfo("", "Empty URL to help proxied documentation work"))
-                .addServersItem(serverInfo("http://localhost:" + port, "Local Dev URL"));
+                .addServersItem(serverInfo("http://localhost:" + port, "Local Dev URL"))
+                .components(new Components().addSecuritySchemes("bearerAuth", new SecurityScheme()
+                        .type(SecurityScheme.Type.HTTP)
+                        .scheme("bearer")
+                        .bearerFormat("JWT")))
+                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
 
         api.setInfo(info);
         return api;
