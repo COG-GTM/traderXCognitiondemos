@@ -8,8 +8,22 @@ paths:
       tags:
         - account-user-controller
       operationId: getAllAccountUsers
-      description: "Gets all user-account mappings"
+      description: "Gets all user-account mappings. Requires the admin bearer token."
+      security:
+        - adminToken: []
       responses:
+        "401":
+          description: Missing admin bearer token
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Wrong admin token, or administration disabled (ACCOUNT_ADMIN_TOKEN unset)
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
         "200":
           description: OK
           content:
@@ -22,7 +36,9 @@ paths:
       tags:
         - account-user-controller
       operationId: updateAccountUser
-      description: "Update user-account mapping"
+      description: "Creates or replaces a user-account mapping. Requires the admin bearer token; the username must exist in the People service."
+      security:
+        - adminToken: []
       requestBody:
         content:
           application/json:
@@ -36,11 +52,37 @@ paths:
             "application/json":
               schema:
                 $ref: "#/components/schemas/AccountUser"
+        "400":
+          description: Missing accountId or malformed username
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Missing admin bearer token
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Wrong admin token, or administration disabled (ACCOUNT_ADMIN_TOKEN unset)
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Account or person not found
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
     post:
       tags:
         - account-user-controller
       operationId: createAccountUser
-      description: "Creates a user-account mapping"
+      description: "Creates a user-account mapping. Requires the admin bearer token; the username must exist in the People service."
+      security:
+        - adminToken: []
       requestBody:
         content:
           application/json:
@@ -54,6 +96,36 @@ paths:
             "application/json":
               schema:
                 $ref: "#/components/schemas/AccountUser"
+        "400":
+          description: Missing accountId or malformed username
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Missing admin bearer token
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Wrong admin token, or administration disabled (ACCOUNT_ADMIN_TOKEN unset)
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Account or person not found
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Mapping already exists
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
   /account/:
     get:
       tags:
@@ -109,7 +181,9 @@ paths:
       tags:
         - account-user-controller
       operationId: getAccountUserById
-      description: "Gets an account-user mapping"
+      description: "Gets an account-user mapping. Requires the admin bearer token."
+      security:
+        - adminToken: []
       parameters:
         - name: id
           in: path
@@ -124,6 +198,24 @@ paths:
             "application/json":
               schema:
                 $ref: "#/components/schemas/AccountUser"
+        "401":
+          description: Missing admin bearer token
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Wrong admin token, or administration disabled (ACCOUNT_ADMIN_TOKEN unset)
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Mapping not found
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
   /account/{id}:
     get:
       tags:
@@ -145,7 +237,20 @@ paths:
               schema:
                 $ref: "#/components/schemas/Account"
 components:
+  securitySchemes:
+    adminToken:
+      type: http
+      scheme: bearer
+      description: "Value of ACCOUNT_ADMIN_TOKEN (traderx.account-admin.token)"
   schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+      example:
+        error: "Admin bearer token required"
     AccountList:
       type: array
       items:
@@ -164,6 +269,7 @@ components:
           example: 22214
         username:
           type: string
+          pattern: "^[A-Za-z0-9._-]{1,15}$"
           example: user02
     Account:
       type: object
