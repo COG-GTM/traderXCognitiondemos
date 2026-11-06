@@ -157,8 +157,6 @@ services:
     working_dir: /trade-processor
     expose:
       - 18091
-    ports:
-      - 18091:18091
     environment:
       - DATABASE_TCP_HOST=database
       - TRADE_FEED_HOST=trade-feed
