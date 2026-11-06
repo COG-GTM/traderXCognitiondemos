@@ -18,6 +18,8 @@ rad init
 
 >Select `Yes` when prompted to setup an application in the current directory
 
+The trade-feed requires a service token for trade-service and trade-processor (32+ characters each). Pass them as parameters to the `rad run`/`rad deploy` commands below, for example `--parameters tradeFeedTradeServiceToken=$(openssl rand -hex 32) --parameters tradeFeedTradeProcessorToken=$(openssl rand -hex 32)`. If the UI is reached from anywhere other than `http://localhost:8080`/`http://localhost:18093`/`http://localhost:18086`, also pass the browser origin, e.g. `--parameters tradeFeedAllowedOrigins=https://traderx.example.com`, otherwise the trade-feed rejects the UI's live-update connection.
+
 To deploy and run the app in your local environment:
 ```bash
 rad run traderx.bicep

@@ -55,6 +55,11 @@ services:
     volumes:
       # Mount the root folder that contains .git
       - .:/workspace:cached
+    environment:
+      - TRADE_FEED_SERVICE_TOKENS=trade-service=${TRADE_FEED_TRADE_SERVICE_TOKEN:?set TRADE_FEED_TRADE_SERVICE_TOKEN (e.g. openssl rand -hex 32)},trade-processor=${TRADE_FEED_TRADE_PROCESSOR_TOKEN:?set TRADE_FEED_TRADE_PROCESSOR_TOKEN (e.g. openssl rand -hex 32)}
+      - TRADE_FEED_ALLOWED_ORIGINS=http://${TRADERX_FQDN:-localhost}:18093,http://${TRADERX_FQDN:-localhost}:18094,http://${TRADERX_FQDN:-localhost}:8080,http://${TRADERX_FQDN:-localhost}:18086
+      # The demo UI has no login, so it reads account topics anonymously (read-only).
+      - TRADE_FEED_ALLOW_ANONYMOUS_VIEWERS=true
     command: npm run start
     networks:
       - localnet
@@ -136,6 +141,7 @@ services:
       - ACCOUNT_SERVICE_HOST=account-service
       - REFERENCE_DATA_HOST=reference-data
       - TRADE_FEED_HOST=trade-feed
+      - TRADE_FEED_SERVICE_TOKEN=${TRADE_FEED_TRADE_SERVICE_TOKEN:?set TRADE_FEED_TRADE_SERVICE_TOKEN}
     volumes:
       # Mount the root folder that contains .git
       - .:/workspace:cached
@@ -162,6 +168,7 @@ services:
     environment:
       - DATABASE_TCP_HOST=database
       - TRADE_FEED_HOST=trade-feed
+      - TRADE_FEED_SERVICE_TOKEN=${TRADE_FEED_TRADE_PROCESSOR_TOKEN:?set TRADE_FEED_TRADE_PROCESSOR_TOKEN}
     volumes:
       # Mount the root folder that contains .git
       - .:/workspace:cached
