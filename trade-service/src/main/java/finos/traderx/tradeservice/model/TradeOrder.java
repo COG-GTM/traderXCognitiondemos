@@ -1,12 +1,21 @@
 package finos.traderx.tradeservice.model;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 public class TradeOrder {
 
     public String id;
     private String state;
+    @NotBlank
     private String security;
+    @NotNull
+    @Positive
     private Integer quantity;
+    @NotNull
     private Integer accountId;
+    @NotNull
     private TradeSide side;
 
     public TradeOrder(){}
