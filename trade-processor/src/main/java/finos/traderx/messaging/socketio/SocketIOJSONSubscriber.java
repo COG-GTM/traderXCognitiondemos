@@ -1,6 +1,8 @@
 package finos.traderx.messaging.socketio;
 
 import java.net.URI;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.json.JSONObject;
 import org.slf4j.LoggerFactory;
@@ -41,7 +43,9 @@ public abstract class SocketIOJSONSubscriber<T> implements Subscriber<T>, Initia
 
     org.slf4j.Logger log = LoggerFactory.getLogger(this.getClass().getName());
 
-    boolean connected = false;
+    volatile boolean connected = false;
+
+    final Set<String> subscribedTopics = ConcurrentHashMap.newKeySet();
 
     @Override
     public boolean isConnected() {
@@ -66,12 +70,19 @@ public abstract class SocketIOJSONSubscriber<T> implements Subscriber<T>, Initia
     @Override
     public void subscribe(String topic) throws PubSubException {
         log.info("Subscribing to " + topic);
-        socket.emit("subscribe", topic);
+        subscribedTopics.add(topic);
+        // While disconnected, the EVENT_CONNECT listener sends the subscription.
+        if (socket != null && isConnected()) {
+            socket.emit("subscribe", topic);
+        }
     }
 
     @Override
     public void unsubscribe(String topic) throws PubSubException {
-        socket.emit("unsubscribe", "topic");
+        subscribedTopics.remove(topic);
+        if (socket != null && isConnected()) {
+            socket.emit("unsubscribe", topic);
+        }
     }
 
     @Override
@@ -99,6 +110,11 @@ public abstract class SocketIOJSONSubscriber<T> implements Subscriber<T>, Initia
             public void call(Object... args) {
                 SocketIOJSONSubscriber.this.connected = true;
                 log.info("Socket Connected");
+                // The broker forgets room membership across restarts, so (re)join on every connect.
+                for (String topic : subscribedTopics) {
+                    log.info("Subscribing to " + topic);
+                    s.emit("subscribe", topic);
+                }
             }
         });
 
