@@ -7,6 +7,24 @@ docker_build('traderx/trade-feed', './../../trade-feed/.')
 docker_build('traderx/trade-processor', './../../trade-processor/.')
 docker_build('traderx/trade-service', './../../trade-service/.')
 docker_build('traderx/web-front-end-angular', './../../web-front-end/angular/.')
+# The database and the services that use it read DATABASE_DBPASS from the
+# traderx-database Secret. Use $DATABASE_DBPASS if set, otherwise a random
+# password kept in the git-ignored .database-password file.
+db_pass = os.getenv('DATABASE_DBPASS', '')
+if not db_pass:
+    if not os.path.exists('.database-password'):
+        local('umask 077 && openssl rand -hex 24 > .database-password', quiet=True)
+    db_pass = str(read_file('.database-password')).strip()
+k8s_yaml(blob('''apiVersion: v1
+kind: Secret
+metadata:
+  name: traderx-database
+  namespace: traderx
+type: Opaque
+stringData:
+  password: %s
+''' % encode_json(db_pass)))
+
 yaml = kustomize(('./traderx'))
 print(yaml)
 k8s_yaml(yaml)
