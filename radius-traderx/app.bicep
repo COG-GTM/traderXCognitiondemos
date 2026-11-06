@@ -3,6 +3,17 @@ extension radius
 // Parameters
 param application string
 
+@secure()
+@description('Token trade-service uses to publish orders to the trade-feed (32+ chars)')
+param tradeFeedTradeServiceToken string
+
+@secure()
+@description('Token trade-processor uses to consume orders and publish trades/positions (32+ chars)')
+param tradeFeedTradeProcessorToken string
+
+@description('Comma-separated browser origins allowed to connect to the trade-feed (the public UI/ingress URL)')
+param tradeFeedAllowedOrigins string = 'http://localhost:8080'
+
 resource database 'Applications.Core/containers@2023-10-01-preview' = {
   name: 'database'
   properties: {
@@ -48,6 +59,17 @@ resource tradefeed 'Applications.Core/containers@2023-10-01-preview' = {
       ports: {
         web: {
           containerPort: 18086
+        }
+      }
+      env: {
+        TRADE_FEED_SERVICE_TOKENS: {
+          value: 'trade-service=${tradeFeedTradeServiceToken},trade-processor=${tradeFeedTradeProcessorToken}'
+        }
+        TRADE_FEED_ALLOW_ANONYMOUS_VIEWERS: {
+          value: 'true'
+        }
+        TRADE_FEED_ALLOWED_ORIGINS: {
+          value: tradeFeedAllowedOrigins
         }
       }
     }
@@ -152,6 +174,9 @@ resource tradeservice 'Applications.Core/containers@2023-10-01-preview' = {
         TRADE_FEED_HOST: {
           value: tradefeed.name
         }
+        TRADE_FEED_SERVICE_TOKEN: {
+          value: tradeFeedTradeServiceToken
+        }
       }
     }
     connections: {
@@ -191,6 +216,9 @@ resource tradeprocessor 'Applications.Core/containers@2023-10-01-preview' = {
         }
         TRADE_FEED_HOST: {
           value: tradefeed.name
+        }
+        TRADE_FEED_SERVICE_TOKEN: {
+          value: tradeFeedTradeProcessorToken
         }
       }
     }

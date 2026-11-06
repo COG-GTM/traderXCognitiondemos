@@ -7,6 +7,12 @@ docker_build('traderx/trade-feed', './../../trade-feed/.')
 docker_build('traderx/trade-processor', './../../trade-processor/.')
 docker_build('traderx/trade-service', './../../trade-service/.')
 docker_build('traderx/web-front-end-angular', './../../web-front-end/angular/.')
+# Per-environment trade-feed service tokens, generated once and kept out of git.
+local('kubectl create namespace traderx --dry-run=client -o yaml | kubectl apply -f - >/dev/null && ' +
+      '(kubectl -n traderx get secret trade-feed-auth >/dev/null 2>&1 || ' +
+      'kubectl -n traderx create secret generic trade-feed-auth ' +
+      '--from-literal=trade-service-token=$(openssl rand -hex 32) ' +
+      '--from-literal=trade-processor-token=$(openssl rand -hex 32))')
 yaml = kustomize(('./traderx'))
 print(yaml)
 k8s_yaml(yaml)

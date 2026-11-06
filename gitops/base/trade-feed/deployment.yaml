@@ -23,6 +23,23 @@ spec:
           env:
             - name: TRADE_FEED_PORT
               value: "18086"
+            - name: TRADE_FEED_TRADE_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: trade-feed-auth
+                  key: trade-service-token
+            - name: TRADE_FEED_TRADE_PROCESSOR_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: trade-feed-auth
+                  key: trade-processor-token
+            - name: TRADE_FEED_SERVICE_TOKENS
+              value: "trade-service=$(TRADE_FEED_TRADE_SERVICE_TOKEN),trade-processor=$(TRADE_FEED_TRADE_PROCESSOR_TOKEN)"
+            - name: TRADE_FEED_ALLOWED_ORIGINS
+              value: "http://localhost,http://localhost:8080"
+            # The demo UI has no login, so it reads account topics anonymously (read-only).
+            - name: TRADE_FEED_ALLOW_ANONYMOUS_VIEWERS
+              value: "true"
           ports:
             - containerPort: 18086
               protocol: TCP
