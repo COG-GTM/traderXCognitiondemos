@@ -1,0 +1,26 @@
+name: Database security tests
+
+on:
+  push:
+    paths:
+      - 'database/**'
+      - 'docker-compose.yml'
+      - 'ingress/**'
+      - 'gitops/**'
+      - '.github/workflows/database-security-tests.yml'
+  pull_request:
+    paths:
+      - 'database/**'
+      - 'docker-compose.yml'
+      - 'ingress/**'
+      - 'gitops/**'
+      - '.github/workflows/database-security-tests.yml'
+
+jobs:
+  database-security-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run database security tests
+        run: bash database/test/security_test.sh
