@@ -7,13 +7,17 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.net.URI;
+import java.util.List;
 
 import finos.traderx.accountservice.exceptions.AccountUserConflictException;
 import finos.traderx.accountservice.model.AccountUser;
@@ -181,5 +185,55 @@ class AccountUserControllerTests {
 				.header(HttpHeaders.AUTHORIZATION, ADMIN))
 				.andExpect(status().isBadRequest());
 		verifyNoInteractions(this.accountUserService, this.restTemplate);
+	}
+
+	@Test
+	void listAllWithoutTokenIsRejectedWithoutReadingMappings() throws Exception {
+		this.mockMvc.perform(get("/accountuser/"))
+				.andExpect(status().isUnauthorized())
+				.andExpect(header().string(HttpHeaders.WWW_AUTHENTICATE, "Bearer"));
+		verifyNoInteractions(this.accountUserService);
+	}
+
+	@Test
+	void listAllWithWrongTokenIsForbidden() throws Exception {
+		this.mockMvc.perform(get("/accountuser/").header(HttpHeaders.AUTHORIZATION, "Bearer not-the-token"))
+				.andExpect(status().isForbidden());
+		verifyNoInteractions(this.accountUserService);
+	}
+
+	@Test
+	void listAllWithAdminTokenReturnsMappings() throws Exception {
+		when(this.accountUserService.getAllAccountUsers()).thenReturn(List.of(accountUser(22214, "user01")));
+
+		this.mockMvc.perform(get("/accountuser/").header(HttpHeaders.AUTHORIZATION, ADMIN))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$[0].accountId").value(22214))
+				.andExpect(jsonPath("$[0].username").value("user01"));
+	}
+
+	@Test
+	void getByIdWithoutTokenIsRejected() throws Exception {
+		this.mockMvc.perform(get("/accountuser/1"))
+				.andExpect(status().isUnauthorized());
+		verifyNoInteractions(this.accountUserService);
+	}
+
+	@Test
+	void getByIdWithAdminTokenReturnsMapping() throws Exception {
+		when(this.accountUserService.getAccountUserById(1)).thenReturn(accountUser(22214, "user01"));
+
+		this.mockMvc.perform(get("/accountuser/1").header(HttpHeaders.AUTHORIZATION, ADMIN))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.username").value("user01"));
+	}
+
+	@Test
+	void crossOriginRequestsGetNoCorsGrant() throws Exception {
+		this.mockMvc.perform(options("/accountuser/")
+				.header(HttpHeaders.ORIGIN, "https://evil.example")
+				.header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "PUT"))
+				.andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, nullValue()));
+		verifyNoInteractions(this.accountUserService);
 	}
 }

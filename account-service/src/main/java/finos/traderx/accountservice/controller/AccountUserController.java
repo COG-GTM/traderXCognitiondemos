@@ -20,7 +20,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,7 +33,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-@CrossOrigin("*")
 @RestController
 @RequestMapping(value="/accountuser", produces="application/json")
 public class AccountUserController {
@@ -57,7 +55,10 @@ public class AccountUserController {
 	private String peopleServiceAddress;
 
 	@GetMapping("/{id}")
-	public ResponseEntity<AccountUser> getAccountUserById(@PathVariable int id) {
+	public ResponseEntity<AccountUser> getAccountUserById(
+			@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization,
+			@PathVariable int id) {
+		this.accountAdminAuthorizer.requireAdmin(authorization);
 		AccountUser retVal = this.accountUserService.getAccountUserById(id);
 		return ResponseEntity.ok(retVal);
 	}
@@ -81,7 +82,9 @@ public class AccountUserController {
 	}
 
 	@GetMapping("/")
-	public ResponseEntity<List<AccountUser>> getAllAccountUsers() {
+	public ResponseEntity<List<AccountUser>> getAllAccountUsers(
+			@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization) {
+		this.accountAdminAuthorizer.requireAdmin(authorization);
 		return ResponseEntity.ok(this.accountUserService.getAllAccountUsers());
 	}
 

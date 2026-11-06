@@ -12,7 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 /**
- * Guards administrative changes (e.g. account-user mappings). Callers must present
+ * Guards account-user administration (reading and changing account-user mappings). Callers must present
  * {@code Authorization: Bearer <token>} matching {@code traderx.account-admin.token}.
  * When no token is configured, administration is disabled and every change is refused.
  */
@@ -29,7 +29,7 @@ public class AccountAdminAuthorizer {
 		String token = adminToken == null ? "" : adminToken.trim();
 		this.adminToken = token.getBytes(StandardCharsets.UTF_8);
 		if (token.isEmpty()) {
-			logger.warn("traderx.account-admin.token (ACCOUNT_ADMIN_TOKEN) is not set; account-user changes are disabled");
+			logger.warn("traderx.account-admin.token (ACCOUNT_ADMIN_TOKEN) is not set; account-user endpoints are disabled");
 		}
 	}
 

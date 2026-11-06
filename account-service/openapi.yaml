@@ -8,8 +8,14 @@ paths:
       tags:
         - account-user-controller
       operationId: getAllAccountUsers
-      description: "Gets all user-account mappings"
+      description: "Gets all user-account mappings. Requires the admin bearer token."
+      security:
+        - adminToken: []
       responses:
+        "401":
+          description: Missing admin bearer token
+        "403":
+          description: Wrong admin token, or administration disabled (ACCOUNT_ADMIN_TOKEN unset)
         "200":
           description: OK
           content:
@@ -131,7 +137,9 @@ paths:
       tags:
         - account-user-controller
       operationId: getAccountUserById
-      description: "Gets an account-user mapping"
+      description: "Gets an account-user mapping. Requires the admin bearer token."
+      security:
+        - adminToken: []
       parameters:
         - name: id
           in: path
@@ -146,6 +154,12 @@ paths:
             "application/json":
               schema:
                 $ref: "#/components/schemas/AccountUser"
+        "401":
+          description: Missing admin bearer token
+        "403":
+          description: Wrong admin token, or administration disabled (ACCOUNT_ADMIN_TOKEN unset)
+        "404":
+          description: Mapping not found
   /account/{id}:
     get:
       tags:

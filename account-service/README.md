@@ -44,7 +44,7 @@ Configuration can be found in `application.properties` and can be overridden wit
 
 ### Account-user administration
 
-Creating or changing account-user mappings (`POST`/`PUT /accountuser/`) needs an admin bearer token:
+Every `/accountuser` endpoint (`GET /accountuser/`, `GET /accountuser/{id}`, `POST`/`PUT /accountuser/`) needs an admin bearer token:
 
 ```bash
 export ACCOUNT_ADMIN_TOKEN=<long random value>
@@ -53,7 +53,7 @@ curl -X POST http://localhost:18088/accountuser/ \
   -d '{"accountId":22214,"username":"user02"}'
 ```
 
-If `ACCOUNT_ADMIN_TOKEN` is not set, these changes are disabled (`403`). The username must match `^[A-Za-z0-9._-]{1,15}$` and exist in the People service. Read endpoints stay open.
+If `ACCOUNT_ADMIN_TOKEN` is not set, these endpoints are disabled (`403`). The username must match `^[A-Za-z0-9._-]{1,15}$` and exist in the People service. `/accountuser` sends no CORS headers, so browsers cannot call it cross-origin; put an authenticating proxy in front of it if a UI needs it.
 
 ``` 
 ## Simple Testing of Account Service`
