@@ -89,6 +89,9 @@ services:
     environment:
       - DATABASE_TCP_HOST=database
       - PEOPLE_SERVICE_HOST=people-service
+      - ACCOUNT_SERVICE_JWT_JWK_SET_URI=${ACCOUNT_SERVICE_JWT_JWK_SET_URI:-}
+      - ACCOUNT_SERVICE_JWT_AUDIENCE=${ACCOUNT_SERVICE_JWT_AUDIENCE:-}
+      - ACCOUNT_SERVICE_JWT_HMAC_SECRET=${ACCOUNT_SERVICE_JWT_HMAC_SECRET:-}
     volumes:
       # Mount the root folder that contains .git
       - .:/workspace:cached

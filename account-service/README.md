@@ -42,6 +42,17 @@ gradlew bootRun
 
 Configuration can be found in `application.properties` and can be overridden with env vars or command line parameters
 
+### Security
+
+`POST /account/` and `PUT /account/` require a JWT bearer token whose `roles` claim contains `traderx-admin`
+(`ACCOUNT_SERVICE_JWT_ROLES_CLAIM` / `ACCOUNT_SERVICE_ADMIN_ROLE`). Configure how tokens are verified with either:
+
+- `ACCOUNT_SERVICE_JWT_JWK_SET_URI` + `ACCOUNT_SERVICE_JWT_AUDIENCE` (and optionally `ACCOUNT_SERVICE_JWT_ISSUER`), or
+- `ACCOUNT_SERVICE_JWT_HMAC_SECRET` (HS256, at least 32 bytes).
+
+With neither set, every account write is rejected with `401`. Creates always get a server-generated id, and updates only
+change the `displayName` of an existing account (`404` if it does not exist). Reads stay unauthenticated.
+
 ``` 
 ## Simple Testing of Account Service`
 

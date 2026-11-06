@@ -2,6 +2,7 @@ package finos.traderx.accountservice.controller;
 
 import java.util.List;
 
+import finos.traderx.accountservice.exceptions.InvalidRequestException;
 import finos.traderx.accountservice.exceptions.ResourceNotFoundException;
 import finos.traderx.accountservice.model.Account;
 import finos.traderx.accountservice.service.AccountService;
@@ -36,12 +37,12 @@ public class AccountController {
 
 	@PostMapping("/")
 	public ResponseEntity<Account> createAccount(@RequestBody Account account) {
-		return ResponseEntity.ok(this.accountService.upsertAccount(account));
+		return ResponseEntity.ok(this.accountService.createAccount(account.getDisplayName()));
 	}
 
 	@PutMapping("/")
 	public ResponseEntity<Account> updateAccount(@RequestBody Account account) {
-		return ResponseEntity.ok(this.accountService.upsertAccount(account));
+		return ResponseEntity.ok(this.accountService.updateAccount(account.getId(), account.getDisplayName()));
 	}
 
 	@GetMapping("/")
@@ -53,6 +54,11 @@ public class AccountController {
 	@ExceptionHandler(ResourceNotFoundException.class)
 	public ResponseEntity<String> resourceNotFoundExceptionMapper(ResourceNotFoundException e) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+	}
+
+	@ExceptionHandler(InvalidRequestException.class)
+	public ResponseEntity<String> invalidRequestExceptionMapper(InvalidRequestException e) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
 	}
 
 	@ExceptionHandler(Exception.class)
