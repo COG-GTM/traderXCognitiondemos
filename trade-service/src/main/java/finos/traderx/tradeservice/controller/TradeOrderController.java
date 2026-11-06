@@ -1,5 +1,7 @@
 package finos.traderx.tradeservice.controller;
 
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,7 @@ import org.springframework.web.client.RestTemplate;
 
 import finos.traderx.messaging.PubSubException;
 import finos.traderx.messaging.Publisher;
+import finos.traderx.tradeservice.exceptions.InvalidTradeOrderException;
 import finos.traderx.tradeservice.exceptions.ResourceNotFoundException;
 import finos.traderx.tradeservice.model.Account;
 import finos.traderx.tradeservice.model.Security;
@@ -40,10 +43,14 @@ public class TradeOrderController {
 	@Value("${account.service.url}")
 	private String accountServiceAddress;
 
+	@Value("${trade.max-order-quantity:1000000}")
+	private int maxOrderQuantity;
+
 	@Operation(description = "Submit a new trade order")
 	@PostMapping("/")
 	public ResponseEntity<TradeOrder> createTradeOrder(@Parameter(description = "the intendeded trade order") @RequestBody TradeOrder tradeOrder) {
 		log.info("Called createTradeOrder");
+		validateOrder(tradeOrder);
 		
 		if (!validateTicker(tradeOrder.getSecurity())) 
 		{
@@ -56,12 +63,24 @@ public class TradeOrderController {
 		else
 		{
 			try{
+				// The id is the trade processor's idempotency key, so it must be unique and assigned server-side.
+				tradeOrder.id = UUID.randomUUID().toString();
 				log.info("Trade is valid. Submitting {}", tradeOrder);
 				tradePublisher.publish("/trades",tradeOrder);
 				return  ResponseEntity.ok(tradeOrder);
 			}  catch (PubSubException e){
 				throw new RuntimeException("Failed to publish trade order", e);
 			}
+		}
+	}
+
+	private void validateOrder(TradeOrder tradeOrder)
+	{
+		if (tradeOrder.getSide() == null) {
+			throw new InvalidTradeOrderException("side is required");
+		}
+		if (tradeOrder.getQuantity() == null || tradeOrder.getQuantity() <= 0 || tradeOrder.getQuantity() > maxOrderQuantity) {
+			throw new InvalidTradeOrderException("quantity must be between 1 and " + maxOrderQuantity);
 		}
 	}
 
