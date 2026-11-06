@@ -20,6 +20,18 @@ spec:
         - env:
             - name: ACCOUNT_SERVICE_HOST
               value: account-service
+            - name: ACCOUNT_SERVICE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: account-service-credentials
+                  key: reader-username
+                  optional: true
+            - name: ACCOUNT_SERVICE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: account-service-credentials
+                  key: reader-password
+                  optional: true
             - name: DATABASE_TCP_HOST
               value: database
             - name: PEOPLE_SERVICE_HOST

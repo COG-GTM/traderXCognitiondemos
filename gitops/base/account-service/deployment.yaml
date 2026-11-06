@@ -23,6 +23,30 @@ spec:
               value: "18088"
             - name: DATABASE_TCP_HOST
               value: database
+            - name: ACCOUNT_SERVICE_ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: account-service-credentials
+                  key: admin-username
+                  optional: true
+            - name: ACCOUNT_SERVICE_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: account-service-credentials
+                  key: admin-password
+                  optional: true
+            - name: ACCOUNT_SERVICE_READER_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: account-service-credentials
+                  key: reader-username
+                  optional: true
+            - name: ACCOUNT_SERVICE_READER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: account-service-credentials
+                  key: reader-password
+                  optional: true
           image: traderx/account-service
           imagePullPolicy: IfNotPresent
           ports:
