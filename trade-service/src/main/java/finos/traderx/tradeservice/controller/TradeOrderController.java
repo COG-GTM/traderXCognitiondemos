@@ -4,6 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,6 +42,12 @@ public class TradeOrderController {
 
 	@Value("${account.service.url}")
 	private String accountServiceAddress;
+
+	@Value("${account.service.username:}")
+	private String accountServiceUsername;
+
+	@Value("${account.service.password:}")
+	private String accountServicePassword;
 
 	@Operation(description = "Submit a new trade order")
 	@PostMapping("/")
@@ -98,13 +107,21 @@ public class TradeOrderController {
 
 		try 
 		{
-				response = this.restTemplate.getForEntity(url, Account.class);
+				HttpHeaders headers = new HttpHeaders();
+				if (!this.accountServiceUsername.isBlank() && !this.accountServicePassword.isBlank()) {
+					headers.setBasicAuth(this.accountServiceUsername, this.accountServicePassword);
+				}
+				response = this.restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<Void>(headers), Account.class);
 				log.info("Validate account " + response.getBody().toString());
 				return true;
 		}
 		catch (HttpClientErrorException ex) {
 			if (ex.getRawStatusCode() == 404) {
 				log.info("Account" + id + " not found in account service.");				
+			}
+			else if (ex.getRawStatusCode() == 401 || ex.getRawStatusCode() == 403) {
+				log.error("Account service rejected trade-service credentials (HTTP " + ex.getRawStatusCode()
+						+ "); set ACCOUNT_SERVICE_USERNAME/ACCOUNT_SERVICE_PASSWORD to an account reader.");
 			}
 			else {
 				log.error(ex.getMessage());

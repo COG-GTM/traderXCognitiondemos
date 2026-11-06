@@ -24,6 +24,10 @@ export class MockAccountService {
     return of<Account>({ displayName: account.displayName || '', id: 1 });
   }
 
+  updateAccount(id: number, account: Partial<Account>) {
+    return of<Account>({ displayName: account.displayName || '', id });
+  }
+
   getAccounts() {
     return of<Account[]>(accounts);
   }

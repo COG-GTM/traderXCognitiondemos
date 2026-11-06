@@ -3,6 +3,36 @@ extension radius
 // Parameters
 param application string
 
+@description('Username trade-service uses to read accounts from account-service')
+param accountServiceReaderUsername string = 'trade-service'
+
+@secure()
+@description('Password for accountServiceReaderUsername (generate a random value per environment)')
+param accountServiceReaderPassword string
+
+@description('Username allowed to create and rename accounts in account-service')
+param accountServiceAdminUsername string = 'account-admin'
+
+@secure()
+@description('Password for accountServiceAdminUsername (generate a random value per environment)')
+param accountServiceAdminPassword string
+
+resource accountServiceCredentials 'Applications.Core/secretStores@2023-10-01-preview' = {
+  name: 'account-service-credentials'
+  properties: {
+    application: application
+    type: 'generic'
+    data: {
+      'admin-password': {
+        value: accountServiceAdminPassword
+      }
+      'reader-password': {
+        value: accountServiceReaderPassword
+      }
+    }
+  }
+}
+
 resource database 'Applications.Core/containers@2023-10-01-preview' = {
   name: 'database'
   properties: {
@@ -87,6 +117,28 @@ resource accountservice 'Applications.Core/containers@2023-10-01-preview' = {
         PEOPLE_SERVICE_HOST: {
           value: peopleservice.name
         }
+        ACCOUNT_SERVICE_ADMIN_USERNAME: {
+          value: accountServiceAdminUsername
+        }
+        ACCOUNT_SERVICE_ADMIN_PASSWORD: {
+          valueFrom: {
+            secretRef: {
+              source: accountServiceCredentials.id
+              key: 'admin-password'
+            }
+          }
+        }
+        ACCOUNT_SERVICE_READER_USERNAME: {
+          value: accountServiceReaderUsername
+        }
+        ACCOUNT_SERVICE_READER_PASSWORD: {
+          valueFrom: {
+            secretRef: {
+              source: accountServiceCredentials.id
+              key: 'reader-password'
+            }
+          }
+        }
       }
     }
     connections: {
@@ -145,6 +197,17 @@ resource tradeservice 'Applications.Core/containers@2023-10-01-preview' = {
         }
         ACCOUNT_SERVICE_HOST: {
           value: accountservice.name
+        }
+        ACCOUNT_SERVICE_USERNAME: {
+          value: accountServiceReaderUsername
+        }
+        ACCOUNT_SERVICE_PASSWORD: {
+          valueFrom: {
+            secretRef: {
+              source: accountServiceCredentials.id
+              key: 'reader-password'
+            }
+          }
         }
         REFERENCE_DATA_HOST: {
           value: referencedata.name
