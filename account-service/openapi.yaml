@@ -36,6 +36,12 @@ paths:
             "application/json":
               schema:
                 $ref: "#/components/schemas/AccountUser"
+        "404":
+          description: Account not found, or username not found in People service
+          content:
+            "text/plain":
+              schema:
+                type: string
     post:
       tags:
         - account-user-controller
@@ -54,6 +60,12 @@ paths:
             "application/json":
               schema:
                 $ref: "#/components/schemas/AccountUser"
+        "404":
+          description: Account not found, or username not found in People service
+          content:
+            "text/plain":
+              schema:
+                type: string
   /account/:
     get:
       tags:
