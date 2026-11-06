@@ -190,6 +190,12 @@ cd ./gitops/local/
 tilt up
 ```
 
+The H2 database web console is not routed through the ingress. To use it, port-forward the database service and browse to http://localhost:18084:
+
+```
+kubectl -n traderx port-forward svc/database 18084:18084
+```
+
 
 # Getting Involved
 
