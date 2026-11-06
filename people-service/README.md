@@ -20,10 +20,35 @@ $ cd PeopleService.WebApi
 $ dotnet run
 ```
 
+## Authentication
+
+Every People endpoint requires an authenticated caller; anonymous requests get `401`.
+Settings live under `Authentication` (environment variables use the `Authentication__` prefix):
+
+| Setting | Purpose |
+| --- | --- |
+| `Authentication__Jwt__Authority` | OIDC authority used to validate bearer tokens (signing keys are fetched from its JWKS). |
+| `Authentication__Jwt__Audience` | Required `aud` claim. Bearer tokens are rejected when this is not set. |
+| `Authentication__Jwt__Issuer` | Expected `iss` claim (optional when an authority is set). |
+| `Authentication__Jwt__SigningKey` | Shared HS256 key (at least 32 bytes) instead of an authority. |
+| `Authentication__ApiKeys` | Comma-separated API keys accepted in the `X-Api-Key` header (service-to-service callers such as account-service, which sends `PEOPLE_SERVICE_API_KEY`). |
+| `Authentication__AllowAnonymous` | `true` turns off the authentication requirement. Use it only for local development. |
+
+If none of these are set, every request is rejected.
+
+In Kubernetes, put the values in an optional `people-service-auth` Secret (keys `api-key`, `jwt-authority`, `jwt-audience`). docker-compose reads `PEOPLE_SERVICE_API_KEY`, `PEOPLE_SERVICE_JWT_AUTHORITY`, `PEOPLE_SERVICE_JWT_AUDIENCE` and `PEOPLE_SERVICE_ALLOW_ANONYMOUS`.
+
+`GetMatchingPeople` returns at most 50 people per request (`Take` must be between 1 and 50, default 10).
+
+## Running the tests
+```bash
+$ dotnet test
+```
+
 ## Accessing the Swagger URL
 
 Visit the forwarded port `/swagger` to open the SwaggerUI.
 
 Example URL:
 
-`/People/GetPerson?LoginId=user01`
+`/People/GetPerson?LogonId=user01` (send `X-Api-Key: <key>` or `Authorization: Bearer <token>`)

@@ -2,6 +2,9 @@ openapi: 3.0.1
 info:
   title: PeopleService.WebApi
   version: v1
+security:
+  - bearerAuth: []
+  - apiKey: []
 paths:
   /People/GetPerson:
     get:
@@ -28,6 +31,8 @@ paths:
                 $ref: '#/components/schemas/Person'
         '400':
           description: The request was invalid
+        '401':
+          description: The caller is not authenticated
         '404':
           description: The person with the specified identity was not found
   /People/GetMatchingPeople:
@@ -46,6 +51,9 @@ paths:
           schema:
             type: integer
             format: int32
+            minimum: 1
+            maximum: 50
+            default: 10
       responses:
         '200':
           description: List of People whose LogonId or FullName contain the search text
@@ -57,6 +65,8 @@ paths:
                   $ref: '#/components/schemas/Person'
         '400':
           description: The request was invalid
+        '401':
+          description: The caller is not authenticated
         '404':
           description: People with the specified search text were not found
   /People/ValidatePerson:
@@ -80,9 +90,20 @@ paths:
           description: The person with the specified identity was found
         '400':
           description: The request was invalid
+        '401':
+          description: The caller is not authenticated
         '404':
           description: The person with the specified identity was not found
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-Api-Key
   schemas:
     Person:
       type: object

@@ -1,6 +1,7 @@
 using FluentValidation.AspNetCore;
 using Microsoft.OpenApi.Models;
 using PeopleService.Core.Infrastructure;
+using PeopleService.WebApi.Authentication;
 using Serilog;
 using System.Reflection;
 
@@ -23,6 +24,7 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Progr
 builder.Services.AddPeopleServiceCore(builder.Configuration.GetSection("PeopleJsonFilePath"));
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
+builder.Services.AddPeopleServiceAuthentication();
 
 builder.Host.UseSerilog((hostContext, services, configuration) =>
 {
@@ -39,15 +41,20 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "PeopleService.WebApi v1"));
 }
 
+app.CheckAuthenticationConfiguration();
+
 app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
 
 app.UseCors(builder => builder
     .AllowAnyOrigin()
     .AllowAnyMethod()
     .AllowAnyHeader());
 
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
 app.Run();
+
+public partial class Program { }

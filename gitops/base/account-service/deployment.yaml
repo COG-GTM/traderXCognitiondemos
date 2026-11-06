@@ -23,6 +23,14 @@ spec:
               value: "18088"
             - name: DATABASE_TCP_HOST
               value: database
+            - name: PEOPLE_SERVICE_HOST
+              value: people-service
+            - name: PEOPLE_SERVICE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: people-service-auth
+                  key: api-key
+                  optional: true
           image: traderx/account-service
           imagePullPolicy: IfNotPresent
           ports:

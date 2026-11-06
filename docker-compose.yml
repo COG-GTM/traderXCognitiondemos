@@ -73,6 +73,12 @@ services:
       # Mount the root folder that contains .git
       - .:/workspace:cached
     command: /PeopleService.WebApi dotnet run
+    environment:
+      # Callers must authenticate; see people-service/README.md.
+      - Authentication__ApiKeys=${PEOPLE_SERVICE_API_KEY:-}
+      - Authentication__Jwt__Authority=${PEOPLE_SERVICE_JWT_AUTHORITY:-}
+      - Authentication__Jwt__Audience=${PEOPLE_SERVICE_JWT_AUDIENCE:-}
+      - Authentication__AllowAnonymous=${PEOPLE_SERVICE_ALLOW_ANONYMOUS:-false}
     networks:
       - localnet
   account-service:
@@ -89,6 +95,7 @@ services:
     environment:
       - DATABASE_TCP_HOST=database
       - PEOPLE_SERVICE_HOST=people-service
+      - PEOPLE_SERVICE_API_KEY=${PEOPLE_SERVICE_API_KEY:-}
     volumes:
       # Mount the root folder that contains .git
       - .:/workspace:cached
