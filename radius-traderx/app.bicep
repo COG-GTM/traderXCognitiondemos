@@ -11,6 +11,9 @@ param tradeFeedTradeServiceToken string
 @description('Token trade-processor uses to consume orders and publish trades/positions (32+ chars)')
 param tradeFeedTradeProcessorToken string
 
+@description('Comma-separated browser origins (scheme://host[:port]) the UI is served from; add your external ingress origin')
+param tradeFeedAllowedOrigins string = 'http://localhost:8080,http://localhost:18093'
+
 resource database 'Applications.Core/containers@2023-10-01-preview' = {
   name: 'database'
   properties: {
@@ -61,6 +64,9 @@ resource tradefeed 'Applications.Core/containers@2023-10-01-preview' = {
       env: {
         TRADE_FEED_SERVICE_TOKENS: {
           value: 'trade-service=${tradeFeedTradeServiceToken},trade-processor=${tradeFeedTradeProcessorToken}'
+        }
+        TRADE_FEED_ALLOWED_ORIGINS: {
+          value: tradeFeedAllowedOrigins
         }
         TRADE_FEED_ALLOW_ANONYMOUS_VIEWERS: {
           value: 'true'

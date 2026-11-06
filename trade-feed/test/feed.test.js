@@ -178,6 +178,23 @@ test('anonymous viewers are refused unless explicitly enabled', async () => {
   }
 });
 
+test('tokens that outlive the timer cap stay connected until they expire', async () => {
+  const feed = await startFeed({ ...config(), maxTimerMs: 300 });
+  try {
+    const user = await connect(feed.url, { auth: { token: userToken({ sub: 'alice', aud: 'trade-feed', accounts: [22214], exp: Math.floor(Date.now() / 1000) + 2 }) } });
+    const started = Date.now();
+    const reason = await new Promise((resolve) => {
+      const t = setTimeout(() => resolve('still connected'), 4000);
+      user.on('disconnect', (r) => { clearTimeout(t); resolve(r); });
+    });
+    assert.strictEqual(reason, 'io server disconnect');
+    assert.ok(Date.now() - started > 900, `disconnected after ${Date.now() - started}ms, before the token expired`);
+    user.close();
+  } finally {
+    feed.io.close();
+  }
+});
+
 test('user sockets are disconnected when their token expires', async () => {
   const feed = await startFeed(config());
   try {

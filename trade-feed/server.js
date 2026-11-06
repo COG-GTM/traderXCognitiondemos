@@ -38,6 +38,7 @@ function reply(socket, ack, ok, message) {
 
 function createFeedServer(config, log) {
   log = log || defaultLog;
+  const maxTimerMs = config.maxTimerMs || MAX_TIMER_MS;
   const app = express();
   const http = require('http').createServer(app);
 
@@ -78,11 +79,20 @@ function createFeedServer(config, log) {
     log.info(`New Connection from ${socket.id} as ${identity.kind}:${identity.name}`);
     if (identity.expiresAt) {
       // Drop the socket when the user token expires; the client must reconnect with a fresh token.
-      const msLeft = Math.min(identity.expiresAt * 1000 - Date.now(), MAX_TIMER_MS);
-      const expiry = setTimeout(() => {
-        log.info(`Token expired for ${identity.kind}:${identity.name}, disconnecting ${socket.id}`);
-        socket.disconnect(true);
-      }, Math.max(msLeft, 0));
+      let expiry;
+      const scheduleExpiry = () => {
+        const msLeft = identity.expiresAt * 1000 - Date.now();
+        if (msLeft > maxTimerMs) {
+          // setTimeout cannot wait longer than MAX_TIMER_MS, so re-arm until the token really expires.
+          expiry = setTimeout(scheduleExpiry, maxTimerMs);
+          return;
+        }
+        expiry = setTimeout(() => {
+          log.info(`Token expired for ${identity.kind}:${identity.name}, disconnecting ${socket.id}`);
+          socket.disconnect(true);
+        }, Math.max(msLeft, 0));
+      };
+      scheduleExpiry();
       socket.on('disconnect', () => clearTimeout(expiry));
     }
     socket.on(SUBSCRIBE, (topic, ack) => {
