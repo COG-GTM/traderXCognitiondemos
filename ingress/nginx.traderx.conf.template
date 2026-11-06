@@ -1,6 +1,8 @@
     server {
         listen 8080;
         server_name $NGINX_HOST;
+        # Matches the 64KB request header limit of the Spring Boot services.
+        large_client_header_buffers 4 16k;
 
         location /db-web/ {
             proxy_pass http://database:18084/;

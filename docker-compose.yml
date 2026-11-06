@@ -108,7 +108,8 @@ services:
     expose:
       - 18090
     ports:
-      - 18090:18090
+      # Loopback only: remote clients go through the ingress on 8080.
+      - 127.0.0.1:18090:18090
     environment:
       - DATABASE_TCP_HOST=database
     volumes:
