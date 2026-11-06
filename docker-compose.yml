@@ -136,6 +136,11 @@ services:
       - ACCOUNT_SERVICE_HOST=account-service
       - REFERENCE_DATA_HOST=reference-data
       - TRADE_FEED_HOST=trade-feed
+      - TRADE_SERVICE_JWT_JWK_SET_URI
+      - TRADE_SERVICE_JWT_HMAC_SECRET
+      - TRADE_SERVICE_JWT_ISSUER
+      - TRADE_SERVICE_JWT_AUDIENCE
+      - TRADE_SERVICE_CORS_ALLOWED_ORIGINS=http://localhost:18093,http://localhost:8080
     volumes:
       # Mount the root folder that contains .git
       - .:/workspace:cached
