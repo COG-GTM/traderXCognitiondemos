@@ -7,6 +7,7 @@ import { io, Socket } from "socket.io-client";
 })
 export class TradeFeedService {
     private socket: Socket;
+    private readonly topicRefCounts = new Map<string, number>();
 
     constructor() {
         this.connect();
@@ -22,6 +23,8 @@ export class TradeFeedService {
 
     private onConnect = () => {
         console.log('Trade feed is connected, connection id' + this.socket.id);
+        // The feed forgets subscriptions when it restarts, so rejoin every topic on (re)connect.
+        this.topicRefCounts.forEach((_count, topic) => this.socket.emit('subscribe', topic));
     }
 
     private onDisconnect = () => {
@@ -37,7 +40,10 @@ export class TradeFeedService {
             }
         }
         this.socket.on('publish', callbackFn);
-        this.socket.emit('subscribe', topic);
+        this.topicRefCounts.set(topic, (this.topicRefCounts.get(topic) ?? 0) + 1);
+        if (this.socket.connected) {
+            this.socket.emit('subscribe', topic);
+        }
         console.log('subscribing', topic);
         return () => {
             this.unSubscribe(topic, callbackFn);
@@ -46,7 +52,13 @@ export class TradeFeedService {
 
     public unSubscribe(topic: string, callback: (...args: any[]) => void) {
         console.log('unsubscribing' + topic)
-        this.socket.emit('unsubscribe', topic);
+        const remaining = (this.topicRefCounts.get(topic) ?? 1) - 1;
+        if (remaining > 0) {
+            this.topicRefCounts.set(topic, remaining);
+        } else {
+            this.topicRefCounts.delete(topic);
+            this.socket.emit('unsubscribe', topic);
+        }
         this.socket.off('publish', callback)
     }
 }

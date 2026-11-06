@@ -22,6 +22,16 @@ const SUBSCRIBE = "subscribe";
 const UNSUBSCRIBE = "unusbscribe";
 const PUBLISH = "publish";
 
+const MAX_TOPIC_LENGTH = 256;
+
+function isValidTopic(topic) {
+  return typeof topic === "string" && topic.length > 0 && topic.length <= MAX_TOPIC_LENGTH;
+}
+
+function isValidPublish(data) {
+  return data !== null && typeof data === "object" && !Array.isArray(data) && isValidTopic(data.topic);
+}
+
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
@@ -50,21 +60,50 @@ function broadcast(from, data) {
   io.sockets.in([data.topic, "/*"]).emit(PUBLISH, message);
 }
 
+// A throwing listener would otherwise surface as an uncaught exception and
+// take down the whole feed; drop the offending client instead.
+function guarded(socket, command, handler) {
+  return (...args) => {
+    try {
+      handler(...args);
+    } catch (err) {
+      log.error(`Error handling ${command} from ${socket.id}, disconnecting: ${err && err.stack || err}`);
+      socket.disconnect(true);
+    }
+  };
+}
+
 io.on('connection', (socket) => {
   log.info(`New Connection from ${socket.id}`);
-  socket.on(SUBSCRIBE, (topic) => {
+  socket.on(SUBSCRIBE, guarded(socket, SUBSCRIBE, (topic) => {
+    if (!isValidTopic(topic)) {
+      log.warn(`Ignoring ${SUBSCRIBE} with invalid topic from ${socket.id}`);
+      return;
+    }
     log.info(`Subscribe ${topic}`);
     socket.join(topic);
     broadcast('System', joinMessage(socket.id,topic));
-  });
-  socket.on(UNSUBSCRIBE, (topic) => {
+  }));
+  socket.on(UNSUBSCRIBE, guarded(socket, UNSUBSCRIBE, (topic) => {
+    if (!isValidTopic(topic)) {
+      log.warn(`Ignoring ${UNSUBSCRIBE} with invalid topic from ${socket.id}`);
+      return;
+    }
     log.info(`Unsubscribe ${topic}`);
     broadcast('System', leaveMessage(socket.id,topic));
     socket.leave(topic);
-  });
-  socket.on(PUBLISH, (data) => {
+  }));
+  socket.on(PUBLISH, guarded(socket, PUBLISH, (data) => {
+    if (!isValidPublish(data)) {
+      log.warn(`Ignoring malformed ${PUBLISH} from ${socket.id}`);
+      return;
+    }
     broadcast(socket.id, data);
-  });
+  }));
+});
+
+process.on('uncaughtException', (err) => {
+  log.error(`Uncaught exception: ${err && err.stack || err}`);
 });
 
 
