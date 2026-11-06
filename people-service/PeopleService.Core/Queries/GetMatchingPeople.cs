@@ -1,5 +1,4 @@
-﻿using CacheManager.Core;
-using FluentValidation;
+﻿using FluentValidation;
 using FluentValidation.Results;
 using JetBrains.Annotations;
 using MediatR;
@@ -10,15 +9,18 @@ namespace PeopleService.Core.Queries
 {
     public static class GetMatchingPeople
     {
+        public const int MaxSearchTextLength = 64;
+        public const int MaxTake = 100;
+
         public class Request : IRequest<Response?>
         {
             /// <summary>
-            /// Search text
+            /// Search text (3 to 64 characters)
             /// </summary>
             public string? SearchText { get; set; }
 
             /// <summary>
-            /// Returns the specified number of element. (Default is 10)
+            /// Returns the specified number of element. (Default is 10, between 1 and 100)
             /// </summary>
             public int Take { get; set; } = 10;
         }
@@ -55,6 +57,28 @@ namespace PeopleService.Core.Queries
                         });
                 }
 
+                if (context.InstanceToValidate.SearchText.Length > MaxSearchTextLength)
+                {
+                    return new ValidationResult(
+                        new[]
+                        {
+                            new ValidationFailure(
+                                "",
+                                $"{nameof(Request.SearchText)} must be at most {MaxSearchTextLength} characters long")
+                        });
+                }
+
+                if (context.InstanceToValidate.Take < 1 || context.InstanceToValidate.Take > MaxTake)
+                {
+                    return new ValidationResult(
+                        new[]
+                        {
+                            new ValidationFailure(
+                                "",
+                                $"{nameof(Request.Take)} must be between 1 and {MaxTake}")
+                        });
+                }
+
                 return new ValidationResult();
             }
         }
@@ -62,36 +86,18 @@ namespace PeopleService.Core.Queries
         internal class RequestHandler : IRequestHandler<Request, Response?>
         {
             private readonly IDirectoryService _directoryService;
-            private readonly ICacheManager<Response> _cacheManager;
 
-            public RequestHandler(IDirectoryService directoryService, ICacheManager<Response> cacheManager)
+            public RequestHandler(IDirectoryService directoryService)
             {
                 _directoryService = directoryService;
-                _cacheManager = cacheManager;
             }
 
             public async Task<Response?> Handle(Request request, CancellationToken cancellationToken)
             {
-                var cacheKey = GetCacheKey(request);
-                var result = _cacheManager.GetCacheItem(cacheKey);
-                if (result != null)
-                {
-                    return result.Value?.People?.Count == 0 ? null : result.Value;
-                }
-
                 var people = (await _directoryService.GetMatchingPerson(request.SearchText!, request.Take))?.ToList();
 
-                var response = new Response
-                {
-                    People = people
-                };
-
-                _cacheManager.Add(cacheKey, response);
-
-                return people?.Count == 0 ? null : response;
+                return people == null || people.Count == 0 ? null : new Response { People = people };
             }
-
-            private static string GetCacheKey(Request request) => (request.SearchText ?? "") + "," + request.Take;
         }
     }
 }
