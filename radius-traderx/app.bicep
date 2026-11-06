@@ -12,7 +12,7 @@ param tradeFeedTradeServiceToken string
 param tradeFeedTradeProcessorToken string
 
 @description('Comma-separated browser origins (scheme://host[:port]) the UI is served from; add your external ingress origin')
-param tradeFeedAllowedOrigins string = 'http://localhost:8080,http://localhost:18093'
+param tradeFeedAllowedOrigins string = 'http://localhost:8080,http://localhost:18093,http://localhost:18086'
 
 resource database 'Applications.Core/containers@2023-10-01-preview' = {
   name: 'database'
