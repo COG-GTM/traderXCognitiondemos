@@ -10,6 +10,7 @@ import { CreateAccount, CreateAccountUser, CreateTradeButton } from '../ActionBu
 import { ColDef } from 'ag-grid-community';
 import { PositionData, TradeData } from './types';
 import { AccountsDropdown } from '../AccountsDropdown';
+import { appendRow, toPositionRow, toTradeRow } from './feedMessages';
 
 const PUBLISH='publish';
 const SUBSCRIBE='subscribe';
@@ -38,14 +39,16 @@ export const Datatable = () => {
 		setCurrentAccount(event.target.value);
 		socket.emit(SUBSCRIBE,`/accounts/${event.target.value}/trades`);
 		socket.emit(SUBSCRIBE,`/accounts/${event.target.value}/positions`);
-		socket.on(PUBLISH, (data:any) => {
-			if (data.topic === `/accounts/${event.target.value}/trades`) {
-				console.log("INCOMING TRADE DATA: ", data);
-				setTradeRowData((current: TradeData[]) => [...current, data.payload]);
+		const accountId = event.target.value;
+		socket.on(PUBLISH, (data: unknown) => {
+			const trade = toTradeRow(data, accountId);
+			if (trade) {
+				setTradeRowData((current: TradeData[]) => appendRow(current, trade));
+				return;
 			}
-			if (data.topic === `/accounts/${event.target.value}/positions`) {
-				console.log("INCOMING POSITION DATA: ", data);
-				setPositionRowData((current: PositionData[]) => [...current, data.payload]);
+			const position = toPositionRow(data, accountId);
+			if (position) {
+				setPositionRowData((current: PositionData[]) => appendRow(current, position));
 			}
 		});
   }, [selectedId])

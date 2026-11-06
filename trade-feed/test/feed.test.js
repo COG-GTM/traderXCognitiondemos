@@ -193,3 +193,38 @@ test('user sockets are disconnected when their token expires', async () => {
     feed.io.close();
   }
 });
+
+test('anonymous clients cannot push fake position or trade rows to account viewers', async () => {
+  const feed = await startFeed(config({ TRADE_FEED_ALLOW_ANONYMOUS_VIEWERS: 'true', TRADE_FEED_ALLOWED_ORIGINS: 'http://localhost:18094' }));
+  const sockets = [];
+  try {
+    const processor = await connect(feed.url, { auth: { token: PROCESSOR_TOKEN } }); sockets.push(processor);
+    const tradeService = await connect(feed.url, { auth: { token: TRADE_SERVICE_TOKEN } }); sockets.push(tradeService);
+    const alice = await connect(feed.url, { extraHeaders: { origin: 'http://localhost:18094' } }); sockets.push(alice);
+    const mallory = await connect(feed.url); sockets.push(mallory);
+    assert.strictEqual((await emitAck(alice, 'subscribe', '/accounts/22214/trades')).ok, true);
+    assert.strictEqual((await emitAck(alice, 'subscribe', '/accounts/22214/positions')).ok, true);
+
+    const spoofs = [
+      { topic: '/accounts/22214/positions', type: 'Position', from: 'trade-processor', payload: { accountId: 22214, security: 'AAPL', quantity: -1000000, updated: Date.now() } },
+      { topic: '/accounts/22214/trades', type: 'Trade', payload: { accountId: 22214, security: 'AAPL', side: 'Sell', state: 'Settled', quantity: 1000000 } }
+    ];
+    const aliceGot = nextPublish(alice, () => true);
+    for (const spoof of spoofs) {
+      assert.strictEqual((await emitAck(mallory, 'publish', spoof)).ok, false);
+      assert.strictEqual((await emitAck(tradeService, 'publish', spoof)).ok, false);
+    }
+    // Mallory joining Alice's topics must not emit join messages into Alice's room either.
+    await emitAck(mallory, 'subscribe', '/accounts/22214/positions');
+    assert.strictEqual(await aliceGot, null);
+
+    const real = nextPublish(alice, notSystem);
+    assert.strictEqual((await emitAck(processor, 'publish', { topic: '/accounts/22214/positions', type: 'Position', payload: { accountId: 22214, security: 'IBM', quantity: 100 } })).ok, true);
+    const msg = await real;
+    assert.strictEqual(msg.from, 'trade-processor');
+    assert.strictEqual(msg.payload.security, 'IBM');
+  } finally {
+    sockets.forEach((s) => s.close());
+    feed.io.close();
+  }
+});
