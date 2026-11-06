@@ -33,6 +33,12 @@ function parseServiceTokens(value) {
     if (token.length < 32) {
       throw new Error(`TRADE_FEED_SERVICE_TOKENS: token for "${name}" must be at least 32 characters`);
     }
+    if (tokens.has(name)) {
+      throw new Error(`TRADE_FEED_SERVICE_TOKENS: duplicate entry for "${name}"`);
+    }
+    if ([...tokens.values()].includes(token)) {
+      throw new Error(`TRADE_FEED_SERVICE_TOKENS: token for "${name}" must differ from every other service token`);
+    }
     tokens.set(name, token);
   }
   return tokens;
@@ -40,16 +46,18 @@ function parseServiceTokens(value) {
 
 function loadConfig(env) {
   const serviceTokens = parseServiceTokens(env.TRADE_FEED_SERVICE_TOKENS);
-  if (serviceTokens.size === 0) {
-    throw new Error('TRADE_FEED_SERVICE_TOKENS must be set (e.g. "trade-service=<token>,trade-processor=<token>")');
+  const missing = Object.keys(SERVICE_PUBLISH_POLICY).filter((name) => !serviceTokens.has(name));
+  if (missing.length > 0) {
+    throw new Error(`TRADE_FEED_SERVICE_TOKENS must set a token for every service (e.g. "trade-service=<token>,trade-processor=<token>"); missing: ${missing.join(', ')}`);
   }
   const userTokenSecret = env.TRADE_FEED_USER_TOKEN_SECRET || '';
   if (userTokenSecret && userTokenSecret.length < 32) {
     throw new Error('TRADE_FEED_USER_TOKEN_SECRET must be at least 32 characters');
   }
+  const port = env.TRADE_FEED_PORT || 18086;
   return {
-    port: env.TRADE_FEED_PORT || 18086,
-    allowedOrigins: splitList(env.TRADE_FEED_ALLOWED_ORIGINS || 'http://localhost:18086,http://localhost:18093,http://localhost:18094,http://localhost:8080'),
+    port,
+    allowedOrigins: splitList(env.TRADE_FEED_ALLOWED_ORIGINS || `http://localhost:${port},http://localhost:18093,http://localhost:18094,http://localhost:8080`),
     serviceTokens,
     userTokenSecret,
     userTokenAudience: env.TRADE_FEED_USER_TOKEN_AUDIENCE || 'trade-feed',

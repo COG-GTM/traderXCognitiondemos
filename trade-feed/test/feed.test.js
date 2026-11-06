@@ -67,6 +67,16 @@ test('config requires service tokens', () => {
   assert.throws(() => auth.loadConfig({}), /TRADE_FEED_SERVICE_TOKENS/);
   assert.throws(() => auth.loadConfig({ TRADE_FEED_SERVICE_TOKENS: 'trade-service=short' }), /at least 32/);
   assert.throws(() => auth.loadConfig({ TRADE_FEED_SERVICE_TOKENS: `evil=${'x'.repeat(40)}` }), /unknown service/);
+  assert.throws(() => auth.loadConfig({ TRADE_FEED_SERVICE_TOKENS: `trade-service=${TRADE_SERVICE_TOKEN}` }), /missing: trade-processor/);
+  assert.throws(() => auth.loadConfig({ TRADE_FEED_SERVICE_TOKENS: `trade-service=${TRADE_SERVICE_TOKEN},trade-processor=${TRADE_SERVICE_TOKEN}` }), /must differ/);
+  assert.throws(() => auth.loadConfig({ TRADE_FEED_SERVICE_TOKENS: `trade-service=${TRADE_SERVICE_TOKEN},trade-service=${PROCESSOR_TOKEN},trade-processor=${'p'.repeat(40)}` }), /duplicate entry/);
+});
+
+test('default origin allowlist follows TRADE_FEED_PORT', () => {
+  const tokens = `trade-service=${TRADE_SERVICE_TOKEN},trade-processor=${PROCESSOR_TOKEN}`;
+  assert.ok(auth.loadConfig({ TRADE_FEED_SERVICE_TOKENS: tokens, TRADE_FEED_PORT: '19086' }).allowedOrigins.includes('http://localhost:19086'));
+  assert.ok(auth.loadConfig({ TRADE_FEED_SERVICE_TOKENS: tokens }).allowedOrigins.includes('http://localhost:18086'));
+  assert.deepStrictEqual(auth.loadConfig({ TRADE_FEED_SERVICE_TOKENS: tokens, TRADE_FEED_ALLOWED_ORIGINS: 'https://traderx.example' }).allowedOrigins, ['https://traderx.example']);
 });
 
 test('user tokens: signature, alg, expiry and accounts are enforced', () => {

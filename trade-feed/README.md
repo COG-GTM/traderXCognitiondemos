@@ -23,7 +23,7 @@ The envelope `from` field is set by the server to the authenticated identity nam
 
 | Variable | Purpose |
 |---|---|
-| `TRADE_FEED_SERVICE_TOKENS` | Required. `trade-service=<token>,trade-processor=<token>` (32+ characters each). The Java services read their own token from `TRADE_FEED_SERVICE_TOKEN`. |
+| `TRADE_FEED_SERVICE_TOKENS` | Required. `trade-service=<token>,trade-processor=<token>`: both entries, distinct tokens, 32+ characters each. The Java services read their own token from `TRADE_FEED_SERVICE_TOKEN`. |
 | `TRADE_FEED_ALLOWED_ORIGINS` | Comma-separated browser origins allowed for HTTP polling and WebSocket upgrades. Defaults to the local UI/ingress origins. |
 | `TRADE_FEED_USER_TOKEN_SECRET` | Optional HMAC secret (32+ characters) for user JWTs scoped to accounts. |
 | `TRADE_FEED_USER_TOKEN_AUDIENCE` | Required `aud` claim for user JWTs (default `trade-feed`). |
