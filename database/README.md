@@ -8,7 +8,7 @@ This is designed to play the role of a SQL database that runs standalone as part
 
 This uses H2 Java-based database as a standalone server and initializes with an empty SQL schema every time it is started.
 
-A password is required: set `DATABASE_DBPASS` (or `DATABASE_DBPASS_FILE`, the path to a file holding it, e.g. a mounted secret). `run.sh` refuses to start if it is missing or is the old default `sa`. The username defaults to `sa` (`DATABASE_DBUSER`).
+A password is required: set `DATABASE_DBPASS` (or `DATABASE_DBPASS_FILE`, the path to a file holding it, e.g. a mounted secret). `run.sh` refuses to start if it is missing, shorter than 12 characters, or is the old default `sa`. The username defaults to `sa` (`DATABASE_DBUSER`).
 
 ## Default Port Numbers
 | Protocol | Port Number |

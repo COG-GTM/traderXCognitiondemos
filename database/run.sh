@@ -30,6 +30,10 @@ if [ "$(printf '%s' "$DATABASE_DBPASS" | tr '[:upper:]' '[:lower:]')" = "sa" ]; 
   echo "ERROR: DATABASE_DBPASS must not be the default 'sa' password." >&2
   exit 1
 fi
+if [ "${#DATABASE_DBPASS}" -lt 12 ]; then
+  echo "ERROR: DATABASE_DBPASS must be at least 12 characters long." >&2
+  exit 1
+fi
 
 ### Start the DB
 echo "Data will be located in $DATABASE_DATA_DIR"

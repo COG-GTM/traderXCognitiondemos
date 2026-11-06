@@ -37,6 +37,9 @@ run_db DATABASE_DBPASS=SA
 [ $RC -ne 0 ] && [ -z "$CALLS" ] && pass "refuses default password 'SA'" || fail "accepts default password 'SA' (rc=$RC)"
 
 echo -n "file-Secret-123" > "$WORK/dbpass"
+run_db DATABASE_DBPASS=Short-pw1
+[ $RC -ne 0 ] && [ -z "$CALLS" ] && pass "refuses passwords shorter than 12 characters" || fail "accepts a short password (rc=$RC)"
+
 run_db DATABASE_DBPASS_FILE="$WORK/dbpass"
 [ $RC -eq 0 ] && echo "$CALLS" | grep -q -- "-password file-Secret-123" && pass "reads password from DATABASE_DBPASS_FILE" || fail "DATABASE_DBPASS_FILE not honoured (rc=$RC)"
 
