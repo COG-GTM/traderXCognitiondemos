@@ -1,5 +1,4 @@
-﻿using CacheManager.Core;
-using FluentValidation;
+﻿using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PeopleService.Core.DirectoryService;
@@ -21,11 +20,7 @@ namespace PeopleService.Core.Infrastructure
             return serviceCollection
                 .AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly()))
                 .AddValidatorsFromAssembly(Assembly.GetExecutingAssembly())
-                .AddSingleton(ConfigureDirectoryService(configurationSection))
-                .AddCacheManager<GetMatchingPeople.Response>(
-                    c => c.WithDictionaryHandle()
-                        .WithExpiration(ExpirationMode.Sliding, TimeSpan.FromMinutes(1)));
-
+                .AddSingleton(ConfigureDirectoryService(configurationSection));
         }
 
         private static IDirectoryService ConfigureDirectoryService(IConfigurationSection configurationSection)

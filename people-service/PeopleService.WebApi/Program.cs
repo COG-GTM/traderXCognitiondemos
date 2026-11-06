@@ -51,3 +51,5 @@ app.UseCors(builder => builder
     .AllowAnyHeader());
 
 app.Run();
+
+public partial class Program { }
