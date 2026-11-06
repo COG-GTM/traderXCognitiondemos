@@ -22,20 +22,38 @@ if [ -z "$DATABASE_DBPASS" ]; then
   echo 'ERROR: DATABASE_DBPASS is not set. Generate a strong password (e.g. `openssl rand -hex 24`) and pass it to the database and every service.' >&2
   exit 1
 fi
-case "$DATABASE_DBPASS" in
-  sa|SA|password|admin|changeme)
-    echo "ERROR: DATABASE_DBPASS is set to a well-known default. Use a strong, randomly generated password." >&2
+if [ ${#DATABASE_DBPASS} -lt 16 ]; then
+  echo "ERROR: DATABASE_DBPASS must be at least 16 characters long." >&2
+  exit 1
+fi
+case "${DATABASE_DBPASS,,}" in
+  *password*|*passw0rd*|*admin*|*changeme*|*secret*|*traderx*|*qwerty*|*letmein*|*123456*|*abcdef*)
+    echo "ERROR: DATABASE_DBPASS contains a well-known/predictable value. Use a randomly generated password (e.g. \`openssl rand -hex 24\`)." >&2
     exit 1
     ;;
 esac
-if [ ${#DATABASE_DBPASS} -lt 12 ]; then
-  echo "ERROR: DATABASE_DBPASS must be at least 12 characters long." >&2
+if [ "$(printf '%s' "$DATABASE_DBPASS" | fold -w1 | sort -u | wc -l)" -lt 8 ]; then
+  echo "ERROR: DATABASE_DBPASS is too repetitive. Use a randomly generated password." >&2
   exit 1
 fi
 
 ### Start the DB
 echo "Data will be located in $DATABASE_DATA_DIR"
 echo "Database name is $DATABASE_DBNAME"
+DB_URL="jdbc:h2:$DATABASE_DATA_DIR/$DATABASE_DBNAME;DATABASE_TO_UPPER=TRUE;IFEXISTS=TRUE"
+if [ -f "$DATABASE_DATA_DIR/$DATABASE_DBNAME.mv.db" ] && \
+   ! java -cp "$DATABASE_H2JAR" org.h2.tools.Shell -url "$DB_URL" -user "$DATABASE_DBUSER" -password "$DATABASE_DBPASS" -sql "SELECT 1" >/dev/null 2>&1; then
+  # Existing database created by an older version of this script with the legacy sa/sa login:
+  # rotate the admin password to DATABASE_DBPASS before continuing.
+  echo "Existing database does not accept DATABASE_DBPASS; attempting to rotate the legacy default password"
+  ESCAPED_PASS=${DATABASE_DBPASS//\'/\'\'}
+  if ! java -cp "$DATABASE_H2JAR" org.h2.tools.Shell -url "$DB_URL" -user "$DATABASE_DBUSER" -password sa \
+       -sql "ALTER USER \"${DATABASE_DBUSER^^}\" SET PASSWORD '$ESCAPED_PASS'" >/dev/null 2>&1; then
+    echo "ERROR: Existing database in $DATABASE_DATA_DIR rejects DATABASE_DBPASS and the legacy default. Use the password it was created with, or delete $DATABASE_DATA_DIR/$DATABASE_DBNAME.* (the schema is recreated on every start)." >&2
+    exit 1
+  fi
+  echo "Admin password rotated"
+fi
 echo 'Running schema setup script with log output to stdout below'
 echo '---------------------------------------------------------------------------'
 java -cp "$DATABASE_H2JAR" org.h2.tools.RunScript -url "jdbc:h2:$DATABASE_DATA_DIR/$DATABASE_DBNAME;DATABASE_TO_UPPER=TRUE;TRACE_LEVEL_SYSTEM_OUT=3" -user "$DATABASE_DBUSER" -password "$DATABASE_DBPASS" -script initialSchema.sql || exit 1

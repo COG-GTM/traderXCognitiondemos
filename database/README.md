@@ -9,7 +9,7 @@ This is designed to play the role of a SQL database that runs standalone as part
 This uses H2 Java-based database as a standalone server and initializes with an empty SQL schema every time it is started.
 
 ## Credentials
-`run.sh` refuses to start unless `$DATABASE_DBPASS` is set to a strong password (at least 12 characters, not `sa` or another well-known default). The same value must be passed to every service that connects (account-service, position-service, trade-processor). Generate one with:
+`run.sh` refuses to start unless `$DATABASE_DBPASS` is set to a strong, randomly generated password (at least 16 characters, no well-known words such as `sa`/`password`/`admin`; existing database files still using the legacy `sa` password are rotated automatically on start). The same value must be passed to every service that connects (account-service, position-service, trade-processor). Generate one with:
 
 ```shell
 export DATABASE_DBPASS=$(openssl rand -hex 24)
