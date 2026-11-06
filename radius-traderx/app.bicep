@@ -3,6 +3,17 @@ extension radius
 // Parameters
 param application string
 
+@secure()
+@minLength(32)
+param tradeFeedTradeServiceToken string
+
+@secure()
+@minLength(32)
+param tradeFeedTradeProcessorToken string
+
+@description('Comma-separated browser origins (scheme://host[:port]) allowed to open the trade-feed Socket.IO connection')
+param tradeFeedAllowedOrigins string
+
 resource database 'Applications.Core/containers@2023-10-01-preview' = {
   name: 'database'
   properties: {
@@ -48,6 +59,20 @@ resource tradefeed 'Applications.Core/containers@2023-10-01-preview' = {
       ports: {
         web: {
           containerPort: 18086
+        }
+      }
+      env: {
+        TRADE_FEED_TRADE_SERVICE_TOKEN: {
+          value: tradeFeedTradeServiceToken
+        }
+        TRADE_FEED_TRADE_PROCESSOR_TOKEN: {
+          value: tradeFeedTradeProcessorToken
+        }
+        TRADE_FEED_ALLOW_ANONYMOUS_VIEWERS: {
+          value: 'true'
+        }
+        TRADE_FEED_ALLOWED_ORIGINS: {
+          value: tradeFeedAllowedOrigins
         }
       }
     }
@@ -152,6 +177,9 @@ resource tradeservice 'Applications.Core/containers@2023-10-01-preview' = {
         TRADE_FEED_HOST: {
           value: tradefeed.name
         }
+        TRADE_FEED_SERVICE_TOKEN: {
+          value: tradeFeedTradeServiceToken
+        }
       }
     }
     connections: {
@@ -191,6 +219,9 @@ resource tradeprocessor 'Applications.Core/containers@2023-10-01-preview' = {
         }
         TRADE_FEED_HOST: {
           value: tradefeed.name
+        }
+        TRADE_FEED_SERVICE_TOKEN: {
+          value: tradeFeedTradeProcessorToken
         }
       }
     }

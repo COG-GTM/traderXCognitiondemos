@@ -23,6 +23,20 @@ spec:
           env:
             - name: TRADE_FEED_PORT
               value: "18086"
+            - name: TRADE_FEED_ALLOWED_ORIGINS
+              value: "http://localhost,http://localhost:8080"
+            - name: TRADE_FEED_ALLOW_ANONYMOUS_VIEWERS
+              value: "true"
+            - name: TRADE_FEED_TRADE_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: trade-feed-tokens
+                  key: trade-service-token
+            - name: TRADE_FEED_TRADE_PROCESSOR_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: trade-feed-tokens
+                  key: trade-processor-token
           ports:
             - containerPort: 18086
               protocol: TCP
