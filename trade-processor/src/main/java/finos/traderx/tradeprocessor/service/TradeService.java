@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import finos.traderx.messaging.PubSubException;
@@ -32,6 +33,7 @@ public class TradeService {
     @Autowired
     private Publisher<Position> positionPublisher;
     
+	@Transactional
 	public TradeBookingResult processTrade(TradeOrder order) {
 		log.info("Trade order received : "+order);
         Trade t=new Trade();
@@ -51,10 +53,8 @@ public class TradeService {
 		log.info("Position for "+order.getAccountId()+" "+order.getSecurity()+" is "+position);
 		if(position==null) {
 			log.info("Creating new position for "+order.getAccountId()+" "+order.getSecurity());
-			position=new Position();
-			position.setAccountId(order.getAccountId());
-			position.setSecurity(order.getSecurity());
-			position.setQuantity(0);
+			positionRepository.insertEmptyPosition(order.getAccountId(), order.getSecurity());
+			position=positionRepository.findByAccountIdAndSecurity(order.getAccountId(), order.getSecurity());
 		}
 		int newQuantity=((order.getSide()==TradeSide.Buy)?1:-1)*t.getQuantity();
 		position.setQuantity(position.getQuantity()+newQuantity);
