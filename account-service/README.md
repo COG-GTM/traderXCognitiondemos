@@ -56,6 +56,10 @@ All `/account/**` and `/accountuser/**` endpoints use HTTP Basic auth:
 A user is only created when both its username and password are set. With nothing configured, every account endpoint is rejected.
 Create requests take `{"displayName": "..."}` only; any `id` in the body is ignored. Updates use the path id and return 404 for unknown accounts.
 
+In Kubernetes (`gitops/`), both account-service and trade-service read these from the `account-service-credentials` Secret (keys `admin-username`, `admin-password`, `reader-username`, `reader-password`); `gitops/local/Tiltfile` generates it with random passwords on each run.
+
+HTTP Basic sends a reusable password with every request, so only send it over TLS or a trusted network: terminate TLS at the ingress/load balancer for any non-local deployment, and keep the service-to-service hop (trade-service -> account-service) inside the cluster network (or behind mTLS/a service mesh). The plain-HTTP URLs in `docker-compose.yml` and `gitops/local` are for local demos only; for anything beyond that, replace Basic auth with an OIDC/JWT resource server.
+
 ```bash
 curl -u "$ACCOUNT_SERVICE_ADMIN_USERNAME:$ACCOUNT_SERVICE_ADMIN_PASSWORD" -H 'Content-Type: application/json' \
   -d '{"displayName":"new account"}' http://localhost:18088/account/
