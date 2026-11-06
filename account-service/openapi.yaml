@@ -14,8 +14,16 @@ paths:
       responses:
         "401":
           description: Missing admin bearer token
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
         "403":
           description: Wrong admin token, or administration disabled (ACCOUNT_ADMIN_TOKEN unset)
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
         "200":
           description: OK
           content:
@@ -46,12 +54,28 @@ paths:
                 $ref: "#/components/schemas/AccountUser"
         "400":
           description: Missing accountId or malformed username
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
         "401":
           description: Missing admin bearer token
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
         "403":
           description: Wrong admin token, or administration disabled (ACCOUNT_ADMIN_TOKEN unset)
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
         "404":
           description: Account or person not found
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
     post:
       tags:
         - account-user-controller
@@ -74,14 +98,34 @@ paths:
                 $ref: "#/components/schemas/AccountUser"
         "400":
           description: Missing accountId or malformed username
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
         "401":
           description: Missing admin bearer token
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
         "403":
           description: Wrong admin token, or administration disabled (ACCOUNT_ADMIN_TOKEN unset)
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
         "404":
           description: Account or person not found
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
         "409":
           description: Mapping already exists
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
   /account/:
     get:
       tags:
@@ -156,10 +200,22 @@ paths:
                 $ref: "#/components/schemas/AccountUser"
         "401":
           description: Missing admin bearer token
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
         "403":
           description: Wrong admin token, or administration disabled (ACCOUNT_ADMIN_TOKEN unset)
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
         "404":
           description: Mapping not found
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Error"
   /account/{id}:
     get:
       tags:
@@ -187,6 +243,14 @@ components:
       scheme: bearer
       description: "Value of ACCOUNT_ADMIN_TOKEN (traderx.account-admin.token)"
   schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+      example:
+        error: "Admin bearer token required"
     AccountList:
       type: array
       items:
