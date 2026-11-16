@@ -109,12 +109,12 @@ sequenceDiagram
     participant A as AccountService
     participant D as Database
     participant PS as PeopleService
-    participant L as UserDirectory
+    participant L as MockDirectory (people.json)
 
     W->>A: Load current list of people for account
     A->>D: Load List of account users
     W->>PS: Lookup user to add, by name
-    PS->>L: Query LDAP for People records
+    PS->>L: Search people records by name
     L->>PS: Return people records
     PS->>W: Return search results
     W->>A: Add User to Account
