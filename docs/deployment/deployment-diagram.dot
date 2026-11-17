@@ -1,0 +1,90 @@
+// TraderX deployment diagram (Graphviz). Re-render with: docs/deployment/render.sh
+// Sources: gitops/ (Tilt + Kustomize), radius-traderx/app.bicep, ingress/nginx.traderx.conf.template,
+// .github/workflows/build-and-publish.yml
+digraph traderx_deployment {
+  graph [rankdir=LR, fontname="DejaVu Sans", fontsize=18, nodesep=0.22, ranksep=0.6, newrank=true,
+         pad=0.3, bgcolor=white, labelloc=t,
+         label=<<b>TraderX deployment (as committed on main)</b><br/><font point-size="14">Two Kubernetes paths: Tilt + Kustomize (gitops/) and Radius (radius-traderx/). Red = config that does not line up with the code.</font>>];
+  node  [fontname="DejaVu Sans", fontsize=15, shape=box, style="rounded,filled", fillcolor=white, color="#555555", margin="0.15,0.06"];
+  edge  [fontname="DejaVu Sans", fontsize=13, color="#555555"];
+
+  user [label="Trader's browser\nhttp://localhost", shape=box, style="rounded,filled", fillcolor="#fff2cc", color="#b58900"];
+
+  // ---------------- Build and image sources ----------------
+  subgraph cluster_build {
+    label=<<b>Build &amp; images</b>>; style="rounded,dashed"; color="#888888"; fontsize=16;
+    src   [label="Service source dirs\n(account-service/, database/, ...,\nweb-front-end/angular/, ingress/)", fillcolor="#f3f3f3"];
+    tilt  [label="Tilt — gitops/local/Tiltfile\ndocker_build × 9 → local images traderx/*\n(no ingress/ image)\nk8s_yaml(kustomize('./traderx'))", fillcolor="#e1f0ff", color="#1f6feb"];
+    gha   [label="GitHub Actions — build-and-publish.yml\npush to main → ghcr.io/cog-gtm/traderx/*:latest\n(10 images; no deploy step uses them)", fillcolor="#f3f3f3"];
+    finos [label="ghcr.io/finos/traderx/*:latest\n(upstream FINOS images)", fillcolor="#f3f3f3"];
+    rad   [label="Radius CLI — radius-traderx/\nrad run app.bicep (local cluster)\nrad deploy -w prod-azure | prod-aws", fillcolor="#e8f5e9", color="#2e7d32"];
+    src -> tilt; src -> gha;
+    finos -> rad [label="image refs\nin app.bicep", style=dashed];
+  }
+
+  // ---------------- Path 1: Tilt + Kustomize ----------------
+  subgraph cluster_k8s {
+    label=<<b>Kubernetes — namespace traderx</b><br/><font point-size="13">gitops/local/traderx/kustomization.yaml → gitops/base/* (Deployment + Service each)</font>>;
+    style="rounded,filled"; fillcolor="#f5f9ff"; color="#1f6feb"; fontsize=16;
+
+    k_ing [label="Ingress traderx-ingress\nclass nginx · host localhost\nrewrite-target /$2", fillcolor="#e1f0ff", color="#1f6feb"];
+
+    k_web  [label="web-front-end-angular\nSvc :8080 → :18093 · ×1"];
+    k_acct [label=<account-service<br/>Svc :8080 → :18088 · ×1<br/><font color="#c62828">no PEOPLE_SERVICE_HOST env →<br/>people calls go to localhost:18089</font>>, color="#c62828"];
+    k_ppl  [label="people-service\nSvc :8080 → :18089 · ×1"];
+    k_pos  [label="position-service\nSvc :8080 → :18090 · ×1"];
+    k_ref  [label=<reference-data<br/>Svc :8080 → :18085 · ×1<br/><font color="#c62828">env REFERENCE_DATA_SERVICE_PORT=18095,<br/>so the app listens on :18095, not :18085</font>>, color="#c62828"];
+    k_feed [label="trade-feed (Socket.IO)\nSvc :8080 → :18086 · ×1"];
+    k_ts   [label="trade-service\nSvc :8080 → :18092 · ×1"];
+    k_tp   [label="trade-processor\nSvc :8080 → :18091 · ×2"];
+    k_db   [label=<database (H2)<br/>Svc :18082 tcp · :18083 pg · :18084 web<br/><font color="#c62828">×2 replicas, each with its own<br/>pod-local H2 data dir</font>>, shape=cylinder, style=filled, fillcolor=white, color="#c62828"];
+
+    k_ing -> k_web  [label="/traderx  /ng-cli-ws"];
+    k_ing -> k_acct [label="/account-service"];
+    k_ing -> k_ppl  [label="/people-service"];
+    k_ing -> k_pos  [label="/position-service"];
+    k_ing -> k_ref  [label="/reference-data"];
+    k_ing -> k_feed [label="/trade-feed  /socket.io"];
+    k_ing -> k_ts   [label="/trade-service"];
+    k_ing -> k_tp   [label="/trade-processor"];
+    k_ing -> k_db   [label="/db-web → :18084"];
+  }
+
+  // ---------------- Path 2: Radius ----------------
+  subgraph cluster_radius {
+    label=<<b>Radius application radius-traderx</b><br/><font point-size="13">radius-traderx/app.bicep — 10 Applications.Core/containers</font>>;
+    style="rounded,filled"; fillcolor="#f4fbf4"; color="#2e7d32"; fontsize=16;
+
+    r_ing [label="ingress container (nginx) :8080\nimage ghcr.io/finos/traderx/ingress\n(built from ingress/), routes =\ningress/nginx.traderx.conf.template", fillcolor="#e8f5e9", color="#2e7d32"];
+
+    r_web  [label="web-front-end-angular :18093"];
+    r_acct [label="account-service :18088"];
+    r_ppl  [label="people-service :18089"];
+    r_pos  [label="position-service :18090"];
+    r_ref  [label="reference-data :18085"];
+    r_feed [label="trade-feed :18086"];
+    r_ts   [label="trade-service :18092"];
+    r_tp   [label="trade-processor :18091"];
+    r_db   [label="database (H2) ×1\n:18082 tcp · :18083 pg · :18084 web", shape=cylinder, style=filled, fillcolor=white];
+
+    r_ing -> r_web  [label="/  /ng-cli-ws"];
+    r_ing -> r_acct [label="/account-service/"];
+    r_ing -> r_ppl  [label="/people-service/"];
+    r_ing -> r_pos  [label="/position-service/"];
+    r_ing -> r_ref  [label="/reference-data/"];
+    r_ing -> r_feed [label="/trade-feed/  /socket.io/"];
+    r_ing -> r_ts   [label="/trade-service/"];
+    r_ing -> r_tp   [label="/trade-processor/"];
+    r_ing -> r_db   [label="/db-web/"];
+  }
+
+  note [shape=note, style=filled, fillcolor="#fffde7", color="#b58900", fontsize=14, label="Service-to-service wiring (both paths):\naccount, position, trade-service, trade-processor → database:18082 (H2 TCP)\ntrade-service → people, account, reference-data, trade-feed\ntrade-processor → trade-feed\n\nThe same ingress/ nginx config also fronts\ndocker-compose.yml (ingress service on :8080)."];
+
+  // ---------------- Deploy edges ----------------
+  tilt -> k_ing [label="builds images + applies\nkustomize output", color="#1f6feb", fontcolor="#1f6feb", penwidth=1.6, lhead=cluster_k8s];
+  rad  -> r_ing [label="deploys app.bicep", color="#2e7d32", fontcolor="#2e7d32", penwidth=1.6];
+  user -> k_ing [label="HTTP / WebSocket", color="#b58900", fontcolor="#b58900"];
+  user -> r_ing [label="HTTP / WebSocket :8080", color="#b58900", fontcolor="#b58900"];
+  { rank=same; src; note; }
+  { rank=same; user; tilt; rad; }
+}
