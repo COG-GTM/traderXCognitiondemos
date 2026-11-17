@@ -166,6 +166,8 @@ cd .corp
 
 The following are instructions to build and deploy all TraderX apps to your local enviroment using [tilt](https://tilt.dev) and kustomize files.
 
+See the [deployment diagram](docs/deployment.md) for how the Tilt/Kustomize, Radius and nginx ingress pieces fit together.
+
 ## Prerequistes 
 - Running [Docker](https://www.docker.com/products/docker-desktop/) or similar
 - Running K8s - [Kind](https://kind.sigs.k8s.io/) /[Minikube](https://minikube.sigs.k8s.io/docs/start/)/[k3s](https://k3s.io/) or similar
