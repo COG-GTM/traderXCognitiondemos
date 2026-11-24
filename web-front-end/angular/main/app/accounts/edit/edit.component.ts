@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, Input, inject } from '@angular/core';
+import { Component, Input, inject, output } from '@angular/core';
 import { Account } from 'main/app/model/account.model';
 import { AccountService } from 'main/app/service/account.service';
 import { FormsModule } from '@angular/forms';
@@ -13,7 +13,7 @@ import { AlertComponent } from 'ngx-bootstrap/alert';
 export class EditAccountComponent {
     private accountService = inject(AccountService);
 
-    @Output() update = new EventEmitter<Account>();
+    readonly update = output<Account>();
     _account?: Account;
     @Input() set account(ac: Account | undefined) {
         this._account = ac;

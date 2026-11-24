@@ -1,5 +1,5 @@
 import { catchError } from 'rxjs/operators';
-import { Component, EventEmitter, Input, OnInit, Output, inject, input } from '@angular/core';
+import { Component, Input, OnInit, inject, input, output } from '@angular/core';
 import { Account } from 'main/app/model/account.model';
 import { User } from 'main/app/model/user.model';
 import { AccountService } from 'main/app/service/account.service';
@@ -25,7 +25,7 @@ export class AssignUserToAccountComponent implements OnInit {
     user?: User = undefined;
     search?: string = undefined;
     addUserResponse: any;
-    @Output() update = new EventEmitter<Account>();
+    readonly update = output<Account>();
 
     ngOnInit(): void {
         this.users$ = new Observable((observer: Observer<string | undefined>) => {
@@ -51,13 +51,14 @@ export class AssignUserToAccountComponent implements OnInit {
     }
 
     add() {
-        if (!this.user || !this.account) {
+        const account = this.account;
+        if (!this.user || !account) {
             return;
         }
-        const accountUser = { username: this.user.logonId, accountId: this.account.id };
+        const accountUser = { username: this.user.logonId, accountId: account.id };
         this.accountService.addAccountUser(accountUser).subscribe(() => {
             this.addUserResponse = { success: true, msg: 'User added successfully!' };
-            this.update.emit(this.account);
+            this.update.emit(account);
             this.reset(true);
         }, (err) => {
             this.addUserResponse = { error: true, msg: 'There is some error!' };

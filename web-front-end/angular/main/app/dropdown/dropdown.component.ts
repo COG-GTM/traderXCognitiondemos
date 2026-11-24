@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, input } from "@angular/core";
+import { Component, Input, OnInit, input, output } from "@angular/core";
 import { BsDropdownDirective, BsDropdownToggleDirective, BsDropdownMenuDirective } from "ngx-bootstrap/dropdown";
 import { NgClass } from "@angular/common";
 
@@ -14,7 +14,7 @@ export class DropdownComponent implements OnInit {
     readonly itemKey = input<string>('label');
     readonly selectedItem = input<any>();
     @Input() selectionComparator: (src: any, target: any) => boolean;
-    @Output() selectedItemChange = new EventEmitter();
+    readonly selectedItemChange = output<any>();
     readonly placeholder = input<string>("Please select an item");
     drpId: string;
     drpBtnId: string;
