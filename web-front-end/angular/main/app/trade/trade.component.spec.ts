@@ -67,13 +67,13 @@ describe('TradeComponent', () => {
         spyOn((component as any).symbolService, 'getStocks').and.callThrough();
         component.ngOnInit();
         expect((component as any).accountService.getAccounts).toHaveBeenCalled();
-        expect(component.accounts.length).toEqual(5);
+        expect(component.accounts().length).toEqual(5);
         expect((component as any).symbolService.getStocks).toHaveBeenCalled();
-        expect(component.stocks.length).toEqual(5);
+        expect(component.stocks().length).toEqual(5);
     });
 
     it('should open and close ticket on click', async () => {
-        component.accountModel = accounts[0];
+        component.accountModel.set(accounts[0]);
         spyOn(component, 'openTicket');
         spyOn(component, 'closeTicket');
         fixture.nativeElement.querySelector('#createTicketBtn').click();

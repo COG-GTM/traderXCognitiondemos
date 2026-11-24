@@ -3,9 +3,9 @@
     <div class="trade-filter me-3">
       <app-ngx-dropdown
         name="account"
-        [items]="accounts"
+        [items]="accounts()"
         itemKey="displayName"
-        [selectedItem]="accountModel"
+        [selectedItem]="accountModel()"
         placeholder="Select Account"
         (selectedItemChange)="onAccountChange($event)"
         >
@@ -16,24 +16,24 @@
         Create Trade Ticket
       </button>
       <ng-template #ticketComponent>
-        <app-trade-ticket [stocks]="stocks" [account]="accountModel" (create)="createTradeTicket($event)" (cancel)="closeTicket()">
+        <app-trade-ticket [stocks]="stocks()" [account]="accountModel()" (create)="createTradeTicket($event)" (cancel)="closeTicket()">
         </app-trade-ticket>
       </ng-template>
-      @if (createTicketResponse) {
+      @if (createTicketResponse(); as response) {
         <alert
-          [type]="createTicketResponse.success ? 'success' : 'danger'"
+          [type]="response.success ? 'success' : 'danger'"
           [dismissible]="true"
           [dismissOnTimeout]="2000"
           (onClosed)="onCloseAlert()"
           >
-          {{ createTicketResponse | json }}</alert
+          {{ response | json }}</alert
           >
         }
       </div>
     </div>
 
     <div class="trade-blotter">
-      <app-trade-blotter [account]="accountModel" class="trade-blotter-items me-2"> </app-trade-blotter>
-      <app-position-blotter [account]="accountModel" class="position-blotter-items"> </app-position-blotter>
+      <app-trade-blotter [account]="accountModel()" class="trade-blotter-items me-2"> </app-trade-blotter>
+      <app-position-blotter [account]="accountModel()" class="position-blotter-items"> </app-position-blotter>
     </div>
   </div>

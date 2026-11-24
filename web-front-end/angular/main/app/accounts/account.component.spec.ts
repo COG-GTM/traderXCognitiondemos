@@ -35,7 +35,6 @@ describe('Account tests', () => {
 
   it('should render the grid and invoke onGridReady hook', async () => {
     spyOn(comp, 'onGridReady').and.callThrough();
-    comp.ngOnInit();
     await sleep(250);
     fixture.detectChanges();
     expect(element.querySelector('#accountgrid .ag-root-wrapper')).toBeDefined();
@@ -46,7 +45,6 @@ describe('Account tests', () => {
   it('should fetch accounts list on init', async () => {
     spyOn((<any>comp).accountService, 'getAccounts').and.callThrough();
     expect((<any>comp).accountService.getAccounts).not.toHaveBeenCalled();
-    comp.ngOnInit();
     await sleep(250);
     fixture.detectChanges();
     expect((<any>comp).accountService.getAccounts).toHaveBeenCalled();
@@ -54,20 +52,18 @@ describe('Account tests', () => {
 
   it('should select the account from account list', async () => {
     spyOn(comp, 'onSelectionChanged').and.callThrough();
-    comp.ngOnInit();
     await sleep(250);
     fixture.detectChanges();
-    expect(comp.selectedAccount).toBeUndefined();
+    expect(comp.selectedAccount()).toBeUndefined();
     const rows = Array.from(element.querySelectorAll('#accountgrid .ag-row')) as HTMLElement[];
     rows[0].click();
     await sleep(100);
     expect(comp.onSelectionChanged).toHaveBeenCalled();
-    expect(comp.selectedAccount).toBeDefined();
+    expect(comp.selectedAccount()).toBeDefined();
   });
 
   xit('should fetch account users for select account', async () => {
     spyOn((<any>comp).accountService, 'getAccountUsers').and.callThrough();
-    comp.ngOnInit();
     fixture.detectChanges();
     await sleep(250)
     expect(element.querySelector('#usergrid .ag-root-wrapper')).toBeDefined();
@@ -84,9 +80,9 @@ describe('Account tests', () => {
   });
 
   it('should set account on update callback', () => {
-    expect(comp.selectedAccount).toBeUndefined();
+    expect(comp.selectedAccount()).toBeUndefined();
     const account = createAccount();
     comp.onUpdate(account);
-    expect(comp.selectedAccount).toBe(account);
+    expect(comp.selectedAccount()).toBe(account);
   });
 });

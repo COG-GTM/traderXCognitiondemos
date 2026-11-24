@@ -1,5 +1,4 @@
-import { Component, OnInit, TemplateRef, inject } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Component, OnInit, TemplateRef, inject, signal } from '@angular/core';
 import { TradeTicket } from '../model/trade.model';
 import { Account } from '../model/account.model';
 import { AccountService } from '../service/account.service';
@@ -24,20 +23,19 @@ export class TradeComponent implements OnInit {
     private symbolService = inject(SymbolService);
     private modalService = inject(BsModalService);
 
-    accounts: Account[] = [];
-    accountModel?: Account = undefined;
-    stocks: Stock[] = [];
+    readonly accounts = signal<Account[]>([]);
+    readonly accountModel = signal<Account | undefined>(undefined);
+    readonly stocks = signal<Stock[]>([]);
     modalRef?: BsModalRef;
-    createTicketResponse: any;
-    private account = new Subject<Account>();
+    readonly createTicketResponse = signal<any>(undefined);
 
     ngOnInit(): void {
         this.accountService.getAccounts().subscribe((accounts) => {
-            this.accounts = accounts;
-            this.setAccount(this.accounts[5]);
-            console.log(this.accounts);
+            this.accounts.set(accounts);
+            this.setAccount(accounts[5]);
+            console.log(accounts);
         });
-        this.symbolService.getStocks().subscribe((stocks) => this.stocks = stocks);
+        this.symbolService.getStocks().subscribe((stocks) => this.stocks.set(stocks));
     }
 
     onAccountChange(account: Account) {
@@ -57,7 +55,7 @@ export class TradeComponent implements OnInit {
         console.log('createTradeTicket', ticket);
         this.symbolService.createTicket(ticket).subscribe((response) => {
             console.log(response);
-            this.createTicketResponse = response;
+            this.createTicketResponse.set(response);
         });
         this.closeTicket();
     }
@@ -67,11 +65,10 @@ export class TradeComponent implements OnInit {
     }
 
     onCloseAlert() {
-        this.createTicketResponse = undefined;
+        this.createTicketResponse.set(undefined);
     }
 
     private setAccount(account: Account) {
-        this.accountModel = account;
-        this.account.next(account);
+        this.accountModel.set(account);
     }
 }
