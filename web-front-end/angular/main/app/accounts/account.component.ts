@@ -1,11 +1,11 @@
 import { ColDef, GridApi, GridReadyEvent, Module } from 'ag-grid-community';
-import { Component, inject, signal } from '@angular/core';
+import { Component, ErrorHandler, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AgGridModule, AgGridAngular } from 'ag-grid-angular';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
 import { AccountService } from '../service/account.service';
 import { Account } from '../model/account.model';
-import { debounceTime, map, switchMap } from 'rxjs/operators';
+import { catchError, debounceTime, map, switchMap } from 'rxjs/operators';
 import { ButtonCellRendererComponent } from './button-renderer.component';
 import { UserService } from '../service/user.service';
 import { EditAccountComponent } from './edit/edit.component';
@@ -19,6 +19,7 @@ import { AssignUserToAccountComponent } from './user/assign-user.component';
 })
 export class AccountComponent {
     private accountService = inject(AccountService);
+    private errorHandler = inject(ErrorHandler);
 
     private gridApi!: GridApi;
 
@@ -26,13 +27,13 @@ export class AccountComponent {
     accountAddAction$ = this.accountBehaviorSubject.asObservable();
     readonly accounts = toSignal(this.accountAddAction$.pipe(
         debounceTime(200),
-        switchMap(() => this.accountService.getAccounts())
+        switchMap(() => this.reportErrors(this.accountService.getAccounts()))
     ), { initialValue: null });
     readonly users = toSignal(this.accountAddAction$.pipe(
         debounceTime(200),
-        switchMap((accountId) => this.accountService.getAccountUsers().pipe(
+        switchMap((accountId) => this.reportErrors(this.accountService.getAccountUsers().pipe(
             map((users) => users.filter((user) => user.accountId === accountId))
-        ))
+        )))
     ), { initialValue: null });
     readonly selectedAccount = signal<Account | undefined>(undefined);
     readonly accountToBeUpdate = signal<Account | undefined>(undefined);
@@ -83,5 +84,12 @@ export class AccountComponent {
 
     onGridReady(params: GridReadyEvent) {
         this.gridApi = params.api;
+    }
+
+    private reportErrors<T>(source: Observable<T>): Observable<T> {
+        return source.pipe(catchError((err) => {
+            this.errorHandler.handleError(err);
+            return EMPTY;
+        }));
     }
 }
