@@ -25,11 +25,15 @@ test.describe('Trade page', () => {
     await expect(menu.getByRole('menuitem', { name: 'Big Corporate Fund' }).locator('a')).toHaveClass(/active/);
     await snap(page, testInfo, '02-trade-account-dropdown');
     const trades = page.locator('app-trade-blotter .ag-center-cols-container');
+    const positions = page.locator('app-position-blotter .ag-center-cols-container');
     await expect(trades.getByText('BAC', { exact: true })).toBeVisible();
+    await expect(positions.getByText('BAC', { exact: true })).toBeVisible();
     await menu.getByRole('menuitem', { name: 'Test Account 20' }).click();
     await expect(page.getByRole('button', { name: 'Test Account 20' })).toBeVisible();
     await expect(trades.getByText('IBM', { exact: true })).toBeVisible();
+    await expect(positions.getByText('IBM', { exact: true })).toBeVisible();
     await expect(trades.getByText('BAC', { exact: true })).toHaveCount(0);
+    await expect(positions.getByText('BAC', { exact: true })).toHaveCount(0);
   });
 
   test('trade ticket validates input, then books a trade that settles and updates positions', async ({ page }, testInfo) => {
