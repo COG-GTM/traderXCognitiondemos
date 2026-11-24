@@ -1,5 +1,5 @@
 import { ColDef, GridApi, GridReadyEvent, GetRowIdParams } from 'ag-grid-community';
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, SimpleChanges, inject } from '@angular/core';
 import { Account } from 'main/app/model/account.model';
 import { Position } from 'main/app/model/trade.model';
 import { PositionService } from 'main/app/service/position.service';
@@ -14,6 +14,9 @@ import { AgGridAngular } from 'ag-grid-angular';
     imports: [AgGridAngular]
 })
 export class PositionBlotterComponent implements OnChanges, OnDestroy {
+  private tradeService = inject(PositionService);
+  private tradeFeed = inject(TradeFeedService);
+
   @Input() account?: Account;
   positions$: Observable<Position[]>;
   positions: any = [];
@@ -33,9 +36,6 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
       enableCellChangeFlash: true
     }
   ];
-
-  constructor(private tradeService: PositionService,
-    private tradeFeed: TradeFeedService) { }
 
   ngOnChanges(change: SimpleChanges) {
     if (change.account?.currentValue && change.account.currentValue !== change.account.previousValue) {

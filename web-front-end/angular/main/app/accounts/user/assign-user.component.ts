@@ -1,5 +1,5 @@
 import { catchError } from 'rxjs/operators';
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { Account } from 'main/app/model/account.model';
 import { User } from 'main/app/model/user.model';
 import { AccountService } from 'main/app/service/account.service';
@@ -16,6 +16,9 @@ import { AlertComponent } from 'ngx-bootstrap/alert';
     imports: [FormsModule, TypeaheadDirective, DropdownComponent, AlertComponent]
 })
 export class AssignUserToAccountComponent implements OnInit {
+    private userService = inject(UserService);
+    private accountService = inject(AccountService);
+
     @Input() accounts: any = [];
     @Input() account?: Account = undefined;
     users$: Observable<User[]>;
@@ -23,7 +26,6 @@ export class AssignUserToAccountComponent implements OnInit {
     search?: string = undefined;
     addUserResponse: any;
     @Output() update = new EventEmitter<Account>();
-    constructor(private userService: UserService, private accountService: AccountService) { }
 
     ngOnInit(): void {
         this.users$ = new Observable((observer: Observer<string | undefined>) => {

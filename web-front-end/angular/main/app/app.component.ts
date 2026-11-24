@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ThemeService } from './service/theme.service';
 import { HeaderComponent } from './header/header.component';
 import { RouterOutlet } from '@angular/router';
@@ -10,7 +10,6 @@ import { RouterOutlet } from '@angular/router';
     imports: [HeaderComponent, RouterOutlet]
 })
 export class AppComponent {
-
-    constructor(public themeService: ThemeService) { }
+    themeService = inject(ThemeService);
 
 }

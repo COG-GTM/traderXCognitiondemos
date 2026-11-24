@@ -1,5 +1,5 @@
 import { ColDef, GridApi, GridReadyEvent, Module } from 'ag-grid-community';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { AgGridModule, AgGridAngular } from 'ag-grid-angular';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AccountService } from '../service/account.service';
@@ -19,6 +19,8 @@ import { AsyncPipe } from '@angular/common';
     imports: [EditAccountComponent, AgGridAngular, AssignUserToAccountComponent, AsyncPipe]
 })
 export class AccountComponent implements OnInit {
+    private accountService = inject(AccountService);
+
     private gridApi!: GridApi;
 
     accounts$: Observable<Account[]>;
@@ -60,8 +62,6 @@ export class AccountComponent implements OnInit {
     frameworkComponents = {
         btnCellRenderer: ButtonCellRendererComponent
     };
-
-    constructor(private accountService: AccountService) { }
 
     ngOnInit() {
         this.accounts$ = this.accountAddAction$.pipe(

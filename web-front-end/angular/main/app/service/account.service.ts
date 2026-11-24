@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Account } from '../model/account.model';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
@@ -10,6 +10,8 @@ import { AccountUser } from '../model/user.model';
   providedIn: 'root'
 })
 export class AccountService {
+  private http = inject(HttpClient);
+
   private baseUrl = environment.accountUrl;
 
   private httpOptions = {
@@ -17,7 +19,6 @@ export class AccountService {
       'Content-Type': 'application/json'
     })
   };
-  constructor(private http: HttpClient) { }
 
   getAccounts(): Observable<Account[]> {
     return this.http.get<Account[]>(`${this.baseUrl}/account/`, this.httpOptions).pipe(

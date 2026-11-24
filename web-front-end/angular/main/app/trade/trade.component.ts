@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef, inject } from '@angular/core';
 import { Subject } from 'rxjs';
 import { TradeTicket } from '../model/trade.model';
 import { Account } from '../model/account.model';
@@ -20,16 +20,16 @@ import { JsonPipe } from '@angular/common';
     imports: [DropdownComponent, TradeTicketComponent, AlertComponent, TradeBlotterComponent, PositionBlotterComponent, JsonPipe]
 })
 export class TradeComponent implements OnInit {
+    private accountService = inject(AccountService);
+    private symbolService = inject(SymbolService);
+    private modalService = inject(BsModalService);
+
     accounts: Account[] = [];
     accountModel?: Account = undefined;
     stocks: Stock[] = [];
     modalRef?: BsModalRef;
     createTicketResponse: any;
     private account = new Subject<Account>();
-
-    constructor(private accountService: AccountService,
-        private symbolService: SymbolService,
-        private modalService: BsModalService) { }
 
     ngOnInit(): void {
         this.accountService.getAccounts().subscribe((accounts) => {

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
@@ -9,6 +9,8 @@ import { User } from '../model/user.model';
     providedIn: 'root'
 })
 export class UserService {
+    private http = inject(HttpClient);
+
     private baseUrl = environment.peopleUrl;
 
     private httpOptions = {
@@ -16,7 +18,6 @@ export class UserService {
             'Content-Type': 'application/json'
         })
     };
-    constructor(private http: HttpClient) { }
 
     getUsers(searchText: string): Observable<User[]> {
         return this.http.get<{ people: User[] }>(`${this.baseUrl}/People/GetMatchingPeople`, {
