@@ -14,17 +14,17 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
 
 @NgModule({
-  declarations: [TradeComponent, TradeTicketComponent, TradeBlotterComponent, PositionBlotterComponent],
-  imports: [
-    CommonModule,
-    AgGridModule,
-    BrowserAnimationsModule,
-    TypeaheadModule,
-    ModalModule,
-    AlertModule,
-    FormsModule,
-    DropdownModule
-  ],
-  exports: [TradeComponent, TradeTicketComponent, TradeBlotterComponent]
+    imports: [
+        CommonModule,
+        AgGridModule,
+        BrowserAnimationsModule,
+        TypeaheadModule,
+        ModalModule,
+        AlertModule,
+        FormsModule,
+        DropdownModule,
+        TradeComponent, TradeTicketComponent, TradeBlotterComponent, PositionBlotterComponent
+    ],
+    exports: [TradeComponent, TradeTicketComponent, TradeBlotterComponent]
 })
 export class TradeModule { }

@@ -14,16 +14,15 @@ describe('Account tests', () => {
   beforeEach(
     waitForAsync(() => {
       TestBed.configureTestingModule({
-        declarations: [AccountComponent],
-        imports: [AgGridModule],
-        providers: [
-          {
+    imports: [AgGridModule, AccountComponent],
+    providers: [
+        {
             provide: AccountService,
             useClass: MockAccountService
-          }
-        ],
-        schemas: [CUSTOM_ELEMENTS_SCHEMA]
-      }).compileComponents();
+        }
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+}).compileComponents();
     })
   );
 

@@ -1,6 +1,6 @@
 import { ColDef, GridApi, GridReadyEvent, Module } from 'ag-grid-community';
 import { Component, OnInit } from '@angular/core';
-import { AgGridModule } from 'ag-grid-angular';
+import { AgGridModule, AgGridAngular } from 'ag-grid-angular';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AccountService } from '../service/account.service';
 import { Account } from '../model/account.model';
@@ -8,12 +8,15 @@ import { debounceTime, map, switchMap } from 'rxjs/operators';
 import { ButtonCellRendererComponent } from './button-renderer.component';
 import { AccountUser, User } from '../model/user.model';
 import { UserService } from '../service/user.service';
+import { EditAccountComponent } from './edit/edit.component';
+import { AssignUserToAccountComponent } from './user/assign-user.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
     selector: 'app-account',
     templateUrl: 'account.component.html',
     styleUrls: ['account.component.scss'],
-    standalone: false
+    imports: [EditAccountComponent, AgGridAngular, AssignUserToAccountComponent, AsyncPipe]
 })
 export class AccountComponent implements OnInit {
     private gridApi!: GridApi;

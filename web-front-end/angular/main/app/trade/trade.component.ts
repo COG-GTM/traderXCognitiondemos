@@ -6,12 +6,18 @@ import { AccountService } from '../service/account.service';
 import { Stock } from '../model/symbol.model';
 import { SymbolService } from '../service/symbols.service';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+import { DropdownComponent } from '../dropdown/dropdown.component';
+import { TradeTicketComponent } from './trade-ticket/trade-ticket.component';
+import { AlertComponent } from 'ngx-bootstrap/alert';
+import { TradeBlotterComponent } from './trade-blotter/trade-blotter.component';
+import { PositionBlotterComponent } from './position-blotter/position-blotter.component';
+import { JsonPipe } from '@angular/common';
 
 @Component({
     selector: 'app-trade',
     templateUrl: './trade.component.html',
     styleUrls: ['./trade.component.scss'],
-    standalone: false
+    imports: [DropdownComponent, TradeTicketComponent, AlertComponent, TradeBlotterComponent, PositionBlotterComponent, JsonPipe]
 })
 export class TradeComponent implements OnInit {
     accounts: Account[] = [];

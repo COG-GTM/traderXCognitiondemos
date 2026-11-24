@@ -17,27 +17,25 @@ describe('TradeComponent', () => {
 
     beforeEach(async () => {
         await TestBed.configureTestingModule({
-            declarations: [
-                TradeComponent
-            ],
-            imports: [
-                FormsModule,
-                DropdownModule,
-                ModalModule,
-                AlertModule
-            ],
-            providers: [
-                {
-                    provide: AccountService,
-                    useClass: MockAccountService
-                },
-                {
-                    provide: SymbolService,
-                    useClass: MockSymbolService
-                }
-            ],
-            schemas: [CUSTOM_ELEMENTS_SCHEMA]
-        }).compileComponents();
+    imports: [
+        FormsModule,
+        DropdownModule,
+        ModalModule,
+        AlertModule,
+        TradeComponent
+    ],
+    providers: [
+        {
+            provide: AccountService,
+            useClass: MockAccountService
+        },
+        {
+            provide: SymbolService,
+            useClass: MockSymbolService
+        }
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+}).compileComponents();
     });
 
     beforeEach(() => {

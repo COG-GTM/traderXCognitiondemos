@@ -12,12 +12,12 @@ xdescribe('TradeTicketComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [TradeTicketComponent],
-      imports: [
+    imports: [
         FormsModule,
-        TypeaheadModule
-      ]
-    })
+        TypeaheadModule,
+        TradeTicketComponent
+    ]
+})
       .compileComponents();
   });
 

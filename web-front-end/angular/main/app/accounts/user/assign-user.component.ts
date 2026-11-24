@@ -4,13 +4,16 @@ import { Account } from 'main/app/model/account.model';
 import { User } from 'main/app/model/user.model';
 import { AccountService } from 'main/app/service/account.service';
 import { UserService } from 'main/app/service/user.service';
-import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
+import { TypeaheadMatch, TypeaheadDirective } from 'ngx-bootstrap/typeahead';
 import { map, noop, Observable, Observer, of, switchMap, tap } from 'rxjs';
+import { FormsModule } from '@angular/forms';
+import { DropdownComponent } from '../../dropdown/dropdown.component';
+import { AlertComponent } from 'ngx-bootstrap/alert';
 
 @Component({
     selector: 'app-assign-user',
     templateUrl: 'assign-user.component.html',
-    standalone: false
+    imports: [FormsModule, TypeaheadDirective, DropdownComponent, AlertComponent]
 })
 export class AssignUserToAccountComponent implements OnInit {
     @Input() accounts: any = [];
