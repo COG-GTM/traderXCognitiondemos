@@ -5,7 +5,7 @@ const accountRows = (page) => page.locator('#accountgrid .ag-center-cols-contain
 const userRows = (page) => page.locator('#usergrid .ag-center-cols-container .ag-row');
 // AG Grid virtualises rows; accounts created by a test have the highest ids and sort last.
 async function scrollAccountsToEnd(page) {
-  await expect(page.locator('#accountgrid').getByText('Internal Trading Book')).toBeVisible();
+  await expect(page.locator('#accountgrid .ag-center-cols-container .ag-row').first()).toBeVisible();
   await page.locator('#accountgrid .ag-body-viewport').evaluate((el) => el.scrollTo(0, el.scrollHeight));
 }
 
