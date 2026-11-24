@@ -25,7 +25,7 @@ export class AssignUserToAccountComponent implements OnInit {
     user?: User = undefined;
     search?: string = undefined;
     addUserResponse: any;
-    readonly update = output<Account>();
+    readonly update = output<Account | undefined>();
 
     ngOnInit(): void {
         this.users$ = new Observable((observer: Observer<string | undefined>) => {
@@ -57,9 +57,7 @@ export class AssignUserToAccountComponent implements OnInit {
         const accountUser = { username: this.user.logonId, accountId: this.account.id };
         this.accountService.addAccountUser(accountUser).subscribe(() => {
             this.addUserResponse = { success: true, msg: 'User added successfully!' };
-            if (this.account) {
-                this.update.emit(this.account);
-            }
+            this.update.emit(this.account);
             this.reset(true);
         }, (err) => {
             this.addUserResponse = { error: true, msg: 'There is some error!' };

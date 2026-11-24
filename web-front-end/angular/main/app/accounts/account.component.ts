@@ -23,7 +23,7 @@ export class AccountComponent {
 
     private gridApi!: GridApi;
 
-    accountBehaviorSubject = new BehaviorSubject(0);
+    accountBehaviorSubject = new BehaviorSubject<number | undefined>(0);
     accountAddAction$ = this.accountBehaviorSubject.asObservable();
     readonly accounts = toSignal(this.accountAddAction$.pipe(
         debounceTime(200),
@@ -71,7 +71,7 @@ export class AccountComponent {
         btnCellRenderer: ButtonCellRendererComponent
     };
 
-    onUpdate(account: Account) {
+    onUpdate(account?: Account) {
         this.accountBehaviorSubject.next(account?.id);
         this.selectedAccount.set(account);
     }
