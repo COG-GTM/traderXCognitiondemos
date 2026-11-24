@@ -1,11 +1,11 @@
 <div class="btn-group" dropdown>
   <button [id]="drpBtnId" dropdownToggle type="button" class="btn btn-sm btn-primary dropdown-toggle" [attr.aria-controls]="drpId">
-    {{ selectedItem?.[itemKey] || placeholder  }} <span class="caret"></span>
+    {{ selectedItem()?.[itemKey()] || placeholder()  }} <span class="caret"></span>
   </button>
   <ul [id]="drpId" *dropdownMenu class="dropdown-menu" role="menu" [attr.aria-labelledby]="drpBtnId">
-    @for (item of items; track item) {
+    @for (item of items(); track item) {
       <li role="menuitem" (click)="onItemClick(item)">
-        <a class="dropdown-item" [ngClass]="selectionComparator(selectedItem, item) ? 'active' : ''">{{ item[itemKey] }}</a>
+        <a class="dropdown-item" [ngClass]="selectionComparator(selectedItem(), item) ? 'active' : ''">{{ item[itemKey()] }}</a>
       </li>
     }
   </ul>

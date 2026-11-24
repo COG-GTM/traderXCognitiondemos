@@ -1,5 +1,5 @@
 import { ColDef, GridApi, GridReadyEvent, GetRowIdParams } from 'ag-grid-community';
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges, inject } from '@angular/core';
+import { Component, OnChanges, OnDestroy, SimpleChanges, inject, input } from '@angular/core';
 import { Account } from 'main/app/model/account.model';
 import { PositionService } from 'main/app/service/position.service';
 import { Observable } from 'rxjs';
@@ -17,7 +17,7 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     private tradeService = inject(PositionService);
 
     trades$: Observable<Trade[]>;
-    @Input() account?: Account;
+    readonly account = input<Account>();
     trades: Trade[] = [];
     gridApi: GridApi;
     pendingTrades: Trade[] = [];

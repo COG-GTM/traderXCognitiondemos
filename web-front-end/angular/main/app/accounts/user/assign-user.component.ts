@@ -1,5 +1,5 @@
 import { catchError } from 'rxjs/operators';
-import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject, input } from '@angular/core';
 import { Account } from 'main/app/model/account.model';
 import { User } from 'main/app/model/user.model';
 import { AccountService } from 'main/app/service/account.service';
@@ -19,7 +19,7 @@ export class AssignUserToAccountComponent implements OnInit {
     private userService = inject(UserService);
     private accountService = inject(AccountService);
 
-    @Input() accounts: any = [];
+    readonly accounts = input<any>([]);
     @Input() account?: Account = undefined;
     users$: Observable<User[]>;
     user?: User = undefined;

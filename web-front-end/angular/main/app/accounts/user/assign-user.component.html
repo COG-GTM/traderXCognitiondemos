@@ -4,7 +4,7 @@
     typeaheadOptionField="fullName" [isAnimated]="true" aria-label="Add User to Account"
     placeholder="Add User to Account" class="form-control" />
   <app-ngx-dropdown id="account-name" class="d-inline-flex me-4" name="account" style="height: 38px;"
-    [items]="accounts" itemKey="displayName" placeholder="Select an account"
+    [items]="accounts()" itemKey="displayName" placeholder="Select an account"
     [selectionComparator]="comparatorFunction" [(selectedItem)]="account">
   </app-ngx-dropdown>
   <button type="button" class="btn btn-sm btn-primary me-4" (click)="add()">Add User</button>

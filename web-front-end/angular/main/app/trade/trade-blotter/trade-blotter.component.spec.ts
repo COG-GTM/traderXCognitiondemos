@@ -46,7 +46,7 @@ describe('TradeBlotterComponent', () => {
     });
 
     it('should call getTrades on changes and set trades', fakeAsync(() => {
-        expect(component.account).not.toBeDefined();
+        expect(component.account()).not.toBeDefined();
         component.ngOnChanges({ account: { currentValue: dummyAccounts[0] } } as any);
         expect(component.trades.length).toEqual(2);
         fixture.detectChanges();
