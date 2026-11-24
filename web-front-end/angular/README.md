@@ -21,7 +21,7 @@ This application was written using Angular, and has hardcoded references to the 
 This runs an embedded webserver on default port `18093` - which can be changed in the package.json 'start' script, or override using the `WEB_SERVICE_ANGULAR_PORT` environment variable
 
 ### Building and Running
-To build and run this project:
+Requires Node.js `^20.19`, `^22.12` or `>=24` (Angular 21). To build and run this project:
 
 ```bash
 npm install
