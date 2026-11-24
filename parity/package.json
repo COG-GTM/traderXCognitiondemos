@@ -8,7 +8,7 @@
     "report": "node compose-report.mjs"
   },
   "devDependencies": {
-    "@playwright/test": "1.56.1",
+    "@playwright/test": "^1.57.0",
     "pixelmatch": "^5.3.0",
     "pngjs": "^7.0.0"
   }
