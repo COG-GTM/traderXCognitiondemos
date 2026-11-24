@@ -61,6 +61,11 @@ const lines = [
   '| --- | --- | --- |',
   ...rows.map((r) => `| ${r.name} | ${r.diff} | ${r.b && r.u ? `![${r.name}](side-by-side/${r.name}.png)` : 'missing'} |`),
   '',
+  '## Notes',
+  '',
+  '- Both apps share one backend and every run creates timestamped accounts and trades, so non-zero pixel diffs come from data created between the baseline and upgraded runs (e.g. the account dropdown list is longer, the ticket shows that run\'s account name), not from rendering differences.',
+  '- `retries: 1` is set because AG Grid row virtualization and the 200 ms account-list debounce can race a fresh backend; the recorded run used `--retries=0`.',
+  '',
 ];
 fs.writeFileSync(path.join(root, 'report', 'README.md'), lines.join('\n'));
 console.log(lines.join('\n'));
