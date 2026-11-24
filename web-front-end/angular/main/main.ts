@@ -1,5 +1,5 @@
 import { enableProdMode, provideZoneChangeDetection } from '@angular/core';
-import { provideHttpClient, withInterceptorsFromDi, withJsonpSupport } from '@angular/common/http';
+import { provideHttpClient, withJsonpSupport } from '@angular/common/http';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 
@@ -14,7 +14,7 @@ if (environment.production) {
 bootstrapApplication(AppComponent, {
     providers: [
         provideZoneChangeDetection(),
-        provideHttpClient(withInterceptorsFromDi(), withJsonpSupport()),
+        provideHttpClient(withJsonpSupport()),
         provideRouter(routes)
     ]
 })
