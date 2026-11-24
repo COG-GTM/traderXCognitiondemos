@@ -62,8 +62,11 @@ test.describe('Account page', () => {
     await expect(page.locator('#new-account')).toHaveValue('');
     await expect(page.getByRole('button', { name: 'Add Account' })).toBeVisible();
 
+    // Both versions keep the same account bound after Reset, so Update on that row again is a no-op; reload first.
+    await gotoApp(page, '/account');
     await scrollAccountsToEnd(page);
     await row.getByRole('button', { name: 'Update' }).click();
+    await expect(page.locator('#new-account')).toHaveValue(name);
     const renamed = `${name} renamed`;
     await page.locator('#new-account').fill(renamed);
     await page.getByRole('button', { name: 'Update Account' }).click();

@@ -21,9 +21,9 @@ Same Playwright specs run against `baseline` (Angular 18, http://localhost:4000)
 | Page / flow | Pixel diff | Side by side |
 | --- | --- | --- |
 | 01-trade | 0.00% | ![01-trade](side-by-side/01-trade.png) |
-| 02-trade-account-dropdown | 0.07% | ![02-trade-account-dropdown](side-by-side/02-trade-account-dropdown.png) |
-| 03-trade-ticket | 0.10% | ![03-trade-ticket](side-by-side/03-trade-ticket.png) |
-| 04-trade-ticket-typeahead | 0.10% | ![04-trade-ticket-typeahead](side-by-side/04-trade-ticket-typeahead.png) |
+| 02-trade-account-dropdown | 0.05% | ![02-trade-account-dropdown](side-by-side/02-trade-account-dropdown.png) |
+| 03-trade-ticket | 0.17% | ![03-trade-ticket](side-by-side/03-trade-ticket.png) |
+| 04-trade-ticket-typeahead | 0.17% | ![04-trade-ticket-typeahead](side-by-side/04-trade-ticket-typeahead.png) |
 | 05-account | 0.00% | ![05-account](side-by-side/05-account.png) |
 | 06-account-users | 0.00% | ![06-account-users](side-by-side/06-account-users.png) |
 | 07-not-found | 0.00% | ![07-not-found](side-by-side/07-not-found.png) |
