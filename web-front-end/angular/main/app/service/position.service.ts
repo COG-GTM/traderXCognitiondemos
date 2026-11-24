@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, retry, tap } from 'rxjs/operators';
@@ -9,9 +9,10 @@ import { environment } from 'main/environments/environment';
     providedIn: 'root'
 })
 export class PositionService {
+    private http = inject(HttpClient);
+
     private tradesUrl = `${environment.positionsUrl}/trades/`;
     private positionsUrl = `${environment.positionsUrl}/positions/`;
-    constructor(private http: HttpClient) { }
 
     getTrades(account_id: number): Observable<Trade[]> {
         return this.http.get<Trade[]>(this.tradesUrl + account_id ).pipe(

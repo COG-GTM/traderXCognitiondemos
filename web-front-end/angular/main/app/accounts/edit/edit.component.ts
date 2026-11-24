@@ -1,14 +1,19 @@
-import { Component, Output, EventEmitter, Input } from '@angular/core';
+import { Component, Input, inject, output } from '@angular/core';
 import { Account } from 'main/app/model/account.model';
 import { AccountService } from 'main/app/service/account.service';
+import { FormsModule } from '@angular/forms';
+import { AlertComponent } from 'ngx-bootstrap/alert';
 
 @Component({
     selector: 'app-edit-account',
     templateUrl: 'edit.component.html',
-    styleUrls: ['edit.component.scss']
+    styleUrls: ['edit.component.scss'],
+    imports: [FormsModule, AlertComponent]
 })
 export class EditAccountComponent {
-    @Output() update = new EventEmitter<Account>();
+    private accountService = inject(AccountService);
+
+    readonly update = output<Account>();
     _account?: Account;
     @Input() set account(ac: Account | undefined) {
         this._account = ac;
@@ -21,8 +26,6 @@ export class EditAccountComponent {
     }
     displayName?: string = undefined;
     accountResponse: any;
-
-    constructor(private accountService: AccountService) { }
 
     add() {
         if (!this.displayName?.trim()) {

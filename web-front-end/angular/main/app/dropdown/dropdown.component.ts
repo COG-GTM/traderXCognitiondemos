@@ -1,18 +1,21 @@
-import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
+import { Component, Input, OnInit, input, output } from "@angular/core";
+import { BsDropdownDirective, BsDropdownToggleDirective, BsDropdownMenuDirective } from "ngx-bootstrap/dropdown";
+import { NgClass } from "@angular/common";
 
 let id = 0;
 
 @Component({
     selector: 'app-ngx-dropdown',
-    templateUrl: './dropdown.component.html'
+    templateUrl: './dropdown.component.html',
+    imports: [BsDropdownDirective, BsDropdownToggleDirective, BsDropdownMenuDirective, NgClass]
 })
 export class DropdownComponent implements OnInit {
-    @Input() items: any[];
-    @Input() itemKey: string = 'label';
-    @Input() selectedItem: any;
+    readonly items = input<any[]>();
+    readonly itemKey = input<string>('label');
+    readonly selectedItem = input<any>();
     @Input() selectionComparator: (src: any, target: any) => boolean;
-    @Output() selectedItemChange = new EventEmitter();
-    @Input() placeholder: string = "Please select an item";
+    readonly selectedItemChange = output<any>();
+    readonly placeholder = input<string>("Please select an item");
     drpId: string;
     drpBtnId: string;
 
@@ -26,7 +29,7 @@ export class DropdownComponent implements OnInit {
     defaultComparator = (src: any, target: any) => src === target;
 
     onItemClick(item: any) {
-        if (!this.selectionComparator(this.selectedItem, item)) {
+        if (!this.selectionComparator(this.selectedItem(), item)) {
             this.selectedItemChange.emit(item);
         }
     }

@@ -9,7 +9,7 @@ import { MockAccountService, MockSymbolService, accounts } from '../test-utils/m
 import { SymbolService } from '../service/symbols.service';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { TradeTicket, Side } from '../model/trade.model';
-import { DropdownModule } from '../dropdown/dropdown.module';
+import { DropdownComponent } from '../dropdown/dropdown.component';
 
 describe('TradeComponent', () => {
     let component: TradeComponent;
@@ -17,27 +17,25 @@ describe('TradeComponent', () => {
 
     beforeEach(async () => {
         await TestBed.configureTestingModule({
-            declarations: [
-                TradeComponent
-            ],
-            imports: [
-                FormsModule,
-                DropdownModule,
-                ModalModule.forRoot(),
-                AlertModule.forRoot()
-            ],
-            providers: [
-                {
-                    provide: AccountService,
-                    useClass: MockAccountService
-                },
-                {
-                    provide: SymbolService,
-                    useClass: MockSymbolService
-                }
-            ],
-            schemas: [CUSTOM_ELEMENTS_SCHEMA]
-        }).compileComponents();
+    imports: [
+        FormsModule,
+        DropdownComponent,
+        ModalModule,
+        AlertModule,
+        TradeComponent
+    ],
+    providers: [
+        {
+            provide: AccountService,
+            useClass: MockAccountService
+        },
+        {
+            provide: SymbolService,
+            useClass: MockSymbolService
+        }
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+}).compileComponents();
     });
 
     beforeEach(() => {
@@ -69,13 +67,13 @@ describe('TradeComponent', () => {
         spyOn((component as any).symbolService, 'getStocks').and.callThrough();
         component.ngOnInit();
         expect((component as any).accountService.getAccounts).toHaveBeenCalled();
-        expect(component.accounts.length).toEqual(5);
+        expect(component.accounts().length).toEqual(5);
         expect((component as any).symbolService.getStocks).toHaveBeenCalled();
-        expect(component.stocks.length).toEqual(5);
+        expect(component.stocks().length).toEqual(5);
     });
 
     it('should open and close ticket on click', async () => {
-        component.accountModel = accounts[0];
+        component.accountModel.set(accounts[0]);
         spyOn(component, 'openTicket');
         spyOn(component, 'closeTicket');
         fixture.nativeElement.querySelector('#createTicketBtn').click();

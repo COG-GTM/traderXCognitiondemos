@@ -1,28 +1,42 @@
 import { ColDef, GridApi, GridReadyEvent, Module } from 'ag-grid-community';
-import { Component, OnInit } from '@angular/core';
-import { AgGridModule } from 'ag-grid-angular';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Component, ErrorHandler, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { AgGridModule, AgGridAngular } from 'ag-grid-angular';
+import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
 import { AccountService } from '../service/account.service';
 import { Account } from '../model/account.model';
-import { debounceTime, map, switchMap } from 'rxjs/operators';
+import { catchError, debounceTime, map, switchMap } from 'rxjs/operators';
 import { ButtonCellRendererComponent } from './button-renderer.component';
-import { AccountUser, User } from '../model/user.model';
 import { UserService } from '../service/user.service';
+import { EditAccountComponent } from './edit/edit.component';
+import { AssignUserToAccountComponent } from './user/assign-user.component';
 
 @Component({
     selector: 'app-account',
     templateUrl: 'account.component.html',
-    styleUrls: ['account.component.scss']
+    styleUrls: ['account.component.scss'],
+    imports: [EditAccountComponent, AgGridAngular, AssignUserToAccountComponent]
 })
-export class AccountComponent implements OnInit {
+export class AccountComponent {
+    private accountService = inject(AccountService);
+    private errorHandler = inject(ErrorHandler);
+
     private gridApi!: GridApi;
 
-    accounts$: Observable<Account[]>;
-    users$: Observable<AccountUser[]>;
-    accountBehaviorSubject = new BehaviorSubject(0);
+    accountBehaviorSubject = new BehaviorSubject<number | undefined>(0);
     accountAddAction$ = this.accountBehaviorSubject.asObservable();
-    selectedAccount?: Account = undefined;
-    accountToBeUpdate?: Account = undefined;
+    readonly accounts = toSignal(this.accountAddAction$.pipe(
+        debounceTime(200),
+        switchMap(() => this.reportErrors(this.accountService.getAccounts()))
+    ), { initialValue: null });
+    readonly users = toSignal(this.accountAddAction$.pipe(
+        debounceTime(200),
+        switchMap((accountId) => this.reportErrors(this.accountService.getAccountUsers().pipe(
+            map((users) => users.filter((user) => user.accountId === accountId))
+        )))
+    ), { initialValue: null });
+    readonly selectedAccount = signal<Account | undefined>(undefined);
+    readonly accountToBeUpdate = signal<Account | undefined>(undefined);
     columnDefs: ColDef[] = [
         {
             field: 'id',
@@ -36,7 +50,7 @@ export class AccountComponent implements OnInit {
             headerName: 'Update',
             cellRenderer: 'btnCellRenderer',
             cellRendererParams: {
-                clicked: (account: Account) => this.accountToBeUpdate = account
+                clicked: (account: Account) => this.accountToBeUpdate.set(account)
             },
             flex: 1
         }
@@ -57,34 +71,25 @@ export class AccountComponent implements OnInit {
         btnCellRenderer: ButtonCellRendererComponent
     };
 
-    constructor(private accountService: AccountService) { }
-
-    ngOnInit() {
-        this.accounts$ = this.accountAddAction$.pipe(
-            debounceTime(200),
-            switchMap(() => this.accountService.getAccounts())
-        );
-
-        this.users$ = this.accountAddAction$.pipe(
-            debounceTime(200),
-            switchMap((accountId) => this.accountService.getAccountUsers().pipe(
-                map((users) => users.filter((user) => user.accountId === accountId))
-            ))
-        );
-    }
-
-    onUpdate(account: Account) {
+    onUpdate(account?: Account) {
         this.accountBehaviorSubject.next(account?.id);
-        this.selectedAccount = account;
+        this.selectedAccount.set(account);
     }
 
     onSelectionChanged() {
         const selectedRows = this.gridApi.getSelectedRows() as Account[];
-        this.selectedAccount = selectedRows[0];
+        this.selectedAccount.set(selectedRows[0]);
         this.accountBehaviorSubject.next(selectedRows[0].id);
     }
 
     onGridReady(params: GridReadyEvent) {
         this.gridApi = params.api;
+    }
+
+    private reportErrors<T>(source: Observable<T>): Observable<T> {
+        return source.pipe(catchError((err) => {
+            this.errorHandler.handleError(err);
+            return EMPTY;
+        }));
     }
 }

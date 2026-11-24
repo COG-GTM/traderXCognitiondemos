@@ -14,18 +14,18 @@ describe('Account add/update tests', () => {
   beforeEach(
     waitForAsync(() => {
       TestBed.configureTestingModule({
-        declarations: [EditAccountComponent],
-        imports: [
-            AlertModule.forRoot(),
-            FormsModule
-        ],
-        providers: [
-          {
+    imports: [
+        AlertModule,
+        FormsModule,
+        EditAccountComponent
+    ],
+    providers: [
+        {
             provide: AccountService,
             useClass: MockAccountService
-          }
-        ]
-      }).compileComponents();
+        }
+    ]
+}).compileComponents();
     })
   );
 

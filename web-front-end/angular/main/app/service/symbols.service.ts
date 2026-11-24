@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Stock } from '../model/symbol.model';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
@@ -10,9 +10,10 @@ import { environment } from 'main/environments/environment';
     providedIn: 'root'
 })
 export class SymbolService {
+    private http = inject(HttpClient);
+
     private stocksUrl = `${environment.refrenceDataUrl}/stocks`;
     private createTicketUrl = `${environment.tradesUrl}`;
-    constructor(private http: HttpClient) { }
 
     getStocks(): Observable<Stock[]> {
         return this.http.get<Stock[]>(this.stocksUrl).pipe(

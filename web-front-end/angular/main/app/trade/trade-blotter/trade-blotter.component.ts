@@ -1,18 +1,23 @@
 import { ColDef, GridApi, GridReadyEvent, GetRowIdParams } from 'ag-grid-community';
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { Component, OnChanges, OnDestroy, SimpleChanges, inject, input } from '@angular/core';
 import { Account } from 'main/app/model/account.model';
 import { PositionService } from 'main/app/service/position.service';
 import { Observable } from 'rxjs';
 import { Trade } from '../../model/trade.model';
 import { TradeFeedService } from 'main/app/service/trade-feed.service';
+import { AgGridAngular } from 'ag-grid-angular';
 
 @Component({
     selector: 'app-trade-blotter',
-    templateUrl: 'trade-blotter.component.html'
+    templateUrl: 'trade-blotter.component.html',
+    imports: [AgGridAngular]
 })
 export class TradeBlotterComponent implements OnChanges, OnDestroy {
+    private tradeFeed = inject(TradeFeedService);
+    private tradeService = inject(PositionService);
+
     trades$: Observable<Trade[]>;
-    @Input() account?: Account;
+    readonly account = input<Account>();
     trades: Trade[] = [];
     gridApi: GridApi;
     pendingTrades: Trade[] = [];
@@ -37,8 +42,6 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
             enableCellChangeFlash: true
         }
     ];
-
-    constructor(private tradeFeed: TradeFeedService, private tradeService: PositionService) { }
 
     ngOnChanges(change: SimpleChanges) {
         if (change.account?.currentValue && change.account.currentValue !== change.account.previousValue) {

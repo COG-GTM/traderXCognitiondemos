@@ -1,31 +1,37 @@
 import { catchError } from 'rxjs/operators';
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, Input, OnInit, inject, input, output } from '@angular/core';
 import { Account } from 'main/app/model/account.model';
 import { User } from 'main/app/model/user.model';
 import { AccountService } from 'main/app/service/account.service';
 import { UserService } from 'main/app/service/user.service';
-import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
+import { TypeaheadMatch, TypeaheadDirective } from 'ngx-bootstrap/typeahead';
 import { map, noop, Observable, Observer, of, switchMap, tap } from 'rxjs';
+import { FormsModule } from '@angular/forms';
+import { DropdownComponent } from '../../dropdown/dropdown.component';
+import { AlertComponent } from 'ngx-bootstrap/alert';
 
 @Component({
     selector: 'app-assign-user',
-    templateUrl: 'assign-user.component.html'
+    templateUrl: 'assign-user.component.html',
+    imports: [FormsModule, TypeaheadDirective, DropdownComponent, AlertComponent]
 })
 export class AssignUserToAccountComponent implements OnInit {
-    @Input() accounts: any = [];
+    private userService = inject(UserService);
+    private accountService = inject(AccountService);
+
+    readonly accounts = input<any>([]);
     @Input() account?: Account = undefined;
     users$: Observable<User[]>;
     user?: User = undefined;
     search?: string = undefined;
     addUserResponse: any;
-    @Output() update = new EventEmitter<Account>();
-    constructor(private userService: UserService, private accountService: AccountService) { }
+    readonly update = output<Account | undefined>();
 
     ngOnInit(): void {
         this.users$ = new Observable((observer: Observer<string | undefined>) => {
             observer.next(this.search as string | undefined);
         }).pipe(
-            switchMap<string, Observable<User[]>>((query: string) => {
+            switchMap<string | undefined, Observable<User[]>>((query: string | undefined) => {
                 if (query && query.length > 2) {
                     return this.userService.getUsers(query).pipe(
                         map((data: User[]) => data || []),

@@ -11,21 +11,21 @@ describe('PositionBlotterComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [PositionBlotterComponent],
-      imports: [
-        AgGridModule
-      ],
-      providers: [
+    imports: [
+        AgGridModule,
+        PositionBlotterComponent
+    ],
+    providers: [
         {
-          provide: PositionService,
-          useClass: MockTradeService
+            provide: PositionService,
+            useClass: MockTradeService
         },
         {
-          provide: TradeFeedService,
-          useClass: MockTradeFeedService
+            provide: TradeFeedService,
+            useClass: MockTradeFeedService
         }
-      ]
-    })
+    ]
+})
       .compileComponents();
   });
 
