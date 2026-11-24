@@ -51,14 +51,15 @@ export class AssignUserToAccountComponent implements OnInit {
     }
 
     add() {
-        const account = this.account;
-        if (!this.user || !account) {
+        if (!this.user || !this.account) {
             return;
         }
-        const accountUser = { username: this.user.logonId, accountId: account.id };
+        const accountUser = { username: this.user.logonId, accountId: this.account.id };
         this.accountService.addAccountUser(accountUser).subscribe(() => {
             this.addUserResponse = { success: true, msg: 'User added successfully!' };
-            this.update.emit(account);
+            if (this.account) {
+                this.update.emit(this.account);
+            }
             this.reset(true);
         }, (err) => {
             this.addUserResponse = { error: true, msg: 'There is some error!' };
